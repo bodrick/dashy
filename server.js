@@ -66,7 +66,7 @@ const printWarning = (msg, error) => {
 };
 
 /* A middleware function for Connect, that filters requests based on method type */
-const method = (m, mw) => (req, res, next) => (req.method === m ? mw(req, res, next) : next());
+const method = (m, mw) => (req, res, next) => req.method === m ? mw(req, res, next) : next();
 
 const app = express()
   // Load SSL redirection middleware
@@ -88,21 +88,28 @@ const app = express()
     }
   })
   // POST Endpoint used to save config, by writing conf.yml to disk
-  .use(ENDPOINTS.save, method('POST', (req, res) => {
-    try {
-      saveConfig(req.body, (results) => { res.end(results); });
-    } catch (e) {
-      printWarning('Error writing config file to disk', e);
-      res.end(JSON.stringify({ success: false, message: e }));
-    }
-  }))
+  .use(
+    ENDPOINTS.save,
+    method('POST', (req, res) => {
+      try {
+        saveConfig(req.body, (results) => {
+          res.end(results);
+        });
+      } catch (e) {
+        printWarning('Error writing config file to disk', e);
+        res.end(JSON.stringify({ success: false, message: e }));
+      }
+    })
+  )
   // GET endpoint to trigger a build, and respond with success status and output
   .use(ENDPOINTS.rebuild, (req, res) => {
-    rebuild().then((response) => {
-      res.end(JSON.stringify(response));
-    }).catch((response) => {
-      res.end(JSON.stringify(response));
-    });
+    rebuild()
+      .then((response) => {
+        res.end(JSON.stringify(response));
+      })
+      .catch((response) => {
+        res.end(JSON.stringify(response));
+      });
   })
   // GET endpoint to return system info, for widget
   .use(ENDPOINTS.systemInfo, (req, res) => {
@@ -124,12 +131,13 @@ const app = express()
   });
 
 /* Create HTTP server from app on port, and print welcome message */
-http.createServer(app)
+http
+  .createServer(app)
   .listen(port, host, () => {
     printWelcomeMessage();
   })
   .on('error', (err) => {
-    printWarning('Unable to start Dashy\'s Node server', err);
+    printWarning("Unable to start Dashy's Node server", err);
   });
 
 /* Check, and if possible start SSL server too */

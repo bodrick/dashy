@@ -20,20 +20,17 @@ const publicPath = process.env.BASE_URL || '/';
 const integrity = process.env.INTEGRITY === 'true';
 
 // Format for progress bar, shown while app building
-const progressFormat = '\x1b[1m\x1b[36mBuilding Dashy\x1b[0m '
-  + '[\x1b[1m\x1b[32m:bar\x1b[0m] :percent (:elapsed seconds)';
+const progressFormat =
+  '\x1b[1m\x1b[36mBuilding Dashy\x1b[0m ' +
+  '[\x1b[1m\x1b[32m:bar\x1b[0m] :percent (:elapsed seconds)';
 
 // Webpack Config
 const configureWebpack = {
   mode,
   module: {
-    rules: [
-      { test: /.svg$/, loader: 'vue-svg-loader' },
-    ],
+    rules: [{ test: /.svg$/, loader: 'vue-svg-loader' }],
   },
-  plugins: [
-    new ProgressBarPlugin({ format: progressFormat }),
-  ],
+  plugins: [new ProgressBarPlugin({ format: progressFormat })],
 };
 
 // Application pages
