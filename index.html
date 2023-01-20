@@ -11,6 +11,7 @@
   <link rel="stylesheet" type="text/css" href="/loading-screen.css" />
   <!-- Default Page Title -->
   <title>Dashy</title>
+  <script src="/src/error.js"></script>
 </head>
 
 <body>
@@ -41,12 +42,12 @@
   </noscript>
 
   <!-- Show error message if app not mounted within reasonable time frame -->
-  <script>
+  <!-- <script>
     setTimeout(() => {
       const loaderElem = document.getElementById('loader');
       if (loaderElem) loaderElem.classList.add('still-not-loaded');
     }, 7500);
-  </script>
+  </script> -->
   <script type="module" src="/src/main.js"></script>
 </body>
 </html>

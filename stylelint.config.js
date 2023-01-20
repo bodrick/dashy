@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prefer-module */
 module.exports = {
   extends: [
     'stylelint-config-standard-scss',

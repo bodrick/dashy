@@ -1,0 +1,50 @@
+/* width */
+*::-webkit-scrollbar {
+    width: 15px !important;
+    max-height: 3px !important;
+    max-width: 15px !important;
+}
+
+/* Track */
+*::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 3px lightgrey !important;
+    border-radius: 7px !important;
+}
+
+/* Handle */
+*::-webkit-scrollbar-thumb {
+    background: lightgrey !important;
+    border-radius: 10px !important;
+}
+
+/* Handle on hover */
+*::-webkit-scrollbar-thumb:hover {
+    background: black !important;
+    box-shadow: inset 0 0 2px brown !important;
+}
+
+pre.CodeMirror-line {
+    height: 40px;
+}
+
+div.CodeMirror-sizer {
+    height: 40px;
+}
+
+/* Adjust as desired */
+
+*::-webkit-scrollbar {
+    all: initial !important;
+    width: 15px !important;
+    background: #d8d8d8 !important;
+}
+*::-webkit-scrollbar-thumb {
+    all: initial !important;
+    background: #7c7c7c !important;
+}
+
+*::-webkit-scrollbar-button { all: initial !important; }
+*::-webkit-scrollbar-track { all: initial !important; }
+*::-webkit-scrollbar-track-piece { all: initial !important; }
+*::-webkit-scrollbar-corner { all: initial !important; }
+*::-webkit-resizer { all: initial !important; }

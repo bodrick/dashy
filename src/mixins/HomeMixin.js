@@ -2,7 +2,7 @@
  * Mixin for all homepages (default home, minimal home, workspace, etc)
  */
 
-import Defaults, { localStorageKeys, iconCdns } from '@/utils/defaults';
+import { localStorageKeys, iconCdns, fontAwesomeKey } from '@/utils/defaults';
 import Keys from '@/utils/StoreMutations';
 import { searchTiles } from '@/utils/Search';
 import { checkItemVisibility } from '@/utils/CheckItemVisibility';
@@ -29,7 +29,7 @@ const HomeMixin = {
       return this.$store.state.modalOpen;
     },
     pageId() {
-      return (this.subPageInfo && this.subPageInfo.pageId) ? this.subPageInfo.pageId : 'home';
+      return this.subPageInfo && this.subPageInfo.pageId ? this.subPageInfo.pageId : 'home';
     },
   },
   data: () => ({
@@ -47,9 +47,11 @@ const HomeMixin = {
   methods: {
     async getConfigForRoute() {
       this.$store.commit(Keys.SET_CURRENT_SUB_PAGE, this.subPageInfo);
-      if (this.subPageInfo && this.subPageInfo.confPath) { // Get config for sub-page
+      if (this.subPageInfo && this.subPageInfo.confPath) {
+        // Get config for sub-page
         await this.$store.dispatch(Keys.INITIALIZE_MULTI_PAGE_CONFIG, this.subPageInfo.confPath);
-      } else { // Otherwise, use main config
+      } else {
+        // Otherwise, use main config
         this.$store.commit(Keys.USE_MAIN_CONFIG);
       }
     },
@@ -114,7 +116,7 @@ const HomeMixin = {
     initiateFontAwesome() {
       if (this.checkIfFontAwesomeNeeded()) {
         const fontAwesomeScript = document.createElement('script');
-        const faKey = this.appConfig.fontAwesomeKey || Defaults.fontAwesomeKey;
+        const faKey = this.appConfig.fontAwesomeKey || fontAwesomeKey;
         fontAwesomeScript.setAttribute('src', `${iconCdns.fa}/${faKey}.js`);
         document.head.appendChild(fontAwesomeScript);
       }
