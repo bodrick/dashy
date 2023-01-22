@@ -22,7 +22,7 @@ import ErrorHandler from '@/utils/ErrorHandler';
 import conf from '@/conf.yml';
 
 if (!conf) {
-  ErrorHandler('You\'ve not got any data in your config file yet.');
+  ErrorHandler("You've not got any data in your config file yet.");
 }
 
 // Assign top-level config fields, check not null
@@ -39,7 +39,7 @@ const isAuthenticated = () => {
   const authEnabled = isAuthEnabled();
   const userLoggedIn = isLoggedIn();
   const guestEnabled = isGuestAccessEnabled();
-  return (!authEnabled || userLoggedIn || guestEnabled);
+  return !authEnabled || userLoggedIn || guestEnabled;
 };
 
 /* Get the users chosen starting view from app config, or return default */
@@ -52,9 +52,12 @@ const getStartingView = () => appConfig.startingView || startingView;
 const getStartingComponent = () => {
   const usersPreference = getStartingView();
   switch (usersPreference) {
-    case 'minimal': return () => import('./views/Minimal.vue');
-    case 'workspace': return () => import('./views/Workspace.vue');
-    default: return Home;
+    case 'minimal':
+      return () => import('./views/Minimal.vue');
+    case 'workspace':
+      return () => import('./views/Workspace.vue');
+    default:
+      return Home;
   }
 };
 
@@ -66,8 +69,7 @@ const makeMetaTags = (defaultTitle) => ({
 
 const makeSubConfigPath = (rawPath) => {
   if (!rawPath) return '';
-  if (rawPath.startsWith('/') || rawPath.startsWith('http')) return rawPath;
-  else return `/${rawPath}`;
+  return rawPath.startsWith('/') || rawPath.startsWith('http') ? rawPath : `/${rawPath}`;
 };
 
 /* For each additional config file, create routes for home, minimal and workspace views */
@@ -76,8 +78,9 @@ const makeMultiPageRoutes = (userPages) => {
   if (!userPages || !Array.isArray(userPages)) return [];
   const multiPageRoutes = [];
   // For each user page, create an additional route
-  userPages.forEach((page) => {
-    if (!page.name || !page.path) { // Sumin not right, show warning
+  for (const page of userPages) {
+    if (!page.name || !page.path) {
+      // Something not right, show warning
       ErrorHandler('Additional pages must have both a `name` and `path`');
     }
     // Props to be passed to home mixin
@@ -109,7 +112,7 @@ const makeMultiPageRoutes = (userPages) => {
       component: () => import('./views/Minimal.vue'),
       props: subPageInfo,
     });
-  });
+  }
   return multiPageRoutes;
 };
 
@@ -121,37 +124,43 @@ const router = new Router({
   mode,
   routes: [
     ...makeMultiPageRoutes(pages),
-    { // The default view can be customized by the user
+    {
+      // The default view can be customized by the user
       path: '/',
       name: `landing-page-${getStartingView()}`,
       component: getStartingComponent(),
       meta: makeMetaTags('Home Page'),
     },
-    { // Default home page
+    {
+      // Default home page
       path: routePaths.home,
       name: 'home',
       component: Home,
       meta: makeMetaTags('Home Page'),
     },
-    { // View only single section
+    {
+      // View only single section
       path: `${routePaths.home}/:section`,
       name: 'home-section',
       component: Home,
       meta: makeMetaTags('Home Page'),
     },
-    { // Workspace view page
+    {
+      // Workspace view page
       path: routePaths.workspace,
       name: 'workspace',
       component: () => import('./views/Workspace.vue'),
       meta: makeMetaTags('Workspace'),
     },
-    { // Minimal view page
+    {
+      // Minimal view page
       path: routePaths.minimal,
       name: 'minimal',
       component: () => import('./views/Minimal.vue'),
       meta: makeMetaTags('Start Page'),
     },
-    { // The login page
+    {
+      // The login page
       path: routePaths.login,
       name: 'login',
       component: () => import('./views/Login.vue'),
@@ -161,31 +170,36 @@ const router = new Router({
         next();
       },
     },
-    { // The about app page
+    {
+      // The about app page
       path: routePaths.about,
       name: 'about', // We lazy load the About page so as to not slow down the app
       component: () => import('./views/About.vue'),
       meta: makeMetaTags('About Dashy'),
     },
-    { // The export config page
+    {
+      // The export config page
       path: routePaths.download,
       name: 'download',
       component: () => import('./views/DownloadConfig.vue'),
       meta: makeMetaTags('Download Config'),
     },
-    { // Page not found, any non-defined routes will land here
+    {
+      // Page not found, any non-defined routes will land here
       path: routePaths.notFound,
       name: '404',
       component: () => import('./views/404.vue'),
       meta: makeMetaTags('404 Not Found'),
       beforeEnter: (to, from, next) => {
-        if (to.redirectedFrom) { // Log error, if redirected here from another route
+        if (to.redirectedFrom) {
+          // Log error, if redirected here from another route
           ErrorHandler(`Route not found: '${to.redirectedFrom}'`);
         }
         next();
       },
     },
-    { // Redirect any not-found routed to the 404 view
+    {
+      // Redirect any not-found routed to the 404 view
       path: '*',
       redirect: '/404',
     },

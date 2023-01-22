@@ -3,7 +3,7 @@
     <!-- Add raw custom CSS -->
     <div class="style-section css-wrapper">
       <h3>Custom CSS</h3>
-      <textarea class="css-editor" v-model="customCss" />
+      <textarea v-model="customCss" class="css-editor" />
       <Button class="save-button" :click="save">{{ $t('config.css-save-btn') }}</Button>
       <p class="quick-note">
         <b>{{ $t('config.css-note-label') }}:</b>
@@ -13,17 +13,16 @@
     <!-- Theme Selector -->
     <div class="style-section base-theme-wrapper">
       <h3>Base Theme</h3>
-      <ThemeSelector :hidePallete="true" />
+      <ThemeSelector :hide-palette="true" />
     </div>
     <!-- UI color configurator -->
     <div class="style-section">
-      <CustomThemeMaker :themeToEdit="currentTheme" class="color-config" />
+      <CustomThemeMaker :theme-to-edit="currentTheme" class="color-config" />
     </div>
   </div>
 </template>
 
 <script>
-
 import CustomThemeMaker from '@/components/Settings/CustomThemeMaker';
 import ThemeSelector from '@/components/Settings/ThemeSelector';
 import Button from '@/components/FormElements/Button';
@@ -37,6 +36,11 @@ export default {
     ThemeSelector,
     CustomThemeMaker,
   },
+  data() {
+    return {
+      customCss: '',
+    };
+  },
   computed: {
     appConfig() {
       return this.$store.getters.appConfig;
@@ -44,11 +48,6 @@ export default {
     currentTheme() {
       return this.appConfig.theme || defaultTheme;
     },
-  },
-  data() {
-    return {
-      customCss: '',
-    };
   },
   mounted() {
     // Get existing custom styles (if present) from appConfig
@@ -79,7 +78,9 @@ export default {
     },
     /* Reload the page (only called if removing styles) */
     reloadPage() {
-      setTimeout(() => { location.reload(); }, 1500); // eslint-disable-line no-restricted-globals
+      setTimeout(() => {
+        location.reload();
+      }, 1500);
     },
     /* Show success toast and lot update */
     showSuccessMsg() {
@@ -90,7 +91,6 @@ export default {
 </script>
 
 <style lang="scss">
-
 // Main layout
 div.css-editor-outer {
   text-align: center;
@@ -100,7 +100,11 @@ div.css-editor-outer {
 
   .style-section {
     padding: 1rem;
-    &:not(:last-child) { border-bottom: 1px dashed var(--config-settings-color); }
+
+    &:not(:last-child) {
+      border-bottom: 1px dashed var(--config-settings-color);
+    }
+
     h3 {
       font-size: 1.4rem;
       margin: 0.5rem 0 0.2rem;
@@ -118,6 +122,7 @@ button.save-button {
   background: var(--config-settings-background);
   color: var(--config-settings-color);
   border: 1px solid var(--config-settings-color);
+
   &:hover:not(:disabled) {
     background: var(--config-settings-color);
     color: var(--config-settings-background);
@@ -138,8 +143,9 @@ button.save-button {
   border-radius: var(--curve-factor);
   background: var(--transparent-50);
   color: var(--config-settings-color);
+
   &:focus {
-    box-shadow: 0 40px 70px -2px rgba(0, 0, 0, 0.6), 1px 1px 6px var(--config-settings-color);
+    box-shadow: 0 40px 70px -2px rgb(0 0 0 / 60%), 1px 1px 6px var(--config-settings-color);
   }
 }
 
@@ -159,6 +165,7 @@ p.quick-note {
   span.theme-label {
     display: none;
   }
+
   div.vs__dropdown-toggle {
     border-color: var(--config-settings-color);
     min-width: 16rem;
@@ -167,12 +174,14 @@ p.quick-note {
     font-size: 1rem;
     margin: 0.5rem;
   }
+
   ul.vs__dropdown-menu {
     min-width: 16rem;
     max-width: 32rem;
     background: var(--config-settings-background);
     border-top: 1px solid var(--config-settings-color);
   }
+
   li.vs__dropdown-option--highlight {
     background: var(--config-settings-color);
     color: var(--config-settings-background);
@@ -191,16 +200,18 @@ p.quick-note {
   right: 0;
   top: 0;
   max-height: unset;
+
   .color-row-container {
     text-align: left;
     max-height: unset;
   }
+
   .misc-input {
     width: 6rem;
   }
+
   .misc-input.long-input {
     width: 18rem;
   }
 }
-
 </style>

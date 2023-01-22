@@ -2,13 +2,13 @@
   <div class="work-space">
     <SideBar
       :sections="sections"
+      :init-url="getInitialUrl()"
       @launch-app="launchApp"
       @launch-widget="launchWidget"
-      :initUrl="getInitialUrl()"
     />
-    <WebContent :url="url" v-if="!isMultiTaskingEnabled" />
-    <MultiTaskingWebComtent :url="url" v-else />
-    <WidgetView :widgets="widgets" v-if="widgets" />
+    <WebContent v-if="!isMultiTaskingEnabled" :url="url" />
+    <MultiTaskingWebContent v-else :url="url" />
+    <WidgetView v-if="widgets" :widgets="widgets" />
   </div>
 </template>
 
@@ -17,12 +17,18 @@ import HomeMixin from '@/mixins/HomeMixin';
 import SideBar from '@/components/Workspace/SideBar';
 import WebContent from '@/components/Workspace/WebContent';
 import WidgetView from '@/components/Workspace/WidgetView';
-import MultiTaskingWebComtent from '@/components/Workspace/MultiTaskingWebComtent';
+import MultiTaskingWebContent from '@/components/Workspace/MultiTaskingWebContent';
 import Defaults from '@/utils/defaults';
 import { GetTheme, ApplyLocalTheme, ApplyCustomVariables } from '@/utils/ThemeHelper';
 
 export default {
   name: 'Workspace',
+  components: {
+    SideBar,
+    WebContent,
+    WidgetView,
+    MultiTaskingWebContent: MultiTaskingWebContent,
+  },
   mixins: [HomeMixin],
   data: () => ({
     url: '',
@@ -42,11 +48,10 @@ export default {
       return this.appConfig.enableMultiTasking || false;
     },
   },
-  components: {
-    SideBar,
-    WebContent,
-    WidgetView,
-    MultiTaskingWebComtent,
+  mounted() {
+    this.setTheme();
+    this.initiateFontAwesome();
+    this.url = this.getInitialUrl();
   },
   methods: {
     launchApp(options) {
@@ -65,7 +70,7 @@ export default {
       const fontAwesomeScript = document.createElement('script');
       const faKey = this.appConfig.fontAwesomeKey || Defaults.fontAwesomeKey;
       fontAwesomeScript.setAttribute('src', `https://kit.fontawesome.com/${faKey}.js`);
-      document.head.appendChild(fontAwesomeScript);
+      document.head.append(fontAwesomeScript);
     },
     /* Returns a service URL, if set as a URL param, or if user has specified landing URL */
     getInitialUrl() {
@@ -75,16 +80,10 @@ export default {
       } else if (this.appConfig.workspaceLandingUrl) {
         return this.appConfig.workspaceLandingUrl;
       }
-      return undefined;
+      return;
     },
   },
-  mounted() {
-    this.setTheme();
-    this.initiateFontAwesome();
-    this.url = this.getInitialUrl();
-  },
 };
-
 </script>
 
 <style scoped lang="scss">

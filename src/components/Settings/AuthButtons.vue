@@ -6,23 +6,26 @@
       <!-- If user logged in, show logout button -->
       <IconLogout
         v-if="userType == userStateEnum.loggedIn"
-        @click="logout()"
         v-tooltip="tooltip($t('settings.sign-out-tooltip'))"
-        class="layout-icon" tabindex="-2"
+        class="layout-icon"
+        tabindex="-2"
+        @click="logout()"
       />
-      <!-- If not logged in, and gues mode enabled, show login button -->
+      <!-- If not logged in, and guest mode enabled, show login button -->
       <IconLogout
         v-if="userType == userStateEnum.guestAccess"
-        @click="goToLogin()"
         v-tooltip="tooltip($t('settings.sign-in-tooltip'))"
-        class="layout-icon" tabindex="-2"
+        class="layout-icon"
+        tabindex="-2"
+        @click="goToLogin()"
       />
       <!-- If user logged in via keycloak, show keycloak logout button -->
       <IconLogout
         v-if="userType == userStateEnum.keycloakEnabled"
-        @click="keycloakLogout()"
         v-tooltip="tooltip($t('settings.sign-out-tooltip'))"
-        class="layout-icon" tabindex="-2"
+        class="layout-icon"
+        tabindex="-2"
+        @click="keycloakLogout()"
       />
     </div>
   </div>
@@ -41,7 +44,10 @@ export default {
     IconLogout,
   },
   props: {
-    userType: Number,
+    userType: {
+      type: Number,
+      default: undefined,
+    },
   },
   data() {
     return {
@@ -70,8 +76,10 @@ export default {
       return { content, trigger: 'hover focus', delay: 250 };
     },
     makeUserGreeting() {
-      if (this.userType === userStateEnum.loggedIn
-        || this.userType === userStateEnum.keycloakEnabled) {
+      if (
+        this.userType === userStateEnum.loggedIn ||
+        this.userType === userStateEnum.keycloakEnabled
+      ) {
         const username = localStorage[localStorageKeys.USERNAME];
         return username ? this.$t('settings.sign-in-welcome', { username }) : '';
       }
@@ -85,7 +93,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '@/styles/style-helpers.scss';
+@import '@/styles/style-helpers';
 
 span.user-type-note {
   color: var(--settings-text-color);
@@ -94,7 +102,7 @@ span.user-type-note {
 
 .display-options {
   @extend .svg-button;
+
   color: var(--settings-text-color);
 }
-
 </style>

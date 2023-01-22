@@ -1,9 +1,14 @@
 <template>
   <modal
-    :name="modalName" @closed="close"
-    :resizable="true" width="40%" height="40%" classes="dashy-modal">
+    :name="modalName"
+    @closed="close"
+    :resizable="true"
+    width="40%"
+    height="40%"
+    classes="dashy-modal"
+  >
     <div class="move-menu-inner" v-if="allowViewConfig">
-    <!-- Title and item ID -->
+      <!-- Title and item ID -->
       <h3 class="move-title">Move or Copy Item</h3>
       <p class="item-id">Editing {{ itemId }}</p>
       <!-- Radio, for move or copy -->

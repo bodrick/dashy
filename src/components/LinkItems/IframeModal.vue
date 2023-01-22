@@ -1,9 +1,15 @@
 <template>
-  <modal :name="name" :resizable="true" width="80%" height="80%" @closed="modalClosed()"
-    classes="dashy-modal">
+  <modal
+    :name="name"
+    :resizable="true"
+    width="80%"
+    height="80%"
+    classes="dashy-modal"
+    @closed="modalClosed()"
+  >
     <div slot="top-right" @click="hide()">Close</div>
-    <a @click="hide()" class="close-button" title="Close">x</a>
-    <iframe v-if="url" :src="url" @keydown.esc="close" class="frame" allow="fullscreen" />
+    <a class="close-button" title="Close" @click="hide()">x</a>
+    <iframe v-if="url" :src="url" class="frame" allow="fullscreen" @keydown.esc="close" />
     <div v-else class="no-url">No URL Specified</div>
   </modal>
 </template>
@@ -14,7 +20,10 @@ import Keys from '@/utils/StoreMutations';
 export default {
   name: 'IframeModal',
   props: {
-    name: String,
+    name: {
+      type: String,
+      default: undefined,
+    },
   },
   data: () => ({
     url: '#',
@@ -36,7 +45,6 @@ export default {
 </script>
 
 <style lang="scss">
-
 .frame {
   width: 100%;
   height: 100%;
@@ -48,7 +56,7 @@ export default {
   width: fit-content;
   font-size: 2rem;
   padding: 0.5rem;
-  border: 1px dashed #ff0000;
+  border: 1px dashed #f00;
   border-radius: 3px;
   background: #f4f2f2;
 }
@@ -64,11 +72,10 @@ export default {
   border-left: 1px solid var(--primary);
   border-bottom: 1px solid var(--primary);
   cursor: pointer;
+
   &:hover {
     background: var(--background);
     color: var(--primary);
   }
-
 }
-
 </style>

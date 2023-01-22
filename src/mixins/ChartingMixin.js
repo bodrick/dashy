@@ -17,7 +17,7 @@ const ChartingMixin = {
       return [cssVars.getPropertyValue('--widget-text-color').trim() || '#7cd6fd'];
     },
     chartId() {
-      return `widget-chart-${Math.round(Math.random() * 10000)}`;
+      return `widget-chart-${Math.round(Math.random() * 10_000)}`;
     },
   },
   data: () => ({

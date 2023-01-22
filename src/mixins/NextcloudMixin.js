@@ -1,7 +1,5 @@
 import { serviceEndpoints } from '@/utils/defaults';
-import {
-  convertBytes, formatNumber, getTimeAgo, timestampToDateTime,
-} from '@/utils/MiscHelpers';
+import { convertBytes, formatNumber, getTimeAgo, timestampToDateTime } from '@/utils/MiscHelpers';
 
 /**
  * Reusable mixin for Nextcloud widgets
@@ -50,8 +48,8 @@ export default {
     /* The user provided Nextcloud password */
     password() {
       if (!this.options.password) this.error('An app-password is required');
-      // reject Nextcloud user passord (enforce 'app-password')
-      if (!/^([a-z0-9]{5}-){4}[a-z0-9]{5}$/i.test(this.options.password)) {
+      // reject Nextcloud user password (enforce 'app-password')
+      if (!/^([\da-z]{5}-){4}[\da-z]{5}$/i.test(this.options.password)) {
         this.error('Please use a Nextcloud app-password, not your login password.');
         return '';
       }
@@ -68,10 +66,10 @@ export default {
     },
     /* TTL for data delivered by the capabilities endpoint, ms */
     capabilitiesTtl() {
-      return (parseInt(this.options.capabilitiesTtl, 10) || 3600) * 1000;
+      return (Number.parseInt(this.options.capabilitiesTtl, 10) || 3600) * 1000;
     },
     proxyReqEndpoint() {
-      const baseUrl = process.env.VUE_APP_DOMAIN || window.location.origin;
+      const baseUrl = import.meta.env.VITE_APP_DOMAIN || window.location.origin;
       return `${baseUrl}${serviceEndpoints.corsProxy}`;
     },
   },
@@ -87,16 +85,15 @@ export default {
           return `${this.hostname}/ocs/v2.php/apps/serverinfo/api/v1/info`;
         case 'notifications':
           return `${this.hostname}/ocs/v2.php/apps/notifications/api/v2/notifications`;
-        case 'capabilities':
         default:
           return `${this.hostname}/ocs/v1.php/cloud/capabilities`;
       }
     },
     /* Helper for widgets to terminate {fetchData} early */
     hasValidCredentials() {
-      return this.validCredentials !== false
-             && this.username.length > 0
-             && this.password.length > 0;
+      return (
+        this.validCredentials !== false && this.username.length > 0 && this.password.length > 0
+      );
     },
     /* Primary handler for every Nextcloud API response */
     validateResponse(response) {
@@ -113,15 +110,15 @@ export default {
         case 401:
           this.validCredentials = false;
           this.error(
-            `Access denied for user ${this.username}.`
-            + ' Note that some Nextcloud widgets only work with an admin user.',
+            `Access denied for user ${this.username}.` +
+              ' Note that some Nextcloud widgets only work with an admin user.'
           );
           break;
         case 429:
           this.validCredentials = false;
           this.error(
-            'The server indicated \'rate-limit reached\' error (HTTP 429).'
-            + ' The server-info API may return this error for incorrect user/password.',
+            "The server indicated 'rate-limit reached' error (HTTP 429)." +
+              ' The server-info API may return this error for incorrect user/password.'
           );
           break;
         case 993:
@@ -129,8 +126,8 @@ export default {
         case 998:
           this.validCredentials = false;
           this.error(
-            'The provided app-password is not permitted to access the requested resource or it has'
-            + ' been revoked, or the username/password combination is incorrect',
+            'The provided app-password is not permitted to access the requested resource or it has' +
+              ' been revoked, or the username/password combination is incorrect'
           );
           break;
         default:
@@ -144,9 +141,10 @@ export default {
     },
     /* Process the capabilities endpoint if {capabilitiesTtl} has expired */
     loadCapabilities() {
-      if ((new Date().getTime()) - this.capabilitiesLastUpdated > this.capabilitiesTtl) {
-        return this.makeRequest(this.endpoint('capabilities'), this.headers)
-          .then(this.processCapabilities);
+      if (Date.now() - this.capabilitiesLastUpdated > this.capabilitiesTtl) {
+        return this.makeRequest(this.endpoint('capabilities'), this.headers).then(
+          this.processCapabilities
+        );
       }
       return Promise.resolve();
     },
@@ -155,12 +153,12 @@ export default {
       const ocdata = this.validateResponse(capResponse);
       const capNotif = ocdata.capabilities?.notifications?.['ocs-endpoints'];
       this.branding = ocdata.capabilities?.theming;
-      this.capabilities.notifications.enabled = !!(capNotif?.length);
+      this.capabilities.notifications.enabled = !!capNotif?.length;
       this.capabilities.notifications.features = capNotif || [];
-      this.capabilities.userStatus = !!(ocdata.capabilities?.user_status?.enabled);
+      this.capabilities.userStatus = !!ocdata.capabilities?.user_status?.enabled;
       this.version.string = ocdata.version?.string;
       this.version.edition = ocdata.version?.edition;
-      this.capabilitiesLastUpdated = new Date().getTime();
+      this.capabilitiesLastUpdated = Date.now();
     },
     /* Shared template helpers */
     getTimeAgo(time) {
@@ -173,19 +171,19 @@ export default {
     convertBytes(bytes, decimals = 2, formatHtml = true) {
       const formatted = convertBytes(bytes, decimals).toString();
       if (!formatHtml) return formatted;
-      const m = formatted.match(/(-?\d+)((\.\d+)?\s(([KMGTPEZY]B|Bytes)))/);
+      const m = formatted.match(/(-?\d+)((\.\d+)?\s(([EGKMPTYZ]B|Bytes)))/);
       return `${m[1]}<span class="decimals">${m[2]}</span>`;
     },
     /* Add additional formatting to {MiscHelpers.formatNumber()} */
     formatNumber(number, decimals = 1, formatHtml = true) {
       const formatted = formatNumber(number, decimals).toString();
       if (!formatHtml) return formatted;
-      const m = formatted.match(/(\d+)((\.\d+)?([KMBT]?))/);
+      const m = formatted.match(/(\d+)((\.\d+)?([BKMT]?))/);
       return `${m[1]}<span class="decimals">${m[2]}</span>`;
     },
     /* Format a number as percentage value */
     formatPercent(number, decimals = 2) {
-      const n = parseFloat(number).toFixed(decimals).split('.');
+      const n = Number.parseFloat(number).toFixed(decimals).split('.');
       const d = n.length > 1 ? `.${n[1]}` : '';
       return `${n[0]}<span class="decimals">${d}%</span>`;
     },
@@ -197,7 +195,9 @@ export default {
     },
     /* Get {colorVar} CSS property value and return as rgba() */
     getColorRgba(colorVar, alpha = 1) {
-      const [r, g, b] = this.getValueFromCss(colorVar).match(/\w\w/g).map(x => parseInt(x, 16));
+      const [r, g, b] = this.getValueFromCss(colorVar)
+        .match(/\w\w/g)
+        .map((x) => Number.parseInt(x, 16));
       return `rgba(${r},${g},${b},${alpha})`;
     },
     /* Translation shorthand with key prefix */

@@ -20,7 +20,7 @@ const WidgetMixin = {
     overrideUpdateInterval: null,
     disableLoader: false, // Prevent ever showing the loader
     updater: null, // Stores interval
-    defaultTimeout: 50000,
+    defaultTimeout: 50_000,
   }),
   /* When component mounted, fetch initial data */
   mounted() {
@@ -37,7 +37,7 @@ const WidgetMixin = {
   },
   computed: {
     proxyReqEndpoint() {
-      const baseUrl = process.env.VUE_APP_DOMAIN || window.location.origin;
+      const baseUrl = import.meta.env.VITE_APP_DOMAIN || window.location.origin;
       return `${baseUrl}${serviceEndpoints.corsProxy}`;
     },
     useProxy() {
@@ -53,9 +53,7 @@ const WidgetMixin = {
       // If set to `true`, then default to 30 seconds
       if (typeof usersInterval === 'boolean') return 30 * 1000;
       // If set to a number, and within valid range, return user choice
-      if (typeof usersInterval === 'number'
-        && usersInterval >= 2
-        && usersInterval <= 7200) {
+      if (typeof usersInterval === 'number' && usersInterval >= 2 && usersInterval <= 7200) {
         return usersInterval * 1000;
       }
       return 0;
@@ -69,7 +67,9 @@ const WidgetMixin = {
     },
     /* If continuous updates enabled, create interval */
     continuousUpdates() {
-      this.updater = setInterval(() => { this.update(); }, this.updateInterval);
+      this.updater = setInterval(() => {
+        this.update();
+      }, this.updateInterval);
     },
     /* Called when an error occurs. Logs to handler, and passes to parent component */
     error(msg, stackTrace) {
@@ -88,7 +88,9 @@ const WidgetMixin = {
     /* When a data request finishes, hide loader */
     finishLoading() {
       this.$emit('loading', false);
-      setTimeout(() => { this.progress.end(); }, 500);
+      setTimeout(() => {
+        this.progress.end();
+      }, 500);
     },
     /* Overridden by child component. Will make network request, then end loader */
     fetchData() {
@@ -97,7 +99,10 @@ const WidgetMixin = {
     /* Used as v-tooltip, pass text content in, and will show on hover */
     tooltip(content, html = false) {
       return {
-        content, html, trigger: 'hover focus', delay: 250,
+        content,
+        html,
+        trigger: 'hover focus',
+        delay: 250,
       };
     },
     /* Makes data request, returns promise */
@@ -108,14 +113,20 @@ const WidgetMixin = {
       const data = JSON.stringify(body || {});
       const CustomHeaders = options || null;
       const headers = this.useProxy
-        ? { 'Target-URL': endpoint, CustomHeaders: JSON.stringify(CustomHeaders) } : CustomHeaders;
+        ? { 'Target-URL': endpoint, CustomHeaders: JSON.stringify(CustomHeaders) }
+        : CustomHeaders;
       const timeout = this.options.timeout || this.defaultTimeout;
       const requestConfig = {
-        method, url, headers, data, timeout,
+        method,
+        url,
+        headers,
+        data,
+        timeout,
       };
       // Make request
       return new Promise((resolve, reject) => {
-        axios.request(requestConfig)
+        axios
+          .request(requestConfig)
           .then((response) => {
             if (response.data.success === false) {
               this.error('Proxy returned error from target server', response.data.message);

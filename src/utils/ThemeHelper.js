@@ -7,20 +7,22 @@ export const GetTheme = () => getTheme();
 
 /* Gets user custom color preferences for current theme, and applies to DOM */
 export const ApplyCustomVariables = (theme) => {
-  mainCssVars.forEach((vName) => { document.documentElement.style.removeProperty(`--${vName}`); });
+  for (const vName of mainCssVars) {
+    document.documentElement.style.removeProperty(`--${vName}`);
+  }
   const themeColors = getCustomColors()[theme];
   if (themeColors) {
-    Object.keys(themeColors).forEach((customVar) => {
+    for (const customVar of Object.keys(themeColors)) {
       document.documentElement.style.setProperty(`--${customVar}`, themeColors[customVar]);
-    });
+    }
   }
 };
 
 /* Sets the theme, by updating data-theme attribute on the html tag */
 export const ApplyLocalTheme = (newTheme) => {
   const htmlTag = document.getElementsByTagName('html')[0];
-  if (htmlTag.hasAttribute('data-theme')) htmlTag.removeAttribute('data-theme');
-  htmlTag.setAttribute('data-theme', newTheme);
+  if (Object.hasOwn(htmlTag.dataset, 'theme')) delete htmlTag.dataset.theme;
+  htmlTag.dataset.theme = newTheme;
 };
 
 /**
@@ -34,9 +36,9 @@ export const LoadExternalTheme = function th() {
     link.rel = 'stylesheet';
     link.type = 'text/css';
     link.href = href;
-    document.head.appendChild(link);
+    document.head.append(link);
     return new Promise((resolve, reject) => {
-      link.onload = e => {
+      link.onload = (e) => {
         const { sheet } = e.target;
         sheet.disabled = true;
         resolve(sheet);
@@ -47,7 +49,7 @@ export const LoadExternalTheme = function th() {
 
   /* Check theme is selected, and it exists */
   const checkTheme = (themes, name) => {
-    if ((!name) || (name !== 'custom' && !themes[name])) {
+    if (!name || (name !== 'custom' && !themes[name])) {
       ErrorHandler(`Theme: '${name || '[not selected]'}' does not exist.`);
       return false;
     }
@@ -57,16 +59,25 @@ export const LoadExternalTheme = function th() {
   /* Disable all but selected theme */
   const selectTheme = (themes, name) => {
     if (checkTheme(themes, name)) {
-      const t = themes; // To avoid ESLint complaining about mutating a param
-      Object.keys(themes).forEach(n => { t[n].disabled = (n !== name); });
+      for (const n of Object.keys(themes)) {
+        themes[n].disabled = n !== name;
+      }
     }
   };
 
   const themes = {};
 
   return {
-    add(name, href) { return preloadTheme(href).then(s => { themes[name] = s; }); },
-    set theme(name) { selectTheme(themes, name); },
-    get theme() { return Object.keys(themes).find(n => !themes[n].disabled); },
+    add(name, href) {
+      return preloadTheme(href).then((s) => {
+        themes[name] = s;
+      });
+    },
+    set theme(name) {
+      selectTheme(themes, name);
+    },
+    get theme() {
+      return Object.keys(themes).find((n) => !themes[n].disabled);
+    },
   };
 };

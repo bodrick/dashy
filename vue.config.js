@@ -7,18 +7,6 @@ const ProgressBarPlugin = require('progress-bar-webpack-plugin');
 // Get app mode: production, development or test
 const mode = process.env.NODE_ENV || 'production';
 
-// Get current version
-process.env.VUE_APP_VERSION = require('./package.json').version;
-
-// Get default info for PWA
-const { pwa } = require('./src/utils/defaults');
-
-// Get base URL
-const publicPath = process.env.BASE_URL || '/';
-
-// Should enable Subresource Integrity (SRI) on link and script tags
-const integrity = process.env.INTEGRITY === 'true';
-
 // Format for progress bar, shown while app building
 const progressFormat =
   '\x1b[1m\x1b[36mBuilding Dashy\x1b[0m ' +

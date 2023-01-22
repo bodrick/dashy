@@ -44,12 +44,10 @@ export default class ConfigAccumulator {
       usersAppConfig = appConfigFile;
     }
     // Some settings have their own local storage keys, apply them here
-    usersAppConfig.layout = localStorage[localStorageKeys.LAYOUT_ORIENTATION]
-      || appConfigFile.layout
-      || defaultLayout;
-    usersAppConfig.iconSize = localStorage[localStorageKeys.ICON_SIZE]
-      || appConfigFile.iconSize
-      || defaultIconSize;
+    usersAppConfig.layout =
+      localStorage[localStorageKeys.LAYOUT_ORIENTATION] || appConfigFile.layout || defaultLayout;
+    usersAppConfig.iconSize =
+      localStorage[localStorageKeys.ICON_SIZE] || appConfigFile.iconSize || defaultIconSize;
     // Don't let users modify users locally
     if (appConfigFile.auth) usersAppConfig.auth = appConfigFile.auth;
     // All done, return final appConfig object
@@ -60,11 +58,13 @@ export default class ConfigAccumulator {
   pageInfo() {
     let localPageInfo = {};
     if (localStorage[localStorageKeys.PAGE_INFO]) {
-      // eslint-disable-next-line brace-style
-      try { localPageInfo = JSON.parse(localStorage[localStorageKeys.PAGE_INFO]); }
-      catch (e) { ErrorHandler('Malformed pageInfo data in local storage'); }
+      try {
+        localPageInfo = JSON.parse(localStorage[localStorageKeys.PAGE_INFO]);
+      } catch {
+        ErrorHandler('Malformed pageInfo data in local storage');
+      }
     }
-    const filePageInfo = (this.conf && this.conf.pageInfo) ? this.conf.pageInfo : {};
+    const filePageInfo = this.conf && this.conf.pageInfo ? this.conf.pageInfo : {};
     return { ...defaultPageInfo, ...filePageInfo, ...localPageInfo };
   }
 
@@ -76,8 +76,8 @@ export default class ConfigAccumulator {
     if (localSections) {
       try {
         const json = JSON.parse(localSections);
-        if (json.length >= 1) sections = json;
-      } catch (e) {
+        if (json.length > 0) sections = json;
+      } catch {
         ErrorHandler('Malformed section data in local storage');
       }
     }
@@ -86,8 +86,7 @@ export default class ConfigAccumulator {
       sections = this.conf ? this.conf.sections || [] : [];
     }
     // Apply a unique ID to each item
-    sections = applyItemId(sections);
-    return sections;
+    return applyItemId(sections);
   }
 
   /* Complete config */

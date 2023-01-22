@@ -1,29 +1,29 @@
 <template>
-  <div :class="`minimal-section-inner ${selected ? 'selected' : ''} ${showAll ? 'show-all': ''}`">
-    <div class="section-items" v-if="items && (selected || showAll)">
-      <template v-for="(item) in items">
+  <div :class="`minimal-section-inner ${selected ? 'selected' : ''} ${showAll ? 'show-all' : ''}`">
+    <div v-if="items && (selected || showAll)" class="section-items">
+      <template v-for="item in items">
         <SubItemGroup
           v-if="item.subItems"
           :key="item.id"
-          :itemId="item.id"
+          :item-id="item.id"
           :title="item.title"
-          :subItems="item.subItems"
+          :sub-items="item.subItems"
           @triggerModal="triggerModal"
         />
         <Item
           v-else
-          :item="item"
           :key="item.id"
-          :itemSize="itemSize"
-          :parentSectionTitle="title"
+          :item="item"
+          :item-size="itemSize"
+          :parent-section-title="title"
+          :is-add-new="false"
+          :section-display-data="displayData"
           @itemClicked="$emit('itemClicked')"
           @triggerModal="triggerModal"
-          :isAddNew="false"
-          :sectionDisplayData="displayData"
         />
       </template>
     </div>
-    <div v-if="widgets && (selected && !showAll)" class="minimal-widget-wrap">
+    <div v-if="widgets && selected && !showAll" class="minimal-widget-wrap">
       <WidgetBase
         v-for="(widget, widgetIndx) in widgets"
         :key="widgetIndx"
@@ -32,7 +32,7 @@
         @navigateToSection="navigateToSection"
       />
     </div>
-    <div v-if="selected && !showAll && !widgets && items.length < 1" class="empty-section">
+    <div v-if="selected && !showAll && !widgets && items.length === 0" class="empty-section">
       <p>{{ $t('home.no-items-section') }}</p>
     </div>
     <IframeModal
@@ -52,6 +52,12 @@ import IframeModal from '@/components/LinkItems/IframeModal.vue';
 
 export default {
   name: 'ItemGroup',
+  components: {
+    Item,
+    WidgetBase,
+    SubItemGroup,
+    IframeModal,
+  },
   props: {
     groupId: String,
     title: String,
@@ -70,12 +76,6 @@ export default {
       return this.$store.getters.appConfig;
     },
   },
-  components: {
-    Item,
-    WidgetBase,
-    SubItemGroup,
-    IframeModal,
-  },
   methods: {
     selectSection(index) {
       this.$emit('sectionSelected', index);
@@ -83,7 +83,10 @@ export default {
     /* Returns a unique lowercase string, based on name, for section ID */
     makeId(str) {
       if (!str) return 'unnamed-item';
-      return str.replace(/\s+/g, '-').replace(/[^a-zA-Z ]/g, '').toLowerCase();
+      return str
+        .replace(/\s+/g, '-')
+        .replace(/[^ A-Za-z]/g, '')
+        .toLowerCase();
     },
     /* Opens the iframe modal */
     triggerModal(url) {
@@ -91,7 +94,7 @@ export default {
     },
     shouldEnableStatusCheck(itemPreference) {
       const globalPreference = this.appConfig.statusCheck || false;
-      return itemPreference !== undefined ? itemPreference : globalPreference;
+      return itemPreference === undefined ? globalPreference : itemPreference;
     },
     getStatusCheckInterval() {
       let interval = this.appConfig.statusCheckInterval;
@@ -111,8 +114,8 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '@/styles/media-queries.scss';
-@import '@/styles/style-helpers.scss';
+@import '@/styles/media-queries';
+@import '@/styles/style-helpers';
 
 .minimal-section-inner {
   height: 100%;
@@ -121,19 +124,35 @@ export default {
   flex-direction: column;
   background: var(--minimal-view-group-background);
   border-radius: 0 0 var(--curve-factor) var(--curve-factor);
+
   .section-items {
     display: grid;
-    @include phone { --minimal-col-count: 1; }
-    @include tablet { --minimal-col-count: 2; }
-    @include laptop { --minimal-col-count: 3; }
-    @include monitor { --minimal-col-count: 4; }
-    @include big-screen { --minimal-col-count: 5; }
-    @include big-screen-up { --minimal-col-count: 6; }
+    @include phone {
+      --minimal-col-count: 1;
+    }
+    @include tablet {
+      --minimal-col-count: 2;
+    }
+    @include laptop {
+      --minimal-col-count: 3;
+    }
+    @include monitor {
+      --minimal-col-count: 4;
+    }
+    @include big-screen {
+      --minimal-col-count: 5;
+    }
+    @include big-screen-up {
+      --minimal-col-count: 6;
+    }
+
     grid-template-columns: repeat(var(--minimal-col-count, 1), minmax(0, 1fr));
   }
+
   .minimal-widget-wrap {
     padding: 1rem;
   }
+
   .empty-section {
     padding: 1rem;
     margin: 0.5rem auto;
@@ -142,14 +161,18 @@ export default {
     font-style: italic;
     opacity: var(--dimming-factor);
   }
+
   &.selected {
     border: 1px solid var(--minimal-view-group-color);
     grid-column-start: span var(--col-count, 3);
-    &:not(.show-all) { min-height: 300px; }
+
+    &:not(.show-all) {
+      min-height: 300px;
+    }
   }
+
   &.show-all {
     border: none;
   }
 }
-
 </style>

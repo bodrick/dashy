@@ -1,5 +1,5 @@
 <template>
-<modal
+  <modal
     :name="modalName"
     :resizable="true"
     width="50%"
@@ -7,26 +7,30 @@
     classes="dashy-modal export-modal"
     @closed="modalClosed"
   >
-  <div class="export-config-inner" v-if="allowViewConfig">
-    <!-- Download and Copy to CLipboard Buttons -->
-    <h3>{{ $t('interactive-editor.export.export-title') }}</h3>
-    <div class="download-button-container">
-      <Button :click="copyConfigToClipboard"
-        v-tooltip="tooltip($t('interactive-editor.export.copy-clipboard-tooltip'))">
-        {{ $t('interactive-editor.export.copy-clipboard-btn') }}
-        <CopyConfigIcon />
-      </Button>
-      <Button :click="downloadConfig"
-        v-tooltip="tooltip($t('interactive-editor.export.download-file-tooltip'))">
-        {{ $t('interactive-editor.export.download-file-btn') }}
-        <DownloadConfigIcon />
-      </Button>
+    <div v-if="allowViewConfig" class="export-config-inner">
+      <!-- Download and Copy to CLipboard Buttons -->
+      <h3>{{ $t('interactive-editor.export.export-title') }}</h3>
+      <div class="download-button-container">
+        <Button
+          v-tooltip="tooltip($t('interactive-editor.export.copy-clipboard-tooltip'))"
+          :click="copyConfigToClipboard"
+        >
+          {{ $t('interactive-editor.export.copy-clipboard-btn') }}
+          <CopyConfigIcon />
+        </Button>
+        <Button
+          v-tooltip="tooltip($t('interactive-editor.export.download-file-tooltip'))"
+          :click="downloadConfig"
+        >
+          {{ $t('interactive-editor.export.download-file-btn') }}
+          <DownloadConfigIcon />
+        </Button>
+      </div>
+      <!-- View Config in Tree Mode Section -->
+      <h3>{{ $t('interactive-editor.export.view-title') }}</h3>
+      <tree-view :data="config" class="config-tree-view" />
     </div>
-    <!-- View Config in Tree Mode Section -->
-    <h3>{{ $t('interactive-editor.export.view-title') }}</h3>
-    <tree-view :data="config" class="config-tree-view" />
-  </div>
-  <AccessError v-else />
+    <AccessError v-else />
   </modal>
 </template>
 
@@ -48,12 +52,12 @@ export default {
     CopyConfigIcon,
     DownloadConfigIcon,
   },
+  props: {},
   data() {
     return {
       modalName: modalNames.EXPORT_CONFIG_MENU,
     };
   },
-  props: {},
   computed: {
     config() {
       return this.$store.state.config;
@@ -73,9 +77,9 @@ export default {
       element.setAttribute('href', `data:text/plain;charset=utf-8, ${encodeURIComponent(config)}`);
       element.setAttribute('download', filename);
       element.style.display = 'none';
-      document.body.appendChild(element);
+      document.body.append(element);
       element.click();
-      document.body.removeChild(element);
+      element.remove();
       InfoHandler('Config downloaded as YAML file', InfoKeys.EDITOR);
     },
     copyConfigToClipboard() {
@@ -94,7 +98,10 @@ export default {
     },
     tooltip(content) {
       return {
-        content, trigger: 'hover focus', delay: 250, classes: 'in-modal-tt',
+        content,
+        trigger: 'hover focus',
+        delay: 250,
+        classes: 'in-modal-tt',
       };
     },
   },
@@ -102,40 +109,51 @@ export default {
 </script>
 
 <style lang="scss">
-@import '@/styles/style-helpers.scss';
-@import '@/styles/media-queries.scss';
-.tooltip { z-index: 99; }
+@import '@/styles/style-helpers';
+@import '@/styles/media-queries';
+
+.tooltip {
+  z-index: 99;
+}
+
 .export-config-inner {
   padding: 1rem;
   background: var(--interactive-editor-background);
   color: var(--interactive-editor-color);
   height: 100%;
   overflow-y: auto;
+
   h3 {
     margin: 1rem 0;
   }
+
   .download-button-container {
     display: flex;
     justify-content: center;
     padding: 0 0.5rem 1rem;
     border-bottom: 1px dashed var(--interactive-editor-color);
-    button { margin: 0 1rem; }
+
+    button {
+      margin: 0 1rem;
+    }
   }
+
   .config-tree-view {
     padding: 0.5rem;
     font-family: var(--font-monospace);
     color: var(--interactive-editor-color);
     background: var(--interactive-editor-background-darker);
     border-radius: var(--curve-factor);
-    box-shadow: 0px 0px 3px var(--interactive-editor-color);
+    box-shadow: 0 0 3px var(--interactive-editor-color);
     margin-bottom: 1.5rem;
+
     span {
       font-family: var(--font-monospace);
     }
   }
 }
+
 .export-modal {
   background: var(--interactive-editor-background);
 }
-
 </style>

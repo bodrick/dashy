@@ -1,15 +1,16 @@
 <template>
-  <div class="json-editor-outer" v-if="allowViewConfig">
+  <div v-if="allowViewConfig" class="json-editor-outer">
     <!-- Main JSON editor -->
     <v-jsoneditor v-model="jsonData" :options="options" />
-    <!-- Options raido, and save button -->
-    <Radio class="save-options"
+    <!-- Options radio, and save button -->
+    <Radio
       v-model="saveMode"
+      class="save-options"
       :label="$t('config-editor.save-location-label')"
       :options="saveOptions"
-      :initialOption="initialSaveMode"
+      :initial-option="initialSaveMode"
       :disabled="!allowWriteToDisk || !allowSaveLocally"
-      />
+    />
     <!-- Save Buttons -->
     <div :class="`btn-container ${!isValid ? 'err' : ''}`">
       <Button :click="save" :disallow="!allowWriteToDisk && !allowSaveLocally">
@@ -20,21 +21,23 @@
       </Button>
     </div>
     <!-- List validation warnings -->
-    <p class="errors">
-      <ul>
-        <li v-for="(error, index) in errorMessages" :key="index" :class="`type-${error.type}`">
-          {{error.msg}}
-        </li>
-        <li v-if="errorMessages.length < 1" class="type-valid">
-          {{ $t('config-editor.valid-label') }}
-        </li>
-      </ul>
-    </p>
+    <p class="errors"></p>
+    <ul>
+      <li v-for="(error, index) in errorMessages" :key="index" :class="`type-${error.type}`">
+        {{ error.msg }}
+      </li>
+      <li v-if="errorMessages.length === 0" class="type-valid">
+        {{ $t('config-editor.valid-label') }}
+      </li>
+    </ul>
     <!-- Information notes -->
-    <p v-if="saveSuccess !== undefined"
-      :class="`response-output status-${saveSuccess ? 'success' : 'fail'}`">
-      {{saveSuccess
-        ? $t('config-editor.status-success-msg') : $t('config-editor.status-fail-msg') }}
+    <p
+      v-if="saveSuccess !== undefined"
+      :class="`response-output status-${saveSuccess ? 'success' : 'fail'}`"
+    >
+      {{
+        saveSuccess ? $t('config-editor.status-success-msg') : $t('config-editor.status-fail-msg')
+      }}
     </p>
     <p v-if="!allowWriteToDisk" class="no-permission-note">
       {{ $t('config-editor.not-admin-note') }}
@@ -50,7 +53,6 @@
 </template>
 
 <script>
-
 import VJsoneditor from 'v-jsoneditor';
 import ConfigSavingMixin from '@/mixins/ConfigSaving';
 import { InfoHandler, InfoKeys } from '@/utils/ErrorHandler';
@@ -63,13 +65,13 @@ import AccessError from '@/components/Configuration/AccessError';
 
 export default {
   name: 'JsonEditor',
-  mixins: [ConfigSavingMixin],
   components: {
     VJsoneditor,
     Button,
     Radio,
     AccessError,
   },
+  mixins: [ConfigSavingMixin],
   data() {
     return {
       jsonData: {},
@@ -93,7 +95,7 @@ export default {
       return this.$store.state.config;
     },
     isValid() {
-      return this.errorMessages.length < 1;
+      return this.errorMessages.length === 0;
     },
     permissions() {
       // Returns: { allowWriteToDisk, allowSaveLocally, allowViewConfig }
@@ -145,7 +147,7 @@ export default {
     },
     saveLocally() {
       const msg = this.$t('interactive-editor.menu.save-locally-warning');
-      const youSure = confirm(msg); // eslint-disable-line no-alert, no-restricted-globals
+      const youSure = confirm(msg);
       if (youSure) {
         this.saveConfigLocally(this.jsonData);
       }
@@ -153,13 +155,14 @@ export default {
     /* Convert error messages into readable format for UI */
     validationErrors(errors) {
       const errorMessages = [];
-      errors.forEach((error) => {
+      for (const error of errors) {
         switch (error.type) {
           case 'validation':
             errorMessages.push({
               type: 'validation',
-              msg: `${this.$t('config-editor.warning-msg-validation')}: `
-                  + `${(error.error || error).dataPath} ${(error.error || error).message}`,
+              msg:
+                `${this.$t('config-editor.warning-msg-validation')}: ` +
+                `${(error.error || error).dataPath} ${(error.error || error).message}`,
             });
             break;
           case 'error':
@@ -175,7 +178,7 @@ export default {
             });
             break;
         }
-      });
+      }
       this.errorMessages = errorMessages;
     },
     /* Shows toast message */
@@ -187,50 +190,68 @@ export default {
 </script>
 
 <style lang="scss">
-@import '@/styles/media-queries.scss';
+@import '@/styles/media-queries';
 
 .json-editor-outer {
   text-align: center;
 }
+
 p.note {
   font-size: 0.8rem;
   color: var(--medium-grey);
   margin: 0.2rem;
 }
+
 p.errors {
   text-align: left;
   margin: 0.5rem auto;
   width: 95%;
+
   ul {
     list-style: none;
     padding: 0;
     margin: 0;
+
     li {
       &.type-validation {
         color: var(--warning);
-        &::before { content: "⚠️"; }
+
+        &::before {
+          content: '⚠️';
+        }
       }
+
       &.type-parse {
         color: var(--danger);
-        &::before { content: "❌"; }
+
+        &::before {
+          content: '❌';
+        }
       }
+
       &.type-valid {
         color: var(--success);
-        &::before { content: "✅"; }
+
+        &::before {
+          content: '✅';
+        }
       }
     }
   }
 }
+
 p.response-output {
   font-size: 0.8rem;
   text-align: left;
   margin: 0.5rem auto;
   width: 95%;
   color: var(--config-settings-color);
+
   &.status-success {
     font-weight: bold;
     color: var(--success);
   }
+
   &.status-fail {
     font-weight: bold;
     color: var(--danger);
@@ -245,23 +266,27 @@ p.no-permission-note {
   display: flex;
   align-items: center;
   justify-content: center;
+
   button {
-    padding:  0.5rem 1rem;
+    padding: 0.5rem 1rem;
     margin: 0.25rem;
     font-size: 1.2rem;
     background: var(--config-settings-background);
     color: var(--config-settings-color);
     border: 1px solid var(--config-settings-color);
     border-radius: var(--curve-factor);
+
     &:hover {
       background: var(--config-settings-color);
       color: var(--config-settings-background);
       border-color: var(--config-settings-background);
     }
   }
+
   &.err button {
     opacity: 0.8;
     cursor: default;
+
     &:hover {
       background: var(--config-settings-background);
       color: var(--config-settings-color);
@@ -278,6 +303,7 @@ div.save-options.radio-container {
   padding: 0;
   border-top: 2px solid var(--config-settings-background);
   background: var(--code-editor-background);
+
   label.radio-label {
     font-size: 1rem;
     flex-grow: revert;
@@ -285,12 +311,14 @@ div.save-options.radio-container {
     color: var(--code-editor-color);
     padding-left: 1rem;
   }
+
   .radio-wrapper {
     margin: 0;
     font-size: 1rem;
     justify-content: space-around;
     background: var(--code-editor-background);
     color: var(--code-editor-color);
+
     .radio-option:hover:not(.wrap-disabled) {
       border: 1px solid var(--code-editor-color);
     }
@@ -301,32 +329,43 @@ div.save-options.radio-container {
   height: 58vh;
 }
 
-.jsoneditor, .jsoneditor-menu {
+.jsoneditor,
+.jsoneditor-menu {
   border-color: var(--primary);
 }
+
 .jsoneditor {
   border-bottom: none;
 }
 
-.jsoneditor-menu, .pico-modal-header {
+.jsoneditor-menu,
+.pico-modal-header {
   background: var(--config-settings-background) !important;
   color: var(--config-settings-color) !important;
 }
+
 .jsoneditor-contextmenu .jsoneditor-menu li button {
   background: var(--config-settings-background);
   color: var(--config-settings-color);
-  &.jsoneditor-selected, &.jsoneditor-selected:focus, &.jsoneditor-selected:hover {
+
+  &.jsoneditor-selected,
+  &.jsoneditor-selected:focus,
+  &.jsoneditor-selected:hover {
     background: var(--config-settings-color);
     color: var(--config-settings-background);
   }
 }
+
 div.jsoneditor-search div.jsoneditor-frame {
   border-radius: var(--curve-factor);
 }
+
 .jsoneditor-poweredBy {
   display: none;
 }
-.jsoneditor-tree, pre.jsoneditor-preview {
+
+.jsoneditor-tree,
+pre.jsoneditor-preview {
   background: var(--code-editor-background);
   text-align: left;
 }
@@ -334,18 +373,22 @@ div.jsoneditor-search div.jsoneditor-frame {
 .jsoneditor-jmespath-label {
   color: var(--config-settings-color) !important;
 }
+
 .jsoneditor-jmespath-block.jsoneditor-modal-actions input {
   background: var(--config-settings-color);
   color: var(--config-settings-background);
   border: 1px solid var(--config-settings-background);
   border-radius: var(--curve-factor);
+
   &:hover {
     background: var(--config-settings-background);
     color: var(--config-settings-color);
     border-color: var(--config-settings-color);
   }
 }
-textarea.jsoneditor-transform-preview, div.jsoneditor-jmespath-block textarea#query {
+
+textarea.jsoneditor-transform-preview,
+div.jsoneditor-jmespath-block textarea#query {
   border: 1px solid var(--config-settings-color);
   border-radius: var(--curve-factor);
 }

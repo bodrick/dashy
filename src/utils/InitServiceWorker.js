@@ -22,8 +22,8 @@ const setSwStatus = (swStateToSet) => {
   try {
     const newSwState = { ...currentSwState, ...swStateToSet };
     sessionStorage.setItem(sessionStorageKeys.SW_STATUS, JSON.stringify(newSwState));
-  } catch (e) {
-    statusErrorMsg('Service Worker Status', 'Error Updating SW Status', e);
+  } catch (error) {
+    statusErrorMsg('Service Worker Status', 'Error Updating SW Status', error);
   }
 };
 
@@ -33,11 +33,12 @@ const setSwStatus = (swStateToSet) => {
  * Or disable if user specified to disable
  */
 const shouldEnableServiceWorker = async () => {
-  const conf = yaml.load((await axios.get('/conf.yml')).data);
+  const confResponse = await axios.get('/conf.yml');
+  const conf = yaml.load(confResponse.data);
   if (conf && conf.appConfig && conf.appConfig.enableServiceWorker) {
     setSwStatus({ disabledByUser: false });
     return true;
-  } else if (process.env.NODE_ENV !== 'production') {
+  } else if (import.meta.env.NODE_ENV !== 'production') {
     setSwStatus({ devMode: true });
     return false;
   }

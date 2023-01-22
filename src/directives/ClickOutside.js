@@ -18,12 +18,11 @@ function onDocumentClick(event, elem, action) {
 export default {
   /* Add event listeners */
   bind(element, binding) {
-    const elem = element;
-    elem.dataset.outsideClickIndex = instances.length;
+    element.dataset.outsideClickIndex = instances.length;
 
     const action = binding.value;
     const click = (event) => {
-      onDocumentClick(event, elem, action);
+      onDocumentClick(event, element, action);
     };
 
     document.addEventListener('click', click);

@@ -4,8 +4,13 @@ import vue from '@vitejs/plugin-vue2';
 import content from '@originjs/vite-plugin-content';
 import { fileURLToPath } from 'node:url';
 import { createSvgPlugin } from 'vite-plugin-vue2-svg';
+import packageJson from './package.json';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Get current version
+process.env.VITE_APP_VERSION = packageJson.version;
+
 // https://vitejs.dev/config/
 export default defineConfig({
   resolve: {

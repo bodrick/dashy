@@ -10,9 +10,9 @@
 - Huge improvment to the way widgets are defined
   - #758 by @patrickheeney
 - Update APOD widget to use https://apod.as93.net
-  - #745 by @k073l 
+  - #745 by @k073l
 - Small docs update
-  - #741 by @markusdd 
+  - #741 by @markusdd
 - A set of awesome NextCloud widgets
   - #740 by @marekful
 - Option to show / hide detailed info for StatPing widget
@@ -361,7 +361,7 @@ Italian translations have been added. #556
 ## 🔒 1.5.0 - Improve Robustness of Auth [PR #113](https://github.com/Lissy93/dashy/pull/113)
 - Use both username + password for generating token, so that a change in either will log the user out
 - Prevent privilege escalation by disallowing a user from modifying their user type through the UI
-- Improve the isAuthenticated check, by taking account of empty users array 
+- Improve the isAuthenticated check, by taking account of empty users array
 
 ## ✨ 1.4.8 - Optional Crash Reports [PR #112](https://github.com/Lissy93/dashy/pull/112)
 - Adds an optional, off by default method of getting crash reports
@@ -409,7 +409,7 @@ Italian translations have been added. #556
 
 ## ✨ 1.4.0 - Builds a Custom Theme Configurator
 - Adds property to save custom theme variables
-- Builds UI form, with color pickers, a pallette and popup
+- Builds UI form, with color pickers, a palette and popup
 - Integrates the saving colors, and applying saved colors functionality
 
 ## 🔨 1.3.9 - Enable Custom Styesheet in Docker [PR #92](https://github.com/Lissy93/dashy/pull/92)
@@ -478,7 +478,7 @@ Italian translations have been added. #556
 - Adds assets to PWA manifest.json
 - Documents app commands in readme
 - Enable passing website as URL param to the workspace
-- Modified items, so that title text doesn't get shortened, 
+- Modified items, so that title text doesn't get shortened,
 
 ## ✨ 1.2.4 - Adds Support for Continuous Status Checking [#52](https://github.com/Lissy93/dashy/pull/52)
 - Enables user to re-call the status check at a specified interval
@@ -549,7 +549,7 @@ Italian translations have been added. #556
     - Improves github PR and issue templates
     - Shortens readme file
     - Adds documentation in the docs folder
-    - Fixes Layout tab not showing in portrait #19 
+    - Fixes Layout tab not showing in portrait #19
     - Improves mobile performance for both the settings, config and backup pop-ups
     - Fixes issue where theme not applied on load when the settings are hidden
     - Adds minimum dimensions to modalsShortens readme file
@@ -628,7 +628,7 @@ Adds the ability for the user to edit their configuration directly from the UI
 - Makes more specific color variables, which inherit base vars
 - Makes it possible for users to write their own theme
 - Fix some color edge cases
-- Adds docs for theming 
+- Adds docs for theming
 
 ## ✨ 0.5.0 - Theme Support
 - Converts all SCSS variables to CSS variables

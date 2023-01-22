@@ -1,4 +1,4 @@
-import ConfigAccumulator from '@/utils/ConfigAccumalator';
+import ConfigAccumulator from '@/utils/ConfigAccumulator';
 import filterUserSections from '@/utils/CheckSectionVisibility';
 import { languages } from '@/utils/languages';
 import {
@@ -17,7 +17,7 @@ export const makePageName = (pageName) => {
     .toLowerCase()
     .replaceAll(' ', '-')
     .replace('.yml', '')
-    .replace(/[^\w\s-]/gi, '');
+    .replace(/[^\s\w-]/gi, '');
 };
 
 /* For a given sub-page, and page type, return the URL */
@@ -55,15 +55,16 @@ export const componentVisibility = (appConfig) => {
   // For each option, return users choice (if specified), else use the default
   return {
     pageTitle: isThere(usersChoice.hideHeading)
-      ? !usersChoice.hideHeading : visibleComponents.pageTitle,
-    navigation: isThere(usersChoice.hideNav)
-      ? !usersChoice.hideNav : visibleComponents.navigation,
+      ? !usersChoice.hideHeading
+      : visibleComponents.pageTitle,
+    navigation: isThere(usersChoice.hideNav) ? !usersChoice.hideNav : visibleComponents.navigation,
     searchBar: isThere(usersChoice.hideSearch)
-      ? !usersChoice.hideSearch : visibleComponents.searchBar,
+      ? !usersChoice.hideSearch
+      : visibleComponents.searchBar,
     settings: isThere(usersChoice.hideSettings)
-      ? !usersChoice.hideSettings : visibleComponents.settings,
-    footer: isThere(usersChoice.hideFooter)
-      ? !usersChoice.hideFooter : visibleComponents.footer,
+      ? !usersChoice.hideSettings
+      : visibleComponents.settings,
+    footer: isThere(usersChoice.hideFooter) ? !usersChoice.hideFooter : visibleComponents.footer,
   };
 };
 
@@ -95,10 +96,10 @@ export const getCustomColors = () => {
 export const getCustomKeyShortcuts = () => {
   const results = [];
   const sections = config.sections || [];
-  sections.forEach((section) => {
-    const itemsWithHotKeys = section.items.filter(item => item.hotkey);
-    results.push(itemsWithHotKeys.map(item => ({ hotkey: item.hotkey, url: item.url })));
-  });
+  for (const section of sections) {
+    const itemsWithHotKeys = section.items.filter((item) => item.hotkey);
+    results.push(itemsWithHotKeys.map((item) => ({ hotkey: item.hotkey, url: item.url })));
+  }
   return results.flat();
 };
 
@@ -107,10 +108,9 @@ export const getCustomKeyShortcuts = () => {
  * @returns {object} Language, including code, name and flag
  */
 export const getUsersLanguage = () => {
-  const langCode = localStorage[localStorageKeys.LANGUAGE]
-    || config.appConfig.language
-    || defaultLanguage;
-  const langObj = languages.find(lang => lang.code === langCode);
+  const langCode =
+    localStorage[localStorageKeys.LANGUAGE] || config.appConfig.language || defaultLanguage;
+  const langObj = languages.find((lang) => lang.code === langCode);
   return langObj;
 };
 
@@ -121,9 +121,9 @@ export const getUsersLanguage = () => {
  * @returns {Boolean} isValid
  */
 export const targetValidator = (target) => {
-  const acceptedTargets = ConfigSchema.properties.sections.items
-    .properties.items.items.properties.target.enum;
-  const isTargetValid = acceptedTargets.indexOf(target) !== -1;
+  const acceptedTargets =
+    ConfigSchema.properties.sections.items.properties.items.items.properties.target.enum;
+  const isTargetValid = acceptedTargets.includes(target);
   if (!isTargetValid) ErrorHandler(`Unknown target value: ${target}`);
   return isTargetValid;
 };

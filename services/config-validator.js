@@ -44,7 +44,7 @@ const errorMsg = (output) => {
 
 /* Sets valid status as environmental variable */
 const setIsValidVariable = (isValid) => {
-  process.env.VUE_APP_CONFIG_VALID = isValid;
+  process.env.VITE_APP_CONFIG_VALID = isValid;
 };
 
 /* Start the validation */

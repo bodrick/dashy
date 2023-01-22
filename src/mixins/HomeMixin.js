@@ -79,7 +79,7 @@ const HomeMixin = {
     /* Returns true if there is one or more sections in the config */
     checkTheresData(sections) {
       const localSections = localStorage[localStorageKeys.CONF_SECTIONS];
-      return (sections && sections.length >= 1) || (localSections && localSections.length >= 1);
+      return (sections && sections.length > 0) || (localSections && localSections.length > 0);
     },
     /* Returns only the tiles that match the users search query */
     filterTiles(allTiles) {
@@ -93,14 +93,14 @@ const HomeMixin = {
     checkIfIconLibraryNeeded(prefix) {
       if (!this.sections) return false;
       let isNeeded = false; // Will be set to true if prefix found in icon name
-      this.sections.forEach((section) => {
+      for (const section of this.sections) {
         if (section && section.icon && section.icon.includes(prefix)) isNeeded = true;
         if (section && section.items) {
-          section.items.forEach((item) => {
+          for (const item of section.items) {
             if (item.icon && item.icon.includes(prefix)) isNeeded = true;
-          });
+          }
         }
-      });
+      }
       return isNeeded;
     },
     /* Checks if any of the icons are Font Awesome glyphs */
@@ -118,7 +118,7 @@ const HomeMixin = {
         const fontAwesomeScript = document.createElement('script');
         const faKey = this.appConfig.fontAwesomeKey || fontAwesomeKey;
         fontAwesomeScript.setAttribute('src', `${iconCdns.fa}/${faKey}.js`);
-        document.head.appendChild(fontAwesomeScript);
+        document.head.append(fontAwesomeScript);
       }
     },
     /* Checks if any of the icons are Material Design Icons */
@@ -133,20 +133,19 @@ const HomeMixin = {
         const mdiStylesheet = document.createElement('link');
         mdiStylesheet.setAttribute('rel', 'stylesheet');
         mdiStylesheet.setAttribute('href', iconCdns.mdi);
-        document.head.appendChild(mdiStylesheet);
+        document.head.append(mdiStylesheet);
       }
     },
     /* Returns true if there is more than 1 sub-result visible during searching */
     checkIfResults() {
-      if (!this.sections) return false;
-      else {
+      if (this.sections) {
         let itemsFound = true;
-        this.sections.forEach((section) => {
+        for (const section of this.sections) {
           if (section.widgets && section.widgets.length > 0) itemsFound = false;
           if (this.filterTiles(section.items, this.searchValue).length > 0) itemsFound = false;
-        });
+        }
         return itemsFound;
-      }
+      } else return false;
     },
     /* If user has a background image, then generate CSS attributes */
     getBackgroundImage() {
@@ -158,7 +157,7 @@ const HomeMixin = {
     /* Extracts the site name from domain, used for the searching functionality */
     getDomainFromUrl(url) {
       if (!url) return '';
-      const urlPattern = /^(?:https?:\/\/)?(?:w{3}\.)?([a-z\d.-]+)\.(?:[a-z.]{2,10})(?:[/\w.-]*)*/;
+      const urlPattern = /^(?:https?:\/\/)?(?:w{3}\.)?([\d.a-z-]+)\.[.a-z]{2,10}(?:[\w./-]*)*/;
       const domainPattern = url.match(urlPattern);
       return domainPattern ? domainPattern[1] : '';
     },

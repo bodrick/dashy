@@ -1,5 +1,5 @@
 <template>
-  <div class="workspace-widget-view" v-if="widgets">
+  <div v-if="widgets" class="workspace-widget-view">
     <WidgetBase
       v-for="(widget, widgetIndx) in widgets"
       :key="widgetIndx"
@@ -31,9 +31,10 @@ export default {
   left: var(--side-bar-width);
   height: calc(100% - var(--header-height) - 1rem);
   width: calc(100% - var(--side-bar-width));
+
   .workspace-widget {
     max-width: 800px;
-    margin: 0.5rem auto 1rem auto;
+    margin: 0.5rem auto 1rem;
   }
 }
 </style>

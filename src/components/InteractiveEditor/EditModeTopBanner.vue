@@ -11,6 +11,7 @@ div.edit-mode-top-banner {
   padding: 0.2rem 0;
   background: var(--interactive-editor-color);
   opacity: var(--dimming-factor);
+
   span {
     font-size: 1rem;
     font-weight: bold;

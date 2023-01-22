@@ -30,5 +30,7 @@ const KEY_NAMES = [
 
 // Convert array of key names into an object, and export
 const MUTATIONS = {};
-KEY_NAMES.forEach((key) => { MUTATIONS[key] = key; });
+for (const key of KEY_NAMES) {
+  MUTATIONS[key] = key;
+}
 export default MUTATIONS;

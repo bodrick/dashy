@@ -20,19 +20,24 @@ const decryptData = (data, password) => aes.decrypt(data, password).toString(Utf
 const makeSubHash = (pass) => sha256(pass).toString().slice(0, 14);
 
 /* Makes the backup */
-export const backup = (data, password) => axios.post(ENDPOINT, {
-  userData: encryptData(data, password),
-  subHash: makeSubHash(password),
-});
+export const backup = (data, password) =>
+  axios.post(ENDPOINT, {
+    userData: encryptData(data, password),
+    subHash: makeSubHash(password),
+  });
 
 /* Updates and existing backup */
-export const update = (data, password, backupId) => axios.put(ENDPOINT, {
-  backupId,
-  userData: encryptData(data, password),
-  subHash: makeSubHash(password),
-});
+export const update = (data, password, backupId) =>
+  axios.put(ENDPOINT, {
+    backupId,
+    userData: encryptData(data, password),
+    subHash: makeSubHash(password),
+  });
 
-const encodeGetParams = p => Object.entries(p).map(kv => kv.map(encodeURIComponent).join('=')).join('&');
+const encodeGetParams = (p) =>
+  Object.entries(p)
+    .map((kv) => kv.map((element) => encodeURIComponent(element)).join('='))
+    .join('&');
 
 /* Restores the backup */
 export const restore = (backupId, password) => {
@@ -44,7 +49,11 @@ export const restore = (backupId, password) => {
         reject(response.data.errorMsg || 'Error');
       } else {
         const decryptedData = decryptData(response.data.userData.userData, password);
-        try { resolve(JSON.parse(decryptedData)); } catch (e) { reject(e); }
+        try {
+          resolve(JSON.parse(decryptedData));
+        } catch (error) {
+          reject(error);
+        }
       }
     });
   });

@@ -1,11 +1,10 @@
 <template>
-  <div class="web-content" :id="id">
+  <div :id="id" class="web-content">
     <iframe :src="url" allow="fullscreen" />
   </div>
 </template>
 
 <script>
-
 export default {
   name: 'WebContent',
   props: {
@@ -19,7 +18,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
 iframe {
   position: absolute;
   left: var(--side-bar-width);
@@ -32,5 +30,4 @@ iframe {
 .web-content.hide {
   display: none;
 }
-
 </style>

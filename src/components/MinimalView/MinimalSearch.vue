@@ -1,9 +1,9 @@
 <template>
   <SearchBar
     ref="MinimalSearchBar"
-    @user-is-searchin="userIsTypingSomething"
     :active="true"
-    :minimalSearch="true"
+    :minimal-search="true"
+    @user-is-searching="userIsTypingSomething"
   />
 </template>
 
@@ -34,18 +34,18 @@ export default {
       return true;
     },
   },
-  methods: {
-    /* Emmits users's search term up to parent */
-    userIsTypingSomething(searchValue) {
-      this.input = searchValue;
-      this.$emit('user-is-searchin', searchValue);
-    },
-  },
   mounted() {
     window.addEventListener('keydown', this.startFiltering);
   },
   beforeDestroy() {
     window.removeEventListener('keydown', this.startFiltering);
+  },
+  methods: {
+    /* Emits users's search term up to parent */
+    userIsTypingSomething(searchValue) {
+      this.input = searchValue;
+      this.$emit('user-is-searching', searchValue);
+    },
   },
 };
 </script>

@@ -1,26 +1,46 @@
 <template>
-  <div class="config-options" v-click-outside="closeViewSwitcher">
+  <div v-click-outside="closeViewSwitcher" class="config-options">
     <!-- Button and label -->
     <span class="config-label">{{ $t('settings.config-launcher-label') }}</span>
     <div class="config-buttons">
-      <IconSpanner @click="showEditor()" tabindex="-2"
-        v-tooltip="tooltip($t('settings.config-launcher-tooltip'))" />
-      <IconInteractiveEditor @click="startInteractiveEditor()" tabindex="-2"
+      <IconSpanner
+        v-tooltip="tooltip($t('settings.config-launcher-tooltip'))"
+        tabindex="-2"
+        @click="showEditor()"
+      />
+      <IconInteractiveEditor
         v-tooltip="tooltip(enterEditModeTooltip)"
-        :class="(isEditMode || !isEditAllowed) ? 'disabled' : ''" />
-      <IconViewMode @click="openChangeViewMenu()" tabindex="-2"
-        v-tooltip="tooltip($t('alternate-views.alternate-view-heading'))" />
+        tabindex="-2"
+        :class="isEditMode || !isEditAllowed ? 'disabled' : ''"
+        @click="startInteractiveEditor()"
+      />
+      <IconViewMode
+        v-tooltip="tooltip($t('alternate-views.alternate-view-heading'))"
+        tabindex="-2"
+        @click="openChangeViewMenu()"
+      />
     </div>
 
     <!-- Modal containing all the configuration options -->
-    <modal :name="modalNames.CONF_EDITOR" :resizable="true" width="60%" height="85%"
-      @closed="editorClosed" classes="dashy-modal">
+    <modal
+      :name="modalNames.CONF_EDITOR"
+      :resizable="true"
+      width="60%"
+      height="85%"
+      classes="dashy-modal"
+      @closed="editorClosed"
+    >
       <ConfigContainer :config="combineConfig()" />
     </modal>
 
     <!-- Modal for manually changing locale -->
-    <modal :name="modalNames.LANG_SWITCHER" classes="dashy-modal"
-      :resizable="true" width="35%" height="60%">
+    <modal
+      :name="modalNames.LANG_SWITCHER"
+      classes="dashy-modal"
+      :resizable="true"
+      width="35%"
+      height="60%"
+    >
       <LanguageSwitcher />
     </modal>
 
@@ -43,12 +63,6 @@ import IconViewMode from '@/assets/interface-icons/application-change-view.svg';
 
 export default {
   name: 'ConfigLauncher',
-  data() {
-    return {
-      modalNames,
-      viewSwitcherOpen: false,
-    };
-  },
   components: {
     ConfigContainer,
     LanguageSwitcher,
@@ -56,6 +70,12 @@ export default {
     IconSpanner,
     IconInteractiveEditor,
     IconViewMode,
+  },
+  data() {
+    return {
+      modalNames,
+      viewSwitcherOpen: false,
+    };
   },
   computed: {
     sections() {
@@ -77,17 +97,18 @@ export default {
     enterEditModeTooltip() {
       if (!this.isEditAllowed) return 'Config editor not available';
       return this.$t(
-        `interactive-editor.menu.${this.isEditMode
-          ? 'edit-mode-subtitle' : 'start-editing-tooltip'}`,
+        `interactive-editor.menu.${
+          this.isEditMode ? 'edit-mode-subtitle' : 'start-editing-tooltip'
+        }`
       );
     },
   },
   methods: {
-    showEditor: function show() {
+    showEditor() {
       this.$modal.show(modalNames.CONF_EDITOR);
       this.$store.commit(Keys.SET_MODAL_OPEN, true);
     },
-    editorClosed: function show() {
+    editorClosed() {
       this.$store.commit(Keys.SET_MODAL_OPEN, false);
     },
     combineConfig() {
@@ -95,8 +116,8 @@ export default {
       conf[topLevelConfKeys.APP_CONFIG] = this.appConfig;
       conf[topLevelConfKeys.PAGE_INFO] = this.pageInfo;
       conf[topLevelConfKeys.SECTIONS] = this.sections;
-      conf[topLevelConfKeys.APP_CONFIG].theme = localStorage[localStorageKeys.THEME]
-        || conf[topLevelConfKeys.APP_CONFIG].theme;
+      conf[topLevelConfKeys.APP_CONFIG].theme =
+        localStorage[localStorageKeys.THEME] || conf[topLevelConfKeys.APP_CONFIG].theme;
       return conf;
     },
     tooltip(content) {
@@ -118,14 +139,14 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '@/styles/style-helpers.scss';
+@import '@/styles/style-helpers';
 
 .config-options {
   @extend .svg-button;
+
   display: flex;
   flex-direction: column;
   color: var(--settings-text-color);
   min-width: 3.2rem;
 }
-
 </style>

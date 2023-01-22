@@ -10,7 +10,7 @@ import ErrorHandler from '@/utils/ErrorHandler';
  */
 const getDomainFromUrl = (url) => {
   if (!url) return '';
-  const urlPattern = /^(?:https?:\/\/)?(?:w{3}\.)?([a-z\d.-]+)\.(?:[a-z.]{2,10})(?:[/\w.-]*)*/;
+  const urlPattern = /^(?:https?:\/\/)?(?:w{3}\.)?([\d.a-z-]+)\.[.a-z]{2,10}(?:[\w./-]*)*/;
   const domainPattern = url.match(urlPattern);
   return domainPattern ? domainPattern[1] : '';
 };
@@ -24,7 +24,12 @@ const getDomainFromUrl = (url) => {
  */
 const filterHelper = (compareStr, searchStr) => {
   if (!compareStr) return false;
-  const process = (input) => input && input.toString().toLowerCase().replace(/[^\w\s]/gi, '');
+  const process = (input) =>
+    input &&
+    input
+      .toString()
+      .toLowerCase()
+      .replace(/[^\s\w]/gi, '');
   return process(compareStr).includes(process(searchStr));
 };
 
@@ -40,14 +45,14 @@ export const searchTiles = (allTiles, searchTerm) => {
   if (!searchTerm) return allTiles; // If no search term, then return all
   if (!allTiles) return []; // If no data, then skip
   return allTiles.filter((tile) => {
-    const {
-      title, description, provider, url, tags,
-    } = tile;
-    return filterHelper(title, searchTerm)
-      || filterHelper(provider, searchTerm)
-      || filterHelper(description, searchTerm)
-      || filterHelper(tags, searchTerm)
-      || filterHelper(getDomainFromUrl(url), searchTerm);
+    const { title, description, provider, url, tags } = tile;
+    return (
+      filterHelper(title, searchTerm) ||
+      filterHelper(provider, searchTerm) ||
+      filterHelper(description, searchTerm) ||
+      filterHelper(tags, searchTerm) ||
+      filterHelper(getDomainFromUrl(url), searchTerm)
+    );
   });
 };
 
@@ -61,20 +66,25 @@ export const getSearchEngineFromBang = (searchQuery, bangList) => {
 /* For a given search engine key, return the corresponding URL, or throw error */
 export const findUrlForSearchEngine = (searchEngine, availableSearchEngines) => {
   // If missing search engine, report error return false
-  if (!searchEngine) { ErrorHandler('No search engine specified'); return undefined; }
+  if (!searchEngine) {
+    ErrorHandler('No search engine specified');
+    return;
+  }
   // If search engine is already a URL, then return it
-  if ((/(http|https):\/\/[^]*/).test(searchEngine)) return searchEngine;
+  if (/(http|https):\/\/[^]*/.test(searchEngine)) return searchEngine;
   // If search engine was found successfully, return the URL
   if (availableSearchEngines[searchEngine]) return availableSearchEngines[searchEngine];
   // Otherwise, there's been an error, log it and return false
   ErrorHandler(`Specified Search Engine was not Found: '${searchEngine}'`);
-  return undefined;
+  return;
 };
 
 /* Removes all known bangs from a search query */
 export const stripBangs = (searchQuery, bangList) => {
   const bangNames = Object.keys(bangList || {});
   let q = searchQuery;
-  bangNames.forEach((bang) => { q = q.replace(bang, ''); });
+  for (const bang of bangNames) {
+    q = q.replace(bang, '');
+  }
   return q.trim();
 };

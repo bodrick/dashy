@@ -1,14 +1,13 @@
 <template>
   <div class="error">
     <p>
-      Error: Configuration has been disabled on this instance.
-      Please contact your administrator for more information.
+      Error: Configuration has been disabled on this instance. Please contact your administrator for
+      more information.
     </p>
   </div>
 </template>
 
 <script>
-
 import ErrorHandler from '@/utils/ErrorHandler';
 
 export default {

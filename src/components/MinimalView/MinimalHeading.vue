@@ -1,9 +1,11 @@
 <template>
   <div
-    @click="selectSection(index)" v-tooltip="tooltip()"
-    v-bind:class="{ selected: selected, 'minimal-section-heading': true, center: hideTitleText }">
+    v-tooltip="tooltip()"
+    :class="{ selected: selected, 'minimal-section-heading': true, center: hideTitleText }"
+    @click="selectSection(index)"
+  >
     <Icon v-if="icon" :icon="icon" size="small" class="section-icon" />
-    <h3 class="section-title" v-if="!hideTitleText">{{ title }}</h3>
+    <h3 v-if="!hideTitleText" class="section-title">{{ title }}</h3>
   </div>
 </template>
 
@@ -26,15 +28,16 @@ export default {
     },
     tooltip() {
       return this.hideTitleText
-        ? { content: this.title, trigger: 'hover focus', delay: 250 } : null;
+        ? { content: this.title, trigger: 'hover focus', delay: 250 }
+        : null;
     },
   },
 };
 </script>
 
 <style scoped lang="scss">
-@import '@/styles/media-queries.scss';
-@import '@/styles/style-helpers.scss';
+@import '@/styles/media-queries';
+@import '@/styles/style-helpers';
 
 div.minimal-section-heading {
   display: flex;
@@ -47,23 +50,28 @@ div.minimal-section-heading {
   border: 1px solid var(--minimal-view-section-heading-color);
   border-bottom: none;
   border-radius: var(--curve-factor) var(--curve-factor) 0 0;
+
   h3.section-title {
     margin: 0;
     color: var(--minimal-view-section-heading-color);
   }
+
   .section-icon {
     color: var(--minimal-view-section-heading-color);
     margin-right: 0.2rem;
   }
+
   &.selected {
     background: var(--minimal-view-section-heading-color);
-    h3.section-title, .section-icon {
+
+    h3.section-title,
+    .section-icon {
       color: var(--minimal-view-section-heading-background);
     }
   }
+
   &.center {
     justify-content: center;
   }
 }
-
 </style>

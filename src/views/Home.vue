@@ -2,14 +2,15 @@
 <template>
   <div class="home" :style="getBackgroundImage()">
     <!-- Search bar, layout options and settings -->
-    <SettingsContainer ref="filterComp"
-      @user-is-searchin="searching"
-      @change-modal-visibility="updateModalVisibility"
-      :displayLayout="layout"
-      :iconSize="itemSizeBound"
-      :externalThemes="getExternalCSSLinks()"
-      :modalOpen="modalOpen"
+    <SettingsContainer
+      ref="filterComp"
+      :display-layout="layout"
+      :icon-size="itemSizeBound"
+      :external-themes="getExternalCSSLinks()"
+      :modal-open="modalOpen"
       class="settings-outer"
+      @user-is-searching="searching"
+      @change-modal-visibility="updateModalVisibility"
     />
     <!-- Show back button, when on single-section view -->
     <div v-if="singleSectionView">
@@ -19,31 +20,35 @@
       </router-link>
     </div>
     <!-- Main content, section for each group of items -->
-    <div v-if="checkTheresData(sections) || isEditMode"
-      :class="`item-group-container `
-        + `orientation-${layout} `
-        + `item-size-${itemSizeBound} `
-        + (isEditMode ? 'edit-mode ' : '')
-        + (singleSectionView ? 'single-section-view ' : '')
-        + (this.colCount ? `col-count-${this.colCount} ` : '')"
-      >
+    <div
+      v-if="checkTheresData(sections) || isEditMode"
+      :class="
+        `item-group-container ` +
+        `orientation-${layout} ` +
+        `item-size-${itemSizeBound} ` +
+        (isEditMode ? 'edit-mode ' : '') +
+        (singleSectionView ? 'single-section-view ' : '') +
+        (colCount ? `col-count-${colCount} ` : '')
+      "
+    >
       <template v-for="(section, index) in filteredTiles">
         <Section
           :key="index"
           :index="index"
           :title="section.name"
           :icon="section.icon || undefined"
-          :displayData="getDisplayData(section)"
-          :groupId="`${pageId}-section-${index}`"
+          :display-data="getDisplayData(section)"
+          :group-id="`${pageId}-section-${index}`"
           :items="filterTiles(section.items, searchValue)"
           :widgets="section.widgets"
-          :searchTerm="searchValue"
-          :itemSize="itemSizeBound"
+          :search-term="searchValue"
+          :item-size="itemSizeBound"
+          :is-wide="!!singleSectionView || layoutOrientation === 'horizontal'"
+          :class="
+            searchValue && filterTiles(section.items, searchValue).length === 0 ? 'no-results' : ''
+          "
           @itemClicked="finishedSearching()"
           @change-modal-visibility="updateModalVisibility"
-          :isWide="!!singleSectionView || layoutOrientation === 'horizontal'"
-          :class="
-          (searchValue && filterTiles(section.items, searchValue).length === 0) ? 'no-results' : ''"
         />
       </template>
       <!-- Show add new section button, in edit mode -->
@@ -51,7 +56,7 @@
     </div>
     <!-- Show message when there's no data to show -->
     <div v-if="checkIfResults() && !isEditMode" class="no-data">
-      {{searchValue ? $t('home.no-results') : $t('home.no-data')}}
+      {{ searchValue ? $t('home.no-results') : $t('home.no-data') }}
     </div>
     <!-- Show banner at bottom of screen, for Saving config changes -->
     <EditModeSaveMenu v-if="isEditMode" />
@@ -73,8 +78,7 @@ import ErrorHandler from '@/utils/ErrorHandler';
 import BackIcon from '@/assets/interface-icons/back-arrow.svg';
 
 export default {
-  name: 'home',
-  mixins: [HomeMixin],
+  name: 'Home',
   components: {
     SettingsContainer,
     EditModeSaveMenu,
@@ -83,6 +87,7 @@ export default {
     Section,
     BackIcon,
   },
+  mixins: [HomeMixin],
   data: () => ({
     layout: '',
     itemSizeBound: '',
@@ -124,6 +129,12 @@ export default {
       this.itemSizeBound = size;
     },
   },
+  mounted() {
+    this.initiateFontAwesome();
+    this.initiateMaterialDesignIcons();
+    this.layout = this.layoutOrientation;
+    this.itemSizeBound = this.iconSize;
+  },
   methods: {
     /* Clears input field, once a searched item is opened */
     finishedSearching() {
@@ -131,7 +142,7 @@ export default {
     },
     /* Returns optional section display preferences if available */
     getDisplayData(section) {
-      return !section.displayData ? {} : section.displayData;
+      return section.displayData ?? {};
     },
     openAddNewSectionMenu() {
       this.addNewSectionOpen = true;
@@ -148,45 +159,37 @@ export default {
       if (!sectionTitle) return undefined;
       let sectionToReturn;
       const parse = (section) => section.replaceAll(' ', '-').toLowerCase().trim();
-      allSections.forEach((section) => {
+      for (const section of allSections) {
         if (parse(sectionTitle) === parse(section.name || '')) {
           sectionToReturn = [section];
         }
-      });
+      }
       if (!sectionToReturn) ErrorHandler(`No section named '${sectionTitle}' was found`);
       return sectionToReturn;
     },
     /* Returns an array of links to external CSS from the Config */
     getExternalCSSLinks() {
-      const availibleThemes = {};
-      if (this.appConfig) {
-        if (this.appConfig.externalStyleSheet) {
-          const externals = this.appConfig.externalStyleSheet;
-          if (Array.isArray(externals)) {
-            externals.forEach((ext, i) => {
-              availibleThemes[`External Stylesheet ${i + 1}`] = ext;
-            });
-          } else {
-            availibleThemes['External Stylesheet'] = this.appConfig.externalStyleSheet;
+      const availableThemes = {};
+      if (this.appConfig && this.appConfig.externalStyleSheet) {
+        const externals = this.appConfig.externalStyleSheet;
+        if (Array.isArray(externals)) {
+          for (const [i, ext] of externals.entries()) {
+            availableThemes[`External Stylesheet ${i + 1}`] = ext;
           }
+        } else {
+          availableThemes['External Stylesheet'] = this.appConfig.externalStyleSheet;
         }
       }
-      availibleThemes.Default = '#';
-      return availibleThemes;
+      availableThemes.Default = '#';
+      return availableThemes;
     },
-  },
-  mounted() {
-    this.initiateFontAwesome();
-    this.initiateMaterialDesignIcons();
-    this.layout = this.layoutOrientation;
-    this.itemSizeBound = this.iconSize;
   },
 };
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/media-queries.scss';
-@import '@/styles/style-helpers.scss';
+@import '@/styles/media-queries';
+@import '@/styles/style-helpers';
 
 .home {
   padding-bottom: 1px;
@@ -200,11 +203,15 @@ export default {
   padding: 0.25rem;
   margin: 0.25rem;
   @extend .svg-button;
-  svg { margin-right: 0.5rem; }
+
+  svg {
+    margin-right: 0.5rem;
+  }
+
   text-decoration: none;
 }
 
-/* Outside container wrapping the item groups*/
+/* Outside container wrapping the item groups */
 .item-group-container {
   display: grid;
   gap: 0.5rem;
@@ -221,6 +228,7 @@ export default {
     display: flex;
     flex-direction: column;
   }
+
   &.orientation-vertical {
     max-width: 100%;
     @include tablet-up {
@@ -228,39 +236,92 @@ export default {
       flex-direction: row;
     }
   }
-  &.orientation-horizontal, &.orientation-vertical, &.single-section-view {
-    @include phone { --content-max-width: 100%; }
-    @include tablet { --content-max-width: 98%; }
-    @include laptop { --content-max-width: 90%; }
-    @include monitor { --content-max-width: 85%; }
-    @include big-screen { --content-max-width: 80%; }
-    @include big-screen-up { --content-max-width: 60%; }
+
+  &.orientation-horizontal,
+  &.orientation-vertical,
+  &.single-section-view {
+    @include phone {
+      --content-max-width: 100%;
+    }
+    @include tablet {
+      --content-max-width: 98%;
+    }
+    @include laptop {
+      --content-max-width: 90%;
+    }
+    @include monitor {
+      --content-max-width: 85%;
+    }
+    @include big-screen {
+      --content-max-width: 80%;
+    }
+    @include big-screen-up {
+      --content-max-width: 60%;
+    }
+
     max-width: var(--content-max-width, 90%);
   }
 
   /* Specify number of columns, based on screen size or user preference */
-  @include phone { --col-count: 1; }
-  @include tablet { --col-count: 2; }
-  @include laptop { --col-count: 2; }
-  @include monitor { --col-count: 3; }
-  @include big-screen { --col-count: 4; }
-  @include big-screen-up { --col-count: 5; }
+  @include phone {
+    --col-count: 1;
+  }
+  @include tablet {
+    --col-count: 2;
+  }
+  @include laptop {
+    --col-count: 2;
+  }
+  @include monitor {
+    --col-count: 3;
+  }
+  @include big-screen {
+    --col-count: 4;
+  }
+  @include big-screen-up {
+    --col-count: 5;
+  }
 
   @include tablet-up {
-    &.col-count-1 { --col-count: 1; }
-    &.col-count-2 { --col-count: 2; }
-    &.col-count-3 { --col-count: 3; }
-    &.col-count-4 { --col-count: 4; }
-    &.col-count-5 { --col-count: 5; }
-    &.col-count-6 { --col-count: 6; }
-    &.col-count-7 { --col-count: 7; }
-    &.col-count-8 { --col-count: 8; }
+    &.col-count-1 {
+      --col-count: 1;
+    }
+
+    &.col-count-2 {
+      --col-count: 2;
+    }
+
+    &.col-count-3 {
+      --col-count: 3;
+    }
+
+    &.col-count-4 {
+      --col-count: 4;
+    }
+
+    &.col-count-5 {
+      --col-count: 5;
+    }
+
+    &.col-count-6 {
+      --col-count: 6;
+    }
+
+    &.col-count-7 {
+      --col-count: 7;
+    }
+
+    &.col-count-8 {
+      --col-count: 8;
+    }
   }
 
   grid-template-columns: repeat(var(--col-count, 2), minmax(0, 1fr));
 
   /* Hide when search term returns nothing */
-  .no-results { display: none !important; }
+  .no-results {
+    display: none !important;
+  }
 
   /* Additional spacing when in edit mode */
   &.edit-mode {
@@ -271,6 +332,7 @@ export default {
   &.single-section-view {
     display: block;
   }
+
   .add-new-section {
     border: 2px dashed var(--primary);
     border-radius: var(--curve-factor);
@@ -287,13 +349,13 @@ export default {
 
 /* Custom styles only applied when there is no sections in config */
 .no-data {
-    font-size: 2rem;
-    color: var(--background);
-    background: #ffffffeb;
-    width: fit-content;
-    margin: 2rem auto;
-    padding: 0.5rem 1rem;
-    border-radius: var(--curve-factor);
+  font-size: 2rem;
+  color: var(--background);
+  background: #ffffffeb;
+  width: fit-content;
+  margin: 2rem auto;
+  padding: 0.5rem 1rem;
+  border-radius: var(--curve-factor);
 }
 
 /* Settings section, includes search, config and user settings */
@@ -303,5 +365,4 @@ section.settings-outer {
     flex-direction: column;
   }
 }
-
 </style>

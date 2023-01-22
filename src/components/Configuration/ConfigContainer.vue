@@ -1,5 +1,5 @@
 <template>
-  <Tabs :navAuto="true" name="Add Item" ref="tabView" v-bind:class="{ hideTabs: !enableConfig }">
+  <Tabs ref="tabView" :nav-auto="true" name="Add Item" :class="{ hideTabs: !enableConfig }">
     <!-- Main tab -->
     <TabItem :name="$t('config.main-tab')" class="main-tab">
       <div class="main-options-container">
@@ -8,37 +8,37 @@
           <!-- Export config button -->
           <Button class="config-button" :disallow="!enableConfig" :click="openExportConfigModal">
             {{ $t('config.download-config-button') }}
-            <DownloadIcon class="button-icon"/>
+            <DownloadIcon class="button-icon" />
           </Button>
           <!-- Edit config button -->
           <Button class="config-button" :disallow="!enableConfig" :click="openEditConfigTab">
             {{ $t('config.edit-config-button') }}
-            <EditIcon class="button-icon"/>
+            <EditIcon class="button-icon" />
           </Button>
           <!-- Language switcher button -->
           <Button class="config-button" :click="openLanguageSwitchModal">
             {{ $t('config.change-language-button') }}
-            <LanguageIcon class="button-icon"/>
+            <LanguageIcon class="button-icon" />
           </Button>
           <!-- CSS / Styling button -->
           <Button class="config-button" :disallow="!enableConfig" :click="openEditCssTab">
             {{ $t('config.edit-css-button') }}
-            <CustomCssIcon class="button-icon"/>
+            <CustomCssIcon class="button-icon" />
           </Button>
           <!-- Cloud sync button -->
           <Button class="config-button" :disallow="!enableConfig" :click="openCloudSyncTab">
-            {{backupId ? $t('config.edit-cloud-sync-button') : $t('config.cloud-sync-button') }}
-            <CloudIcon class="button-icon"/>
+            {{ backupId ? $t('config.edit-cloud-sync-button') : $t('config.cloud-sync-button') }}
+            <CloudIcon class="button-icon" />
           </Button>
           <!-- Rebuild app button -->
           <Button class="config-button" :disallow="!enableConfig" :click="openRebuildAppModal">
             {{ $t('config.rebuild-app-button') }}
-            <RebuildIcon class="button-icon"/>
+            <RebuildIcon class="button-icon" />
           </Button>
           <!-- Reset local changes button -->
           <Button class="config-button" :click="resetLocalSettings">
             {{ $t('config.reset-settings-button') }}
-            <DeleteIcon class="button-icon"/>
+            <DeleteIcon class="button-icon" />
           </Button>
           <!-- About modal button -->
           <Button class="config-button" :click="openAboutModal">
@@ -48,18 +48,18 @@
           <!-- Display app version and language -->
           <p class="language">{{ getLanguage() }}</p>
           <p v-if="$store.state.currentConfigInfo" class="config-location">
-            Using Config From<br>
+            Using Config From<br />
             {{ $store.state.currentConfigInfo.confPath }}
           </p>
           <AppVersion />
         </div>
         <!-- Display note if Config disabled, or if on mobile -->
         <p v-if="!enableConfig" class="config-disabled-note">
-              Some configuration features have been disabled by your administrator
-          </p>
-          <p class="small-screen-note" style="display: none;">
-              You are using a very small screen, and some screens in this menu may not be optimal
-          </p>
+          Some configuration features have been disabled by your administrator
+        </p>
+        <p class="small-screen-note" style="display: none">
+          You are using a very small screen, and some screens in this menu may not be optimal
+        </p>
         <div class="config-note">
           <span>{{ $t('config.backup-note') }}</span>
         </div>
@@ -67,20 +67,19 @@
       <!-- Rebuild App Modal -->
       <RebuildApp />
     </TabItem>
-    <TabItem :name="$t('config.edit-config-tab')" v-if="enableConfig">
+    <TabItem v-if="enableConfig" :name="$t('config.edit-config-tab')">
       <JsonEditor />
     </TabItem>
-    <TabItem :name="$t('cloud-sync.title')" v-if="enableConfig">
+    <TabItem v-if="enableConfig" :name="$t('cloud-sync.title')">
       <CloudBackupRestore />
     </TabItem>
-    <TabItem :name="$t('config.custom-css-tab')" v-if="enableConfig">
+    <TabItem v-if="enableConfig" :name="$t('config.custom-css-tab')">
       <CustomCssEditor />
     </TabItem>
   </Tabs>
 </template>
 
 <script>
-
 import { localStorageKeys, modalNames } from '@/utils/defaults';
 import { getUsersLanguage } from '@/utils/ConfigHelpers';
 import ErrorHandler from '@/utils/ErrorHandler';
@@ -103,24 +102,6 @@ import IconAbout from '@/assets/interface-icons/application-about.svg';
 
 export default {
   name: 'ConfigContainer',
-  data() {
-    return {
-      backupId: localStorage[localStorageKeys.BACKUP_ID] || '',
-      appVersion: process.env.VUE_APP_VERSION,
-      latestVersion: '',
-    };
-  },
-  props: {
-    config: Object,
-  },
-  computed: {
-    sections: function getSections() {
-      return this.config.sections;
-    },
-    enableConfig() {
-      return this.$store.getters.permissions.allowViewConfig;
-    },
-  },
   components: {
     Button,
     JsonEditor,
@@ -137,10 +118,34 @@ export default {
     RebuildIcon,
     IconAbout,
   },
+  props: {
+    config: {
+      type: Object,
+      required: true,
+    },
+  },
+  data() {
+    return {
+      backupId: localStorage[localStorageKeys.BACKUP_ID] || '',
+      appVersion: import.meta.env.VITE_APP_VERSION,
+      latestVersion: '',
+    };
+  },
+  computed: {
+    sections() {
+      return this.config.sections;
+    },
+    enableConfig() {
+      return this.$store.getters.permissions.allowViewConfig;
+    },
+  },
+  mounted() {
+    this.navigateToStartingTab();
+  },
   methods: {
-    /* Progamatically navigates to a given tab by index */
-    navigateToTab(tabInxex) {
-      const itemToSelect = this.$refs.tabView.navItems[tabInxex];
+    /* Programmatically navigates to a given tab by index */
+    navigateToTab(tabIndex) {
+      const itemToSelect = this.$refs.tabView.navItems[tabIndex];
       this.$refs.tabView.activeTabItem(itemToSelect);
     },
     openRebuildAppModal() {
@@ -174,9 +179,10 @@ export default {
     },
     /* Checks that the user is sure, then resets site-wide local storage, and reloads page */
     resetLocalSettings() {
-      const msg = `${this.$t('config.reset-config-msg-l1')} `
-      + `${this.$t('config.reset-config-msg-l2')}\n\n${this.$t('config.reset-config-msg-l3')}`;
-      const isTheUserSure = confirm(msg); // eslint-disable-line no-alert, no-restricted-globals
+      const msg =
+        `${this.$t('config.reset-config-msg-l1')} ` +
+        `${this.$t('config.reset-config-msg-l2')}\n\n${this.$t('config.reset-config-msg-l3')}`;
+      const isTheUserSure = confirm(msg);
       if (isTheUserSure) {
         localStorage.clear();
         this.$toasted.show(this.$t('config.data-cleared-msg'));
@@ -192,21 +198,18 @@ export default {
       const navToTab = this.$store.state.navigateConfToTab;
       const isValidTabIndex = (indx) => typeof indx === 'number' && indx >= 0 && indx <= 5;
       if (navToTab && isValidTabIndex(navToTab)) this.navigateToTab(navToTab);
-      this.$store.commit(StoreKeys.CONF_MENU_INDEX, undefined);
+      this.$store.commit(StoreKeys.CONF_MENU_INDEX);
     },
     unauthorized() {
       ErrorHandler('Unauthorized Operation - Config Disabled');
     },
   },
-  mounted() {
-    this.navigateToStartingTab();
-  },
 };
 </script>
 
 <style scoped lang="scss">
-@import '@/styles/style-helpers.scss';
-@import '@/styles/media-queries.scss';
+@import '@/styles/style-helpers';
+@import '@/styles/media-queries';
 
 pre {
   color: var(--config-code-color);
@@ -214,7 +217,8 @@ pre {
   padding: 0.5rem 1rem;
 }
 
-a.config-button, button.config-button {
+a.config-button,
+button.config-button {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -225,17 +229,21 @@ a.config-button, button.config-button {
   margin: 0.5rem auto;
   min-width: 15rem;
   width: 100%;
+
   svg.button-icon {
     path {
       fill: var(--config-settings-color);
     }
+
     width: 1rem;
     height: 1rem;
     padding: 0.2rem;
   }
+
   &:hover:not(.disallowed) {
     background: var(--config-settings-color);
     color: var(--config-settings-background);
+
     svg path {
       fill: var(--config-settings-background);
     }
@@ -249,7 +257,9 @@ a.hyperlink-wrapper {
   width: 100%;
 }
 
-p.app-version, p.language, p.config-location {
+p.app-version,
+p.language,
+p.config-location {
   margin: 0.5rem auto;
   font-size: 1rem;
   color: var(--transparent-white-50);
@@ -258,6 +268,7 @@ p.app-version, p.language, p.config-location {
 
 div.code-container {
   background: var(--config-code-background);
+
   .yaml-action-buttons {
     position: absolute;
     top: 1.5rem;
@@ -267,24 +278,28 @@ div.code-container {
     border: 1px dashed;
     padding: 0.5rem;
     border-radius: 4px;
+
     h2 {
       margin: 0;
       text-align: center;
       color: var(--config-code-color);
     }
+
     a.yaml-button {
-      padding:  0.25rem 0.5rem;
+      padding: 0.25rem 0.5rem;
       font-size: 1rem;
       color: var(--config-code-color);
       border-radius: var(--curve-factor);
       cursor: pointer;
       text-decoration: underline;
       border: 1px solid var(--config-code-background);
+
       &:hover {
         color: var(--config-code-color);
         border-color: var(--config-code-color);
         text-decoration: none;
       }
+
       &:active {
         color: var(--config-code-background);
         background-color: var(--config-settings-color);
@@ -297,7 +312,9 @@ div.code-container {
 .tab-item {
   overflow-y: auto;
   @extend .scroll-bar;
+
   background: var(--config-settings-background);
+
   &.main-tab {
     min-height: 500px;
   }
@@ -318,8 +335,9 @@ div.code-container {
   width: fit-content;
   margin: 0 auto;
   padding: 2rem 1rem 0;
+
   h2 {
-    margin: 0 auto 1rem auto;
+    margin: 0 auto 1rem;
     color: var(--config-settings-color);
   }
 }
@@ -338,15 +356,23 @@ div.code-container {
   color: var(--config-settings-color);
   background: var(--config-settings-background);
   cursor: default;
+
   p.sub-title {
     font-weight: bold;
     margin: 0;
     display: inline;
   }
-  &:hover { opacity: 1; }
+
+  &:hover {
+    opacity: 1;
+  }
+
   display: none;
-  @include tablet-up { display: block; }
+  @include tablet-up {
+    display: block;
+  }
 }
+
 p.config-disabled-note {
   margin: 0.5rem auto;
   padding: 0 0.5rem;
@@ -354,28 +380,29 @@ p.config-disabled-note {
   color: var(--warning);
   opacity: var(--dimming-factor);
 }
+
 p.small-screen-note {
-    @include phone {
-      display: block !important;
-    }
-    margin: 0.5rem auto;
-    padding: 0 0.5rem;
-    text-align: center;
-    opacity: 0.8;
-    font-size: 0.9rem;
-    color: var(--warning);
+  @include phone {
+    display: block !important;
   }
+
+  margin: 0.5rem auto;
+  padding: 0 0.5rem;
+  text-align: center;
+  opacity: 0.8;
+  font-size: 0.9rem;
+  color: var(--warning);
+}
 </style>
 
 <style lang="scss">
-
 .hideTabs .tab__pagination {
   display: none !important;
 }
 
 .tabs__content {
-  height: -webkit-fill-available;
-  height: -moz-available;
+  height: fill-available;
+  height: available;
   height: stretch;
   height: 100%; // Firefox
 }
@@ -387,32 +414,38 @@ p.small-screen-note {
 .tab__pagination {
   background: var(--config-settings-background) !important;
   color: var(--config-settings-color) !important;
+
   .tab__nav__items .tab__nav__item {
     span {
       color: var(--config-settings-color) !important;
     }
+
     &:hover {
       background: var(--config-settings-color) !important;
+
       span {
         color: var(--config-settings-background) !important;
       }
     }
+
     &.active {
       span {
         font-weight: bold !important;
         color: var(--config-settings-color) !important;
       }
+
       &:hover span {
         color: var(--config-settings-background) !important;
       }
     }
   }
+
   .tab__nav__items .tab__nav__item.active {
     border-bottom: 2px solid var(--config-settings-color) !important;
   }
+
   hr.tab__slider {
     background: var(--config-settings-color) !important;
   }
 }
-
 </style>

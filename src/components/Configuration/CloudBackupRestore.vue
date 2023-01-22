@@ -5,9 +5,9 @@
       <h2>{{ $t('cloud-sync.title') }}</h2>
       <p class="intro">
         {{ $t('cloud-sync.intro-l1') }}
-        <br><br>
+        <br /><br />
         {{ $t('cloud-sync.intro-l2') }}
-        <br>
+        <br />
         {{ $t('cloud-sync.intro-l3') }}
         <a href="https://github.com/Lissy93/dashy/blob/master/docs/backup-restore.md">docs</a>
       </p>
@@ -19,17 +19,19 @@
       <Input
         v-model="backupPassword"
         name="backup-password"
-        :label="backupId
-          ? $t('cloud-sync.password-label-update') : $t('cloud-sync.password-label-setup')"
+        :label="
+          backupId ? $t('cloud-sync.password-label-update') : $t('cloud-sync.password-label-setup')
+        "
         layout="vertical"
         type="password"
       />
       <Button :click="checkPass">
-        {{backupId
-          ? $t('cloud-sync.backup-button-update') : $t('cloud-sync.backup-button-setup')}}
+        {{
+          backupId ? $t('cloud-sync.backup-button-update') : $t('cloud-sync.backup-button-setup')
+        }}
         <IconBackup />
       </Button>
-      <div class="results-view" v-if="backupId">
+      <div v-if="backupId" class="results-view">
         <span class="backup-id-label">{{ $t('cloud-sync.backup-id-label') }}: </span>
         <pre class="backup-id-value">{{ backupId }}</pre>
         <span class="backup-id-note">{{ $t('cloud-sync.backup-id-note') }}</span>
@@ -38,11 +40,7 @@
     <!-- Restore from backup form -->
     <div class="section restore-section">
       <h3>{{ $t('cloud-sync.restore-title') }}</h3>
-      <Input
-        v-model="restoreCode"
-        name="restore-code"
-        :label="$t('cloud-sync.restore-id-label')"
-      />
+      <Input v-model="restoreCode" name="restore-code" :label="$t('cloud-sync.restore-id-label')" />
       <Input
         v-model="restorePassword"
         name="restore-password"
@@ -75,13 +73,16 @@ import IconRestore from '@/assets/interface-icons/config-restore.svg';
 
 export default {
   name: 'CloudBackupRestore',
-  computed: {
-    config() { // Users config from store
-      return this.$store.state.config;
-    },
+  components: {
+    // UI components / icons
+    Button,
+    Input,
+    IconBackup,
+    IconRestore,
   },
   data() {
-    return { // Store current form data (temp)
+    return {
+      // Store current form data (temp)
       backupPassword: '',
       restorePassword: '',
       restoreCode: '',
@@ -89,11 +90,11 @@ export default {
       progress: new Progress({ color: 'var(--progress-bar)' }),
     };
   },
-  components: { // UI components / icons
-    Button,
-    Input,
-    IconBackup,
-    IconRestore,
+  computed: {
+    config() {
+      // Users config from store
+      return this.$store.state.config;
+    },
   },
   methods: {
     /* Make request to server-side, then either show error, or proceed to restore */
@@ -103,8 +104,9 @@ export default {
         .then((response) => {
           this.applyRestoredData(response, this.restoreCode);
           this.progress.end();
-        }).catch((msg) => {
-          this.showErrorMsg(msg);
+        })
+        .catch((error) => {
+          this.showErrorMsg(error);
           this.progress.end();
         });
     },
@@ -115,11 +117,13 @@ export default {
         .then((response) => {
           if (!response.data || response.data.errorMsg || !response.data.backupId) {
             this.showErrorMsg(response.data.errorMsg || 'Error');
-          } else { // All clear, no error
+          } else {
+            // All clear, no error
             this.updateUiAfterBackup(response.data.backupId, false);
           }
           this.progress.end();
-        }).catch(() => {
+        })
+        .catch(() => {
           this.showErrorMsg(this.$t('cloud-sync.backup-error-unknown'));
           this.progress.end();
         });
@@ -131,11 +135,13 @@ export default {
         .then((response) => {
           if (!response.data || response.data.errorMsg || !response.data.backupId) {
             this.showErrorMsg(response.data.errorMsg || 'Error');
-          } else { // All clear, no error
+          } else {
+            // All clear, no error
             this.updateUiAfterBackup(response.data.backupId, true);
           }
           this.progress.end();
-        }).catch(() => {
+        })
+        .catch(() => {
           this.showErrorMsg(this.$t('cloud-sync.backup-error-unknown'));
           this.progress.end();
         });
@@ -153,7 +159,7 @@ export default {
         this.showErrorMsg(this.$t('cloud-sync.backup-error-password'));
       }
     },
-    /* When restored data is revieved, then save to local storage, and apply it in state */
+    /* When restored data is revived, then save to local storage, and apply it in state */
     applyRestoredData(config, backupId) {
       // Store restored data in local storage
       localStorage.setItem(localStorageKeys.CONF_SECTIONS, JSON.stringify(config.sections));
@@ -173,7 +179,7 @@ export default {
     updateUiAfterBackup(backupId, isUpdate = false) {
       this.setBackupIdLocally(backupId, this.backupPassword);
       this.showSuccessMsg(
-        `${isUpdate ? 'Update' : 'Backup'} ${this.$t('cloud-sync.backup-success-msg')}`,
+        `${isUpdate ? 'Update' : 'Backup'} ${this.$t('cloud-sync.backup-success-msg')}`
       );
       this.backupPassword = '';
     },
@@ -203,80 +209,94 @@ export default {
 </script>
 
 <style scoped lang="scss">
-  @import '@/styles/style-helpers.scss';
-  div.cloud-backup-restore-wrapper {
-    display: flex;
-    flex-wrap: wrap;
-    flex-direction: row;
-    text-align: center;
-    overflow: auto;
-    height: 100%;
-    color: var(--cloud-backup-color);
-    background: var(--cloud-backup-background);
-    @extend .scroll-bar;
+@import '@/styles/style-helpers';
 
-    /* Text styling */
-    h2, h3 { font-size: 1.6rem; }
-    p.intro {
-      text-align: left;
-      font-size: 1rem;
-      margin: 0.25rem;
-      padding: 0.25rem;
-    }
+div.cloud-backup-restore-wrapper {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+  text-align: center;
+  overflow: auto;
+  height: 100%;
+  color: var(--cloud-backup-color);
+  background: var(--cloud-backup-background);
+  @extend .scroll-bar;
 
-    /* Main sections */
-    .section {
-      display: flex;
-      flex-direction: column;
-      width: fit-content;
-      margin: 0 auto 1rem auto;
-      padding: 0 0.5rem 1rem 0.5rem;
-    }
-    /* Intro section */
-    .section.intro {
-      width: 100%;
-      height: fit-content;
-      border-bottom: 1px dashed var(--cloud-backup-color);
-      a { color: var(--cloud-backup-color); }
-    }
+  /* Text styling */
+  h2,
+  h3 {
+    font-size: 1.6rem;
   }
 
-  /* Container to show backup ID result from server */
-  div.results-view {
-    width: 16rem;
-    margin: 0.5rem auto;
-    padding: 0.5rem 0.75rem;
-    box-sizing: border-box;
-    border: 1px dashed var(--cloud-backup-color);
-    border-radius: var(--curve-factor);
+  p.intro {
     text-align: left;
-    .backup-id-label, .backup-id-value {
-      display: inline;
-      font-size: 1rem;
-      margin-right: 0.5rem;
-    }
-    .backup-id-note {
-      font-size: 0.8rem;
-      display: block;
-      opacity: 0.8;
-      margin-top: 0.5rem;
-    }
+    font-size: 1rem;
+    margin: 0.25rem;
+    padding: 0.25rem;
   }
 
-  /* Overide form element colors, so that config menu can be themed by user */
-  input, button {
-    color: var(--cloud-backup-color);
-    border: 1px solid var(--cloud-backup-color);
-    background: none;
-    width: 16rem;
-  }
-  input:focus {
-    box-shadow: 1px 1px 6px var(--cloud-backup-color);
-  }
-  button:hover {
-    color: var(--cloud-backup-background);
-    border: 1px solid var(--cloud-backup-background);
-    background: var(--cloud-backup-color);
+  /* Main sections */
+  .section {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    margin: 0 auto 1rem;
+    padding: 0 0.5rem 1rem;
   }
 
+  /* Intro section */
+  .section.intro {
+    width: 100%;
+    height: fit-content;
+    border-bottom: 1px dashed var(--cloud-backup-color);
+
+    a {
+      color: var(--cloud-backup-color);
+    }
+  }
+}
+
+/* Container to show backup ID result from server */
+div.results-view {
+  width: 16rem;
+  margin: 0.5rem auto;
+  padding: 0.5rem 0.75rem;
+  box-sizing: border-box;
+  border: 1px dashed var(--cloud-backup-color);
+  border-radius: var(--curve-factor);
+  text-align: left;
+
+  .backup-id-label,
+  .backup-id-value {
+    display: inline;
+    font-size: 1rem;
+    margin-right: 0.5rem;
+  }
+
+  .backup-id-note {
+    font-size: 0.8rem;
+    display: block;
+    opacity: 0.8;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Override form element colors, so that config menu can be themed by user */
+input,
+button {
+  color: var(--cloud-backup-color);
+  border: 1px solid var(--cloud-backup-color);
+  background: none;
+  width: 16rem;
+}
+
+input:focus {
+  box-shadow: 1px 1px 6px var(--cloud-backup-color);
+}
+
+button:hover {
+  color: var(--cloud-backup-background);
+  border: 1px solid var(--cloud-backup-background);
+  background: var(--cloud-backup-color);
+}
 </style>

@@ -1,35 +1,46 @@
 <template ref="container">
-  <div :class="`item-wrapper wrap-size-${size} span-${makeColumnCount}`" >
-    <a @click="itemClicked"
+  <div :class="`item-wrapper wrap-size-${size} span-${makeColumnCount}`">
+    <a
+      v-longPress="true"
+      v-tooltip="getTooltipOptions()"
+      :href="item.url"
+      :target="anchorTarget"
+      :id="`link-${item.id}`"
+      :class="`item ${makeClassList}`"
+      rel="noopener noreferrer"
+      tabindex="0"
+      :style="customStyle"
+      @click="itemClicked"
       @long-press="openContextMenu"
       @contextmenu.prevent
       @mouseup.right="openContextMenu"
-      v-longPress="true"
-      :href="item.url"
-      :target="anchorTarget"
-      :class="`item ${makeClassList}`"
-      v-tooltip="getTooltipOptions()"
-      rel="noopener noreferrer" tabindex="0"
-      :id="`link-${item.id}`"
-      :style="customStyle"
     >
       <!-- Item Text -->
-      <div :class="`tile-title  ${!itemIcon? 'bounce no-icon': ''}`" :id="`tile-${item.id}`" >
+      <div :id="`tile-${item.id}`" :class="`tile-title  ${!itemIcon ? 'bounce no-icon' : ''}`">
         <span class="text">{{ item.title }}</span>
         <p class="description">{{ item.description }}</p>
       </div>
       <!-- Item Icon -->
-      <Icon :icon="itemIcon" :url="item.url" :size="size" :color="item.color"
-        v-bind:style="customStyles" class="bounce" />
+      <Icon
+        :icon="itemIcon"
+        :url="item.url"
+        :size="size"
+        :color="item.color"
+        v-bind:style="customStyles"
+        class="bounce"
+      />
       <!-- Small icon, showing opening method on hover -->
-      <ItemOpenMethodIcon class="opening-method-icon"
+      <ItemOpenMethodIcon
+        class="opening-method-icon"
         :isSmall="!itemIcon || size === 'small'"
-        :openingMethod="accumulatedTarget"  position="bottom right"
-        :hotkey="item.hotkey" />
+        :openingMethod="accumulatedTarget"
+        position="bottom right"
+        :hotkey="item.hotkey"
+      />
       <!-- Status indicator dot (if enabled) showing weather service is available -->
       <StatusIndicator
-        class="status-indicator"
         v-if="enableStatusCheck"
+        class="status-indicator"
         :statusSuccess="statusResponse ? statusResponse.successStatus : undefined"
         :statusText="statusResponse ? statusResponse.message : undefined"
       />
@@ -38,11 +49,11 @@
     </a>
     <!-- Right-click context menu -->
     <ContextMenu
-      :show="contextMenuOpen && !isAddNew"
+      :id="`context-menu-${item.id}`"
       v-click-outside="closeContextMenu"
+      :show="contextMenuOpen && !isAddNew"
       :posX="contextPos.posX"
       :posY="contextPos.posY"
-      :id="`context-menu-${item.id}`"
       @launchItem="launchItem"
       @openItemSettings="openItemSettings"
       @openMoveItemMenu="openMoveItemMenu"
@@ -50,9 +61,13 @@
     />
     <!-- Edit and move item menu modals -->
     <MoveItemTo v-if="isEditMode" :itemId="item.id" />
-    <EditItem v-if="editMenuOpen" :itemId="item.id"
+    <EditItem
+      v-if="editMenuOpen"
+      :itemId="item.id"
+      :isNew="isAddNew"
+      :parentSectionTitle="parentSectionTitle"
       @closeEditMenu="closeEditMenu"
-      :isNew="isAddNew" :parentSectionTitle="parentSectionTitle" />
+    />
   </div>
 </template>
 
@@ -104,20 +119,30 @@ export default {
     /* Based on item props, adjust class names */
     makeClassList() {
       const { isAddNew, isEditMode, size } = this;
-      return `size-${size} ${!this.itemIcon ? 'short' : ''} `
-        + `${isAddNew ? 'add-new' : ''} ${isEditMode ? 'is-edit-mode' : ''}`;
+      return (
+        `size-${size} ${!this.itemIcon ? 'short' : ''} ` +
+        `${isAddNew ? 'add-new' : ''} ${isEditMode ? 'is-edit-mode' : ''}`
+      );
     },
     /* Used by certain themes (material), to show animated CSS icon */
     unicodeOpeningIcon() {
       switch (this.accumulatedTarget) {
-        case 'newtab': return '"\\f360"';
-        case 'sametab': return '"\\f24d"';
-        case 'parent': return '"\\f3bf"';
-        case 'top': return '"\\f102"';
-        case 'modal': return '"\\f2d0"';
-        case 'workspace': return '"\\f0b1"';
-        case 'clipboard': return '"\\f0ea"';
-        default: return '"\\f054"';
+        case 'newtab':
+          return '"\\f360"';
+        case 'sametab':
+          return '"\\f24d"';
+        case 'parent':
+          return '"\\f3bf"';
+        case 'top':
+          return '"\\f102"';
+        case 'modal':
+          return '"\\f2d0"';
+        case 'workspace':
+          return '"\\f0b1"';
+        case 'clipboard':
+          return '"\\f0ea"';
+        default:
+          return '"\\f054"';
       }
     },
   },
@@ -137,7 +162,7 @@ export default {
       const tooltipText = providerText + lb1 + description + hotkeyText;
       const editText = this.$t('interactive-editor.edit-section.edit-tooltip');
       return {
-        content: (this.isEditMode ? editText : tooltipText),
+        content: this.isEditMode ? editText : tooltipText,
         trigger: 'hover focus',
         hideOnTargetClick: true,
         html: true,
@@ -190,23 +215,48 @@ export default {
 </script>
 
 <style lang="scss">
-
 .item-wrapper {
   flex-grow: 1;
   flex-basis: 6rem;
+
   &.wrap-size-large {
     flex-basis: 12rem;
   }
+
   &.wrap-size-small {
     flex-grow: revert;
-    &.span-1 { min-width: 100%; }
-    &.span-2 { min-width: 50%; }
-    &.span-3 { min-width: 33%; }
-    &.span-4 { min-width: 25%; }
-    &.span-5 { min-width: 20%; }
-    &.span-6 { min-width: 16%; }
-    &.span-7 { min-width: 14%; }
-    &.span-8 { min-width: 12.5%; }
+
+    &.span-1 {
+      min-width: 100%;
+    }
+
+    &.span-2 {
+      min-width: 50%;
+    }
+
+    &.span-3 {
+      min-width: 33%;
+    }
+
+    &.span-4 {
+      min-width: 25%;
+    }
+
+    &.span-5 {
+      min-width: 20%;
+    }
+
+    &.span-6 {
+      min-width: 16%;
+    }
+
+    &.span-7 {
+      min-width: 14%;
+    }
+
+    &.span-8 {
+      min-width: 12.5%;
+    }
   }
 }
 
@@ -226,17 +276,21 @@ export default {
   text-decoration: none;
   position: relative;
   transition: all 0.2s ease-in-out 0s;
+
   &:hover {
     box-shadow: var(--item-hover-shadow);
     background: var(--item-background-hover);
     color: var(--item-text-color-hover);
   }
+
   &:focus {
     outline: 2px solid var(--primary);
   }
+
   &.add-new {
     border: 2px dashed var(--primary) !important;
   }
+
   &.short:not(.size-large) {
     height: 2rem;
   }
@@ -255,6 +309,7 @@ export default {
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   word-break: keep-all;
+
   span.text {
     white-space: nowrap;
   }
@@ -272,24 +327,27 @@ export default {
 }
 
 /* Manage hover and focus actions */
-.item:hover, .item:focus {
+.item:hover,
+.item:focus {
   /* Show opening-method icon */
   .opening-method-icon {
     display: block;
   }
 
   /* Trigger text-marquee for text that doesn't fit */
-  .tile-title.is-overflowing{
+  .tile-title.is-overflowing {
     .overflow-dots {
       opacity: 0;
     }
+
     span.text {
       transform: translateX(calc(100px - 100%));
     }
   }
 
   /* Apply transformation of icons on hover */
-  .tile-icon, .tile-svg  {
+  .tile-icon,
+  .tile-svg {
     filter: var(--item-icon-transform-hover);
   }
 }
@@ -318,34 +376,41 @@ p.description {
     height: 2rem;
     padding-top: 0.25rem;
     padding-left: 0.5rem;
+
     div img {
       width: 2rem;
     }
+
     .tile-title {
       height: fit-content;
       min-height: 1.2rem;
       text-align: left;
       max-width: 12rem;
       overflow: hidden;
+
       span.text {
         text-align: left;
         padding-left: 10%;
       }
     }
   }
+
   /* Medium Tile Specific Themes */
   &.size-medium {
     display: flex;
     flex-direction: column;
     align-items: center;
     height: auto;
+
     div img {
       width: 2.5rem;
       margin-bottom: 0.25rem;
     }
+
     .tile-title {
       min-width: 100px;
       max-width: 160px;
+
       &.no-icon {
         text-align: left;
         width: 100%;
@@ -354,6 +419,7 @@ p.description {
       }
     }
   }
+
   /* Large Tile Specific Themes */
   &.size-large {
     display: flex;
@@ -365,43 +431,56 @@ p.description {
     max-height: 6rem;
     margin: 0.2rem;
     padding: 0.5rem;
+
     img {
       padding: 0.1rem 0.25rem;
     }
+
     .tile-title {
       height: auto;
       padding: 0.1rem 0.25rem;
+
       span.text {
         position: relative;
         font-weight: bold;
         font-size: 1.1rem;
         width: 100%;
       }
+
       p.description {
         margin: 0;
         display: block;
         white-space: pre-wrap;
         text-overflow: ellipsis;
-        font-size: .9em;
+        font-size: 0.9em;
         line-height: 1rem;
         height: 2rem;
       }
     }
   }
-  &:before { // Certain themes (e.g. material) show css animated fas icon on hover
+
+  &::before {
+    // Certain themes (e.g. material) show css animated fas icon on hover
     display: none;
     font-family: FontAwesome;
-    content: var(--open-icon, "\f054") !important;
+    content: var(--open-icon, '\f054') !important;
   }
 }
 
 /* Adjust positioning of status indicator, when in edit mode */
 a.item.is-edit-mode {
-  &.size-medium .status-indicator { top: 1rem; }
-  &.size-small .status-indicator { right: 1rem; }
-  &.size-large .status-indicator { top: 1.5rem; }
-}
+  &.size-medium .status-indicator {
+    top: 1rem;
+  }
 
+  &.size-small .status-indicator {
+    right: 1rem;
+  }
+
+  &.size-large .status-indicator {
+    top: 1.5rem;
+  }
+}
 </style>
 
 <!-- An un-scoped style tag, since tooltip is outside this DOM tree -->
@@ -409,6 +488,7 @@ a.item.is-edit-mode {
 .disabled-link {
   pointer-events: none;
 }
+
 .tooltip.item-description-tooltip {
   z-index: 7;
 }

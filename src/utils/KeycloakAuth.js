@@ -1,5 +1,5 @@
 import Keycloak from 'keycloak-js';
-import ConfigAccumulator from '@/utils/ConfigAccumalator';
+import ConfigAccumulator from '@/utils/ConfigAccumulator';
 import { localStorageKeys } from '@/utils/defaults';
 import ErrorHandler from '@/utils/ErrorHandler';
 
@@ -12,12 +12,13 @@ const getAppConfig = () => {
 class KeycloakAuth {
   constructor() {
     const { auth } = getAppConfig();
-    const {
-      serverUrl, realm, clientId, legacySupport,
-    } = auth.keycloak;
+    const { serverUrl, realm, clientId, legacySupport } = auth.keycloak;
     const url = legacySupport ? `${serverUrl}/auth` : serverUrl;
     const initOptions = {
-      url, realm, clientId, onLoad: 'login-required',
+      url,
+      realm,
+      clientId,
+      onLoad: 'login-required',
     };
 
     this.keycloakClient = Keycloak(initOptions);
@@ -25,7 +26,8 @@ class KeycloakAuth {
 
   login() {
     return new Promise((resolve, reject) => {
-      this.keycloakClient.init({ onLoad: 'login-required' })
+      this.keycloakClient
+        .init({ onLoad: 'login-required' })
         .then((auth) => {
           if (auth) {
             this.storeKeycloakInfo();
@@ -34,7 +36,7 @@ class KeycloakAuth {
             return reject(new Error('Not authenticated'));
           }
         })
-        .catch((reason) => reject(reason));
+        .catch((error) => reject(error));
     });
   }
 

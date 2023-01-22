@@ -1,23 +1,23 @@
 <template>
   <modal
-    :name="modalName" @closed="modalClosed"
-    :resizable="true" width="50%" height="80%"
+    :name="modalName"
+    :resizable="true"
+    height="80%"
+    width="50%"
     classes="dashy-modal edit-section"
+    @closed="modalClosed"
   >
-  <div class="edit-section-inner" v-if="allowViewConfig">
-    <h3>
-      {{ $t(`interactive-editor.edit-section.${isAddNew ? 'add' : 'edit'}-section-title`) }}
-    </h3>
-    <FormSchema
-      :schema="customSchema"
-      v-model="sectionData"
-      name="editSectionForm"
-      class="edit-section-form"
-    />
-    <SaveCancelButtons
-      :saveClick="saveSection"
-      :cancelClick="modalClosed"
-    />
+    <div v-if="allowViewConfig" class="edit-section-inner">
+      <h3>
+        {{ $t(`interactive-editor.edit-section.${isAddNew ? 'add' : 'edit'}-section-title`) }}
+      </h3>
+      <FormSchema
+        v-model="sectionData"
+        :schema="customSchema"
+        name="editSectionForm"
+        class="edit-section-form"
+      />
+      <SaveCancelButtons :save-click="saveSection" :cancel-click="modalClosed" />
     </div>
     <AccessError v-else />
   </modal>
@@ -33,14 +33,14 @@ import AccessError from '@/components/Configuration/AccessError';
 
 export default {
   name: 'EditSection',
-  props: {
-    sectionIndex: Number,
-    isAddNew: Boolean,
-  },
   components: {
     SaveCancelButtons,
     FormSchema,
     AccessError,
+  },
+  props: {
+    sectionIndex: Number,
+    isAddNew: Boolean,
   },
   data() {
     return {
@@ -95,8 +95,8 @@ export default {
     },
     /* Either update existing section, or insert new one, then close modal */
     saveSection() {
-      const { sectionIndex, sectionData } = this;
-      if (this.isAddNew) {
+      const { sectionIndex, sectionData, isAddNew } = this;
+      if (isAddNew) {
         this.$store.commit(StoreKeys.INSERT_SECTION, sectionData);
       } else {
         this.$store.commit(StoreKeys.UPDATE_SECTION, { sectionIndex, sectionData });
@@ -109,9 +109,9 @@ export default {
 </script>
 
 <style lang="scss">
-@import '@/styles/style-helpers.scss';
-@import '@/styles/media-queries.scss';
-@import '@/styles/schema-editor.scss';
+@import '@/styles/style-helpers';
+@import '@/styles/media-queries';
+@import '@/styles/schema-editor';
 
 .edit-section-inner {
   padding: 1rem;
@@ -120,14 +120,18 @@ export default {
   height: 100%;
   overflow-y: auto;
   @extend .scroll-bar;
+
   h3 {
     font-size: 1.4rem;
     margin: 0.5rem;
   }
+
   .edit-section-form {
     @extend .schema-form;
+
     margin-bottom: 2.5rem;
   }
+
   .edit-section-save-btn {
     margin-bottom: 2rem;
   }

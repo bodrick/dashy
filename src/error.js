@@ -8,7 +8,7 @@ const showErrorOverlay = (err) => {
   }
   console.log(err);
   const overlay = new ErrorOverlay(err);
-  document.body.appendChild(overlay);
+  document.body.append(overlay);
 };
 
 window.addEventListener('error', showErrorOverlay);

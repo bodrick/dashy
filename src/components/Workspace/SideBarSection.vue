@@ -27,16 +27,15 @@
 </template>
 
 <script>
-
 import SideBarItem from '@/components/Workspace/SideBarItem.vue';
 
 export default {
   name: 'SideBarSection',
-  props: {
-    items: Array,
-  },
   components: {
     SideBarItem,
+  },
+  props: {
+    items: Array,
   },
   methods: {
     launchApp(options) {
@@ -47,8 +46,8 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/media-queries.scss';
-@import '@/styles/style-helpers.scss';
+@import '@/styles/media-queries';
+@import '@/styles/style-helpers';
 
 div.sub-side-bar {
   display: flex;
@@ -59,11 +58,11 @@ div.sub-side-bar {
   color: var(--side-bar-color);
   text-align: center;
   z-index: 3;
+
   .sub-item-group {
     border: 1px dotted var(--side-bar-color);
     border-radius: 4px;
-    background: #00000033;
+    background: #0003;
   }
 }
-
 </style>

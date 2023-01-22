@@ -12,7 +12,6 @@
 </template>
 
 <script>
-
 import Button from '@/components/FormElements/Button';
 import SaveIcon from '@/assets/interface-icons/save-config.svg';
 import CancelIcon from '@/assets/interface-icons/config-close.svg';
@@ -37,25 +36,33 @@ export default {
   margin: 0.5rem 0;
   justify-content: center;
   border-top: 1px dashed var(--interactive-editor-color);
-    button {
+
+  button {
     margin: 1rem 0.5rem;
     color: var(--interactive-editor-color);
     border-color: var(--interactive-editor-color);
     background: var(--interactive-editor-background);
+
     svg {
       border: none;
       width: 1.2rem;
       height: 1.2rem;
     }
+
     &:hover {
       color: var(--interactive-editor-background);
       border-color: var(--interactive-editor-color);
       background: var(--interactive-editor-color);
+
       svg {
         background: var(--interactive-editor-color);
-        path { fill: var(--interactive-editor-background); }
+
+        path {
+          fill: var(--interactive-editor-background);
+        }
       }
     }
+
     &:focus {
       box-shadow: 1px 1px 6px var(--interactive-editor-color);
     }

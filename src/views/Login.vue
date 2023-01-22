@@ -15,53 +15,57 @@
         You need to log out, in order to proceed as a different user.
       </span>
       <transition name="bounce">
-        <p :class="`login-error-message ${status}`" v-show="message">{{ message }}</p>
+        <p v-show="message" :class="`login-error-message ${status}`">{{ message }}</p>
       </transition>
     </div>
     <!-- Main login form -->
-    <form class="login-form" v-if="(!isUserAlreadyLoggedIn) && isAuthenticationEnabled">
+    <form v-if="!isUserAlreadyLoggedIn && isAuthenticationEnabled" class="login-form">
       <h2 class="login-title">{{ $t('login.title') }}</h2>
-      <Input type="text"
+      <Input
         v-model="username"
-        :onEnter="submitLogin"
+        type="text"
+        :on-enter="submitLogin"
         :label="$t('login.username-label')"
         class="login-field username"
       />
-      <Input type="password"
+      <Input
         v-model="password"
-        :onEnter="submitLogin"
+        type="password"
+        :on-enter="submitLogin"
         :label="$t('login.password-label')"
         class="login-field password"
       />
       <label>{{ $t('login.remember-me-label') }}</label>
       <v-select
         v-model="timeout"
-        :selectOnTab="true"
+        :select-on-tab="true"
         :options="dropDownMenu"
-        :map-keydown="(map) => ({ ...map, 13: () => this.submitLogin() })"
+        :map-keydown="(map) => ({ ...map, 13: () => submitLogin() })"
         class="login-time-dropdown"
       />
       <Button class="login-button" :click="submitLogin">
         {{ $t('login.login-button') }}
       </Button>
       <transition name="bounce">
-        <p :class="`login-error-message ${status}`" v-show="message">{{ message }}</p>
+        <p v-show="message" :class="`login-error-message ${status}`">{{ message }}</p>
       </transition>
     </form>
     <!-- Guest login form -->
-    <form class="guest-form"
-      v-if="isGuestAccessEnabled && !isUserAlreadyLoggedIn && isAuthenticationEnabled">
+    <form
+      v-if="isGuestAccessEnabled && !isUserAlreadyLoggedIn && isAuthenticationEnabled"
+      class="guest-form"
+    >
       <h2 class="login-title">{{ $t('login.guest-label') }}</h2>
       <Button class="login-button" :click="guestLogin">
         {{ $t('login.proceed-guest-button') }}
       </Button>
       <p class="guest-intro">
-        {{ $t('login.guest-intro-1') }}<br>
+        {{ $t('login.guest-intro-1') }}<br />
         {{ $t('login.guest-intro-2') }}
       </p>
     </form>
     <!-- Edge case - guest mode enabled, but no users configured -->
-    <div class="not-configured" v-if="!isAuthenticationEnabled">
+    <div v-if="!isAuthenticationEnabled" class="not-configured">
       <h2>{{ $t('login.error') }}</h2>
       <p>{{ $t('login.error-no-user-configured') }}</p>
       <Button class="login-button" :click="guestLogin">
@@ -77,16 +81,10 @@ import Button from '@/components/FormElements/Button';
 import Input from '@/components/FormElements/Input';
 import Defaults, { localStorageKeys } from '@/utils/defaults';
 import { InfoHandler, WarningInfoHandler, InfoKeys } from '@/utils/ErrorHandler';
-import {
-  checkCredentials,
-  login,
-  isLoggedIn,
-  logout,
-  isGuestAccessEnabled,
-} from '@/utils/Auth';
+import { checkCredentials, login, isLoggedIn, logout, isGuestAccessEnabled } from '@/utils/Auth';
 
 export default {
-  name: 'login',
+  name: 'Login',
   components: {
     Button,
     Input,
@@ -96,7 +94,7 @@ export default {
       username: '',
       password: '',
       message: '',
-      status: 'waiting', // wating, error, success
+      status: 'waiting', // waiting, error, success
       timeout: undefined,
     };
   },
@@ -108,10 +106,10 @@ export default {
     dropDownMenu() {
       return [
         { label: this.$t('login.remember-me-never'), time: 0 },
-        { label: this.$t('login.remember-me-hour'), time: 14400 * 1000 },
-        { label: this.$t('login.remember-me-day'), time: 86400 * 1000 },
-        { label: this.$t('login.remember-me-week'), time: 604800 * 1000 },
-        { label: this.$t('login.remember-me-long-time'), time: 604800 * 52 * 1000 },
+        { label: this.$t('login.remember-me-hour'), time: 14_400 * 1000 },
+        { label: this.$t('login.remember-me-day'), time: 86_400 * 1000 },
+        { label: this.$t('login.remember-me-week'), time: 604_800 * 1000 },
+        { label: this.$t('login.remember-me-long-time'), time: 604_800 * 52 * 1000 },
       ];
     },
     /* Translations for login response messages */
@@ -132,34 +130,41 @@ export default {
       return Array.isArray(auth) ? auth : auth.users || [];
     },
     isUserAlreadyLoggedIn() {
-      const loggedIn = (!this.users || this.users.length === 0 || isLoggedIn());
-      return (loggedIn && this.existingUsername);
+      const loggedIn = !this.users || this.users.length === 0 || isLoggedIn();
+      return loggedIn && this.existingUsername;
     },
     isGuestAccessEnabled() {
       return isGuestAccessEnabled();
     },
     isAuthenticationEnabled() {
-      return (this.appConfig && this.appConfig.auth && this.users.length > 0);
+      return this.appConfig && this.appConfig.auth && this.users.length > 0;
     },
+  },
+  created() {
+    this.setTheme();
+    setTimeout(() => {
+      this.timeout = this.dropDownMenu[0];
+    }, 1);
   },
   methods: {
     /* Checks form is filled in, then initiates the login, and redirects to /home */
     submitLogin() {
-      // Use selected timeout, if available,else revedrt to zero
+      // Use selected timeout, if available,else revert to zero
       const timeout = this.timeout ? this.timeout.time : 0;
       // Check users credentials
       const response = checkCredentials(
         this.username,
         this.password,
         this.users, // All users
-        this.responseMessages, // Translated response messages
+        this.responseMessages // Translated response messages
       );
       this.message = response.msg; // Show error or success message to the user
       this.status = response.correct ? 'success' : 'error';
-      if (response.correct) { // Yay, credentials were correct :)
+      if (response.correct) {
+        // Yay, credentials were correct :)
         login(this.username, this.password, timeout); // Login, to set the cookie
         this.goHome();
-        InfoHandler(`Succesfully signed in as ${this.username}`, InfoKeys.AUTH);
+        InfoHandler(`Successfully signed in as ${this.username}`, InfoKeys.AUTH);
       } else {
         WarningInfoHandler('Unable to Sign In', InfoKeys.AUTH, this.message);
       }
@@ -191,30 +196,27 @@ export default {
     },
     /* Refreshes the page */
     refreshPage() {
-      setTimeout(() => { location.reload(); }, 250); // eslint-disable-line no-restricted-globals
+      setTimeout(() => {
+        location.reload();
+      }, 250);
     },
     /* Redirects to the homepage */
     goHome() {
-      setTimeout(() => { // Wait a short while, then redirect back home
+      setTimeout(() => {
+        // Wait a short while, then redirect back home
         router.push({ path: '/' });
       }, 250);
     },
     /* Since Theme setter isn't loaded at this point, we must manually get and apply users theme */
     setTheme() {
       const theme = localStorage[localStorageKeys.THEME] || Defaults.theme;
-      document.getElementsByTagName('html')[0].setAttribute('data-theme', theme);
+      document.getElementsByTagName('html')[0].dataset.theme = theme;
     },
   },
-  created() {
-    this.setTheme();
-    setTimeout(() => { this.timeout = this.dropDownMenu[0]; }, 1); //eslint-disable-line
-  },
 };
-
 </script>
 
 <style lang="scss">
-
 /* Login page base styles */
 .login-page {
   display: flex;
@@ -226,14 +228,17 @@ export default {
   /* User is already logged in note */
   div.already-logged-in {
     margin: 0 auto 0.5rem;
+
     p.already-logged-in {
       margin: 0 auto 0.5rem;
       text-align: center;
     }
+
     span.username {
       font-weight: bold;
       text-transform: capitalize;
     }
+
     span.already-logged-in-note {
       font-size: 0.8rem;
       opacity: var(--dimming-factor);
@@ -242,7 +247,10 @@ export default {
   }
 
   /* Login form container */
-  form.login-form, form.guest-form, div.already-logged-in, div.not-configured {
+  form.login-form,
+  form.guest-form,
+  div.already-logged-in,
+  div.not-configured {
     background: var(--login-form-background);
     color: var(--login-form-color);
     border: 1px solid var(--login-form-color);
@@ -257,13 +265,14 @@ export default {
     /* Login form title */
     h2 {
       font-size: 2rem;
-      margin: 0 0 1rem 0;
+      margin: 0 0 1rem;
       text-align: center;
       cursor: default;
     }
 
     /* Set sizings for input fields and login button */
-    .login-field input, Button.login-button {
+    .login-field input,
+    button.login-button {
       width: 20rem;
       margin: 0.5rem auto;
       font-size: 1.4rem;
@@ -276,28 +285,43 @@ export default {
       border-color: var(--login-form-color);
       background: var(--login-form-background);
     }
+
     /* Custom colors for Login Button */
-    Button.login-button {
+    button.login-button {
       background: var(--login-form-color);
       border-color: var(--login-form-background);
       color: var(--login-form-background);
+
       &:hover {
         color: var(--login-form-color);
         border-color: var(--login-form-color);
         background: var(--login-form-background);
       }
-      &:active, &:focus {
+
+      &:active,
+      &:focus {
         box-shadow: 1px 1px 6px var(--login-form-color);
       }
     }
+
     /* Apply color to status message, depending on status */
     p.login-error-message {
       font-size: 1rem;
       text-align: center;
-      &.waiting { color: var(--login-form-color); }
-      &.success { color: var(--success); }
-      &.error { color: var(--warning); }
+
+      &.waiting {
+        color: var(--login-form-color);
+      }
+
+      &.success {
+        color: var(--success);
+      }
+
+      &.error {
+        color: var(--warning);
+      }
     }
+
     p.guest-intro {
       font-size: 0.8rem;
       opacity: var(--dimming-factor);
@@ -307,35 +331,57 @@ export default {
 }
 
 /* Enter animations for error/ success message */
-.bounce-enter-active { animation: bounce-in 0.25s; }
-.bounce-leave-active { animation: bounce-in 0.25s reverse; }
+.bounce-enter-active {
+  animation: bounce-in 0.25s;
+}
+
+.bounce-leave-active {
+  animation: bounce-in 0.25s reverse;
+}
 @keyframes bounce-in {
-  0% { transform: scale(0); }
-  50% { transform: scale(1.25); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(0);
+  }
+
+  50% {
+    transform: scale(1.25);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Custom styles for dropdown component */
 .v-select.login-time-dropdown {
   margin: 0.5rem 0;
+
   .vs__dropdown-toggle {
     border-color: var(--login-form-color);
     background: var(--login-form-background);
     cursor: pointer;
+
     span.vs__selected {
       color: var(--login-form-color);
     }
-    .vs__actions svg path { fill: var(--login-form-color); }
+
+    .vs__actions svg path {
+      fill: var(--login-form-color);
+    }
   }
+
   ul.vs__dropdown-menu {
     background: var(--login-form-background);
     border-color: var(--login-form-color);
+
     li {
       color: var(--login-form-color);
+
       &:hover {
         color: var(--login-form-background);
         background: var(--login-form-color);
       }
+
       &.vs__dropdown-option--highlight {
         color: var(--login-form-background) !important;
         background: var(--login-form-color);

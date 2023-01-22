@@ -1,7 +1,7 @@
 <template>
   <!-- Intro Info -->
   <div class="edit-mode-bottom-banner">
-    <div class="edit-banner-section intro-container"  v-if="showEditMsg">
+    <div v-if="showEditMsg" class="edit-banner-section intro-container">
       <p class="section-sub-title edit-mode-intro l-1">
         {{ $t('interactive-editor.menu.edit-mode-subtitle') }}
       </p>
@@ -9,7 +9,7 @@
         {{ $t('interactive-editor.menu.edit-mode-description') }}
       </p>
     </div>
-    <div class="edit-banner-section intro-container" v-else>
+    <div v-else class="edit-banner-section intro-container">
       <AccessError class="no-permission" />
     </div>
     <div class="edit-banner-section empty-space"></div>
@@ -19,32 +19,32 @@
         {{ $t('interactive-editor.menu.config-save-methods-subheading') }}
       </p>
       <Button
+        v-tooltip="tooltip($t('interactive-editor.menu.save-locally-tooltip'))"
         :click="saveLocally"
         :disallow="!permissions.allowSaveLocally"
-        v-tooltip="tooltip($t('interactive-editor.menu.save-locally-tooltip'))"
       >
         {{ $t('interactive-editor.menu.save-locally-btn') }}
         <SaveLocallyIcon />
       </Button>
       <Button
+        v-tooltip="tooltip($t('interactive-editor.menu.save-disk-tooltip'))"
         :click="writeToDisk"
         :disallow="!permissions.allowWriteToDisk"
-        v-tooltip="tooltip($t('interactive-editor.menu.save-disk-tooltip'))"
       >
         {{ $t('interactive-editor.menu.save-disk-btn') }}
         <SaveToDiskIcon />
       </Button>
       <Button
+        v-tooltip="tooltip($t('interactive-editor.menu.export-config-tooltip'))"
         :click="openExportConfigMenu"
         :disallow="!permissions.allowViewConfig"
-        v-tooltip="tooltip($t('interactive-editor.menu.export-config-tooltip'))"
       >
         {{ $t('interactive-editor.menu.export-config-btn') }}
         <ExportIcon />
       </Button>
       <Button
-        :click="reset"
         v-tooltip="tooltip($t('interactive-editor.menu.cancel-changes-tooltip'))"
+        :click="reset"
       >
         {{ $t('interactive-editor.menu.cancel-changes-btn') }}
         <CancelIcon />
@@ -57,27 +57,27 @@
       </p>
       <!-- Button to open pageInfo editor -->
       <Button
+        v-tooltip="tooltip($t('interactive-editor.menu.edit-page-info-tooltip'))"
         :click="openEditPageInfo"
         :disallow="!permissions.allowViewConfig"
-        v-tooltip="tooltip($t('interactive-editor.menu.edit-page-info-tooltip'))"
       >
         {{ $t('interactive-editor.menu.edit-page-info-btn') }}
         <PageInfoIcon />
       </Button>
       <!-- Button to open appConfig editor -->
       <Button
+        v-tooltip="tooltip($t('interactive-editor.menu.edit-app-config-tooltip'))"
         :click="openEditAppConfig"
         :disallow="!permissions.allowViewConfig"
-        v-tooltip="tooltip($t('interactive-editor.menu.edit-app-config-tooltip'))"
       >
         {{ $t('interactive-editor.menu.edit-app-config-btn') }}
         <AppConfigIcon />
       </Button>
       <!-- Button to open pages editor -->
       <Button
+        v-tooltip="tooltip($t('interactive-editor.menu.edit-pages-tooltip'))"
         :click="openEditMultiPages"
         :disallow="!permissions.allowViewConfig"
-        v-tooltip="tooltip($t('interactive-editor.menu.edit-pages-tooltip'))"
       >
         {{ $t('interactive-editor.menu.edit-pages-btn') }}
         <MultiPagesIcon />
@@ -110,7 +110,6 @@ import MultiPagesIcon from '@/assets/interface-icons/config-pages.svg';
 
 export default {
   name: 'EditModeSaveMenu',
-  mixins: [ConfigSavingMixin],
   components: {
     Button,
     EditPageInfo,
@@ -125,6 +124,7 @@ export default {
     MultiPagesIcon,
     AccessError,
   },
+  mixins: [ConfigSavingMixin],
   computed: {
     config() {
       return this.$store.state.config;
@@ -166,7 +166,7 @@ export default {
     },
     saveLocally() {
       const msg = this.$t('interactive-editor.menu.save-locally-warning');
-      const youSure = confirm(msg); // eslint-disable-line no-alert, no-restricted-globals
+      const youSure = confirm(msg);
       if (youSure) {
         this.saveConfigLocally(this.config);
       }
@@ -179,7 +179,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import '@/styles/media-queries.scss';
+@import '@/styles/media-queries';
 
 div.edit-mode-bottom-banner {
   position: fixed;
@@ -192,15 +192,22 @@ div.edit-mode-bottom-banner {
   background: var(--interactive-editor-background-darker);
   box-shadow: 0 -5px 7px var(--transparent-50);
   grid-template-columns: 45% 10% 45%;
-  @include laptop-up { grid-template-columns: 50% 10% 40%; }
-  @include monitor-up { grid-template-columns: 40% 30% 30%; }
-  @include big-screen-up { grid-template-columns: 25% 50% 25%; }
+  @include laptop-up {
+    grid-template-columns: 50% 10% 40%;
+  }
+  @include monitor-up {
+    grid-template-columns: 40% 30% 30%;
+  }
+  @include big-screen-up {
+    grid-template-columns: 25% 50% 25%;
+  }
 
   /* Main sections */
   .edit-banner-section {
     padding: 0.5rem;
     height: 90%;
     display: grid;
+
     /* Section sub-titles */
     p.section-sub-title {
       margin: 0;
@@ -208,34 +215,41 @@ div.edit-mode-bottom-banner {
       font-weight: bold;
       cursor: default;
     }
+
     /* Intro-text container */
-    &.intro-container  {
+    &.intro-container {
       p.edit-mode-intro {
         margin: 0;
         color: var(--interactive-editor-color);
         cursor: default;
       }
+
       .no-permission {
         margin: 0;
         width: auto;
         padding: 0 0.5rem;
       }
     }
+
     button {
       margin: 0.25rem;
       height: stretch;
       max-height: 3rem;
     }
+
     /* Button containers */
     &.edit-config-buttons-container {
       grid-template-columns: repeat(3, 1fr);
+
       p.section-sub-title {
         grid-column-start: span 3;
       }
     }
+
     &.save-buttons-container {
       grid-row-start: span 2;
       grid-template-columns: repeat(2, 1fr);
+
       p.section-sub-title {
         grid-column-start: span 2;
       }
@@ -246,6 +260,7 @@ div.edit-mode-bottom-banner {
   @include tablet-down {
     display: flex;
     flex-direction: column;
+
     .edit-banner-section,
     .edit-banner-section.intro-container {
       max-width: 90%;
@@ -254,11 +269,13 @@ div.edit-mode-bottom-banner {
       flex-direction: column;
     }
   }
+
   /* Set colors for buttons */
   .edit-banner-section button {
     color: var(--interactive-editor-color);
     border-color: var(--interactive-editor-color);
     background: var(--interactive-editor-background);
+
     &:hover:not(.disallowed) {
       color: var(--interactive-editor-background);
       border-color: var(--interactive-editor-color);

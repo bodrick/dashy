@@ -1,12 +1,11 @@
 /* A collection of generic reusable functions for various string processing tasks */
-/* eslint-disable arrow-body-style */
 
 /* Very rudimentary hash function for generative icons */
 export const asciiHash = (input) => {
-  const str = (!input || input.length === 0) ? Math.random().toString() : input;
-  const reducer = (previousHash, char) => (previousHash || 0) + char.charCodeAt(0);
-  const asciiSum = str.split('').reduce(reducer).toString();
-  const shortened = asciiSum.slice(0, 30) + asciiSum.slice(asciiSum.length - 30);
+  const str = !input || input.length === 0 ? Math.random().toString() : input;
+  const reducer = (previousHash, char) => (previousHash || 0) + char.codePointAt(0);
+  const asciiSum = [...str].reduce(reducer).toString();
+  const shortened = asciiSum.slice(0, 30) + asciiSum.slice(-30);
   return window.btoa(shortened);
 };
 
@@ -20,18 +19,20 @@ export const sanitize = (string) => {
     "'": '&#x27;',
     '/': '&#x2F;',
   };
-  const reg = /[&<>"'/]/ig;
-  return string.replace(reg, (match) => (map[match]));
+  const reg = /["&'/<>]/gi;
+  return string.replace(reg, (match) => map[match]);
 };
 
 /* Given a timestamp, returns formatted date, in local format */
 export const timestampToDate = (timestamp) => {
   const localFormat = navigator.language;
   const dateFormat = {
-    weekday: 'short', day: 'numeric', month: 'short', year: 'numeric',
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
   };
-  const date = new Date(timestamp).toLocaleDateString(localFormat, dateFormat);
-  return `${date}`;
+  return new Date(timestamp).toLocaleDateString(localFormat, dateFormat);
 };
 
 /* Given a timestamp, returns formatted time in local format */
@@ -53,10 +54,9 @@ export const getCountryFromIso = (iso) => {
 };
 
 /* Given a 2-digit country code, return path to flag image from Flagpedia */
-export const getCountryFlag = (countryCode, dimens) => {
+export const getCountryFlag = (countryCode, dimensions = '64x48') => {
   const protocol = 'https';
   const cdn = 'flagcdn.com';
-  const dimensions = dimens || '64x48';
   const country = countryCode.toLowerCase();
   const ext = 'png';
   return `${protocol}://${cdn}/${dimensions}/${country}.${ext}`;
@@ -69,14 +69,12 @@ export const getCurrencyFlag = (currency) => {
 };
 
 /* Given a Latitude & Longitude object, and optional zoom level, return link to OSM */
-export const getMapUrl = (location, zoom) => {
-  return `https://www.openstreetmap.org/#map=${zoom || 10}/${location.lat}/${location.lon}`;
-};
+export const getMapUrl = (location, zoom) =>
+  `https://www.openstreetmap.org/#map=${zoom || 10}/${location.lat}/${location.lon}`;
 
 /* Given a place name, return a link to Google Maps search page */
-export const getPlaceUrl = (placeName) => {
-  return `https://www.google.com/maps/search/${encodeURIComponent(placeName)}`;
-};
+export const getPlaceUrl = (placeName) =>
+  `https://www.google.com/maps/search/${encodeURIComponent(placeName)}`;
 
 /* Given a large number, will add commas to make more readable */
 export const putCommasInBigNum = (bigNum) => {
@@ -94,7 +92,7 @@ export const showNumAsThousand = (bigNum) => {
 /* Capitalizes the first letter of each word within a string */
 export const capitalize = (str) => {
   const words = str.replaceAll('_', ' ').replaceAll('-', ' ');
-  return words.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
+  return words.replace(/\w\S*/g, (w) => w.replace(/^\w/, (c) => c.toUpperCase()));
 };
 
 /* Given a mem size in bytes, will return it in appropriate unit */
@@ -103,7 +101,7 @@ export const convertBytes = (bytes, decimals = 2) => {
   const k = 1024;
   const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${parseFloat((bytes / (k ** i)).toFixed(decimals))} ${sizes[i]}`;
+  return `${Number.parseFloat((bytes / k ** i).toFixed(decimals))} ${sizes[i]}`;
 };
 
 /* Round a number to thousands, millions, billions or trillions and suffix
@@ -113,8 +111,8 @@ export const formatNumber = (number, decimals = 1) => {
   const units = ['', 'K', 'M', 'B', 'T'];
   const k = 1000;
   const i = Math.floor(Math.log(number) / Math.log(k));
-  const f = parseFloat(number / (k ** i));
-  const d = f.toFixed(decimals) % 1.0 === 0 ? 0 : decimals; // number of decimals, omit .0
+  const f = Number.parseFloat(number / k ** i);
+  const d = f.toFixed(decimals) % 1 === 0 ? 0 : decimals; // number of decimals, omit .0
   return `${f.toFixed(d)}${units[i]}`;
 };
 
@@ -132,9 +130,8 @@ export const roundPrice = (price) => {
 };
 
 /* Cuts string off at given length, and adds an ellipse */
-export const truncateStr = (str, len = 60, ellipse = '...') => {
-  return str.length > len + ellipse.length ? `${str.slice(0, len)}${ellipse}` : str;
-};
+export const truncateStr = (str, len = 60, ellipse = '...') =>
+  str.length > len + ellipse.length ? `${str.slice(0, len)}${ellipse}` : str;
 
 /* Given two timestamp, return the difference in text format, e.g. '10 minutes' */
 export const getTimeDifference = (startTime, endTime) => {
@@ -143,16 +140,16 @@ export const getTimeDifference = (startTime, endTime) => {
   const divide = (time, round) => Math.round(time / round);
   if (diff < 60) return `${divide(diff, 1)} seconds`;
   if (diff < 3600) return `${divide(diff, 60)} minutes`;
-  if (diff < 86400) return `${divide(diff, 3600)} hours`;
-  if (diff < 604800) return `${divide(diff, 86400)} days`;
-  if (diff < 31557600) return `${divide(diff, 604800)} weeks`;
-  if (diff >= 31557600) return `${divide(diff, 31557600)} years`;
+  if (diff < 86_400) return `${divide(diff, 3600)} hours`;
+  if (diff < 604_800) return `${divide(diff, 86_400)} days`;
+  if (diff < 31_557_600) return `${divide(diff, 604_800)} weeks`;
+  if (diff >= 31_557_600) return `${divide(diff, 31_557_600)} years`;
   return 'unknown';
 };
 
 /* Given a timestamp, return how long ago it was, e.g. '10 minutes' */
 export const getTimeAgo = (dateTime) => {
-  const now = new Date().getTime();
+  const now = Date.now();
   const isHistorical = new Date(dateTime).getTime() < now;
   const diffStr = getTimeDifference(dateTime, now);
   if (diffStr === 'unknown') return diffStr;

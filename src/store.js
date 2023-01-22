@@ -1,10 +1,9 @@
-/* eslint-disable no-param-reassign, prefer-destructuring */
 import Vue from 'vue';
 import Vuex from 'vuex';
 import axios from 'axios';
 import yaml from 'js-yaml';
 import Keys from '@/utils/StoreMutations';
-import ConfigAccumulator from '@/utils/ConfigAccumalator';
+import ConfigAccumulator from '@/utils/ConfigAccumulator';
 import { componentVisibility } from '@/utils/ConfigHelpers';
 import { applyItemId } from '@/utils/SectionHelpers';
 import filterUserSections from '@/utils/CheckSectionVisibility';
@@ -42,6 +41,8 @@ const {
   UPDATE_CUSTOM_CSS,
   CONF_MENU_INDEX,
 } = Keys;
+
+const deepCopy = (json) => JSON.parse(JSON.stringify(json));
 
 const store = new Vuex.Store({
   state: {
@@ -88,7 +89,7 @@ const store = new Vuex.Store({
     },
     /* Make config read/ write permissions object */
     permissions(state, getters) {
-      const appConfig = getters.appConfig;
+      const { appConfig } = getters;
       const perms = {
         allowWriteToDisk: true,
         allowSaveLocally: true,
@@ -107,35 +108,34 @@ const store = new Vuex.Store({
         perms.allowWriteToDisk = false;
       }
       // Disable everything
-      if (appConfig.disableConfiguration
-        || (appConfig.disableConfigurationForNonAdmin && !isUserAdmin())) {
+      if (
+        appConfig.disableConfiguration ||
+        (appConfig.disableConfigurationForNonAdmin && !isUserAdmin())
+      ) {
         perms.allowWriteToDisk = false;
         perms.allowSaveLocally = false;
         perms.allowViewConfig = false;
       }
       return perms;
     },
-    // eslint-disable-next-line arrow-body-style
-    getSectionByIndex: (state, getters) => (index) => {
-      return getters.sections[index];
-    },
+    getSectionByIndex: (state, getters) => (index) => getters.sections[index],
     getItemById: (state, getters) => (id) => {
       let item;
-      getters.sections.forEach(sec => {
+      for (const sec of getters.sections) {
         if (sec.items) {
           const foundItem = sec.items.find((itm) => itm.id === id);
           if (foundItem) item = foundItem;
         }
-      });
+      }
       return item;
     },
     getParentSectionOfItem: (state, getters) => (itemId) => {
       let foundSection;
-      getters.sections.forEach((section) => {
-        (section.items || []).forEach((item) => {
+      for (const section of getters.sections) {
+        for (const item of section.items || []) {
           if (item.id === itemId) foundSection = section;
-        });
-      });
+        }
+      }
       return foundSection;
     },
     layout(state) {
@@ -172,14 +172,14 @@ const store = new Vuex.Store({
     [UPDATE_ITEM](state, payload) {
       const { itemId, newItem } = payload;
       const newConfig = { ...state.config };
-      newConfig.sections.forEach((section, secIndex) => {
-        (section.items || []).forEach((item, itemIndex) => {
+      for (const [secIndex, section] of newConfig.sections.entries()) {
+        for (const [itemIndex, item] of (section.items || []).entries()) {
           if (item.id === itemId) {
             newConfig.sections[secIndex].items[itemIndex] = newItem;
             InfoHandler('Item updated', InfoKeys.EDITOR);
           }
-        });
-      });
+        }
+      }
       state.config = newConfig;
     },
     [SET_PAGE_INFO](state, newPageInfo) {
@@ -232,13 +232,13 @@ const store = new Vuex.Store({
     [INSERT_ITEM](state, payload) {
       const { newItem, targetSection } = payload;
       const config = { ...state.config };
-      config.sections.forEach((section) => {
+      for (const section of config.sections) {
         if (section.name === targetSection) {
           if (!section.items) section.items = [];
           section.items.push(newItem);
           InfoHandler('New item added', InfoKeys.EDITOR);
         }
-      });
+      }
       config.sections = applyItemId(config.sections);
       state.config = config;
     },
@@ -246,7 +246,7 @@ const store = new Vuex.Store({
       const { item, toSection, appendTo } = payload;
       const config = { ...state.config };
       const newItem = { ...item };
-      config.sections.forEach((section) => {
+      for (const section of config.sections) {
         if (section.name === toSection) {
           if (!section.items) section.items = [];
           if (appendTo === 'beginning') {
@@ -256,23 +256,23 @@ const store = new Vuex.Store({
           }
           InfoHandler('Item copied', InfoKeys.EDITOR);
         }
-      });
+      }
       config.sections = applyItemId(config.sections);
       state.config = config;
     },
     [REMOVE_ITEM](state, payload) {
       const { itemId, sectionName } = payload;
       const config = { ...state.config };
-      config.sections.forEach((section) => {
+      for (const section of config.sections) {
         if (section.name === sectionName && section.items) {
-          section.items.forEach((item, index) => {
+          for (const [index, item] of section.items.entries()) {
             if (item.id === itemId) {
               section.items.splice(index, 1);
               InfoHandler('Item removed', InfoKeys.EDITOR);
             }
-          });
+          }
         }
-      });
+      }
       config.sections = applyItemId(config.sections);
       state.config = config;
     },
@@ -309,8 +309,8 @@ const store = new Vuex.Store({
     [SET_CURRENT_SUB_PAGE](state, subPageObject) {
       if (!subPageObject) {
         // Set theme back to primary when navigating to index page
-        const defaulTheme = localStorage.getItem(localStorageKeys.PRIMARY_THEME);
-        if (defaulTheme) state.config.appConfig.theme = defaulTheme;
+        const defaultTheme = localStorage.getItem(localStorageKeys.PRIMARY_THEME);
+        if (defaultTheme) state.config.appConfig.theme = defaultTheme;
       }
       state.currentConfigInfo = subPageObject;
     },
@@ -318,7 +318,7 @@ const store = new Vuex.Store({
       if (state.remoteConfig) {
         state.config = state.remoteConfig;
       } else {
-        this.dispatch(Keys.INITIALIZE_CONFIG);
+        this.dispatch(INITIALIZE_CONFIG);
       }
     },
   },
@@ -326,22 +326,26 @@ const store = new Vuex.Store({
     /* Called when app first loaded. Reads config and sets state */
     async [INITIALIZE_CONFIG]({ commit }) {
       // Get the config file from the server and store it for use by the accumulator
-      commit(SET_REMOTE_CONFIG, yaml.load((await axios.get('/conf.yml')).data));
-      const deepCopy = (json) => JSON.parse(JSON.stringify(json));
+      const remoteConfig = await axios.get('/conf.yml');
+      commit(SET_REMOTE_CONFIG, yaml.load(remoteConfig.data));
+
       const config = deepCopy(new ConfigAccumulator().config());
       commit(SET_CONFIG, config);
     },
     /* Fetch config for a sub-page (sections and pageInfo only) */
     async [INITIALIZE_MULTI_PAGE_CONFIG]({ commit, state }, configPath) {
-      axios.get(configPath).then((response) => {
-        const subConfig = yaml.load(response.data);
-        const pageTheme = subConfig.appConfig?.theme;
-        subConfig.appConfig = state.config.appConfig; // Always use parent appConfig
-        if (pageTheme) subConfig.appConfig.theme = pageTheme; // Apply page theme override
-        commit(SET_CONFIG, subConfig);
-      }).catch((err) => {
-        ErrorHandler(`Unable to load config from '${configPath}'`, err);
-      });
+      axios
+        .get(configPath)
+        .then((response) => {
+          const subConfig = yaml.load(response.data);
+          const pageTheme = subConfig.appConfig?.theme;
+          subConfig.appConfig = state.config.appConfig; // Always use parent appConfig
+          if (pageTheme) subConfig.appConfig.theme = pageTheme; // Apply page theme override
+          commit(SET_CONFIG, subConfig);
+        })
+        .catch((error) => {
+          ErrorHandler(`Unable to load config from '${configPath}'`, error);
+        });
     },
   },
   modules: {},

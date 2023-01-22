@@ -16,15 +16,30 @@ export default class ArrowKeyNavigation {
    * current index and total number of items. Then calls focus function */
   arrowNavigation(key) {
     if (this.index === undefined) this.index = 0; // Start at beginning
-    else if (key === 37) { // Left --> Previous
-      this.index -= 1;
-    } else if (key === 38) { // Up --> Previous
-      this.index = ArrowKeyNavigation.goToPrevious(this.index);
-    } else if (key === 39) { // Right --> Next
-      this.index += 1;
-    } else if (key === 40) { // Down --> Next
-      this.index = ArrowKeyNavigation.goToNext(this.index);
-    }
+    else
+      switch (key) {
+        case 37:
+          // Left --> Previous
+          this.index--;
+          break;
+
+        case 38:
+          // Up --> Previous
+          this.index = ArrowKeyNavigation.goToPrevious(this.index);
+          break;
+
+        case 39:
+          // Right --> Next
+          this.index += 1;
+          break;
+
+        case 40:
+          // Down --> Next
+          this.index = ArrowKeyNavigation.goToNext(this.index);
+          break;
+
+        // No default
+      }
     /* Ensure the index is within bounds, then focus element */
     this.index = ArrowKeyNavigation.getSafeElementIndex(this.index);
     ArrowKeyNavigation.selectItemByIndex(this.index).focus();
@@ -45,8 +60,9 @@ export default class ArrowKeyNavigation {
 
   /* Selects a given element, by it's ID. If out of bounds, returns element 0 */
   static selectItemByIndex(index) {
-    return (index >= 0 && index <= ArrowKeyNavigation.getNumResults())
-      ? document.getElementsByClassName('item')[index] : [document.getElementsByClassName('item')];
+    return index >= 0 && index <= ArrowKeyNavigation.getNumResults()
+      ? document.getElementsByClassName('item')[index]
+      : [document.getElementsByClassName('item')];
   }
 
   /* Returns the index of the first cell in the previous/ above row */
@@ -63,8 +79,9 @@ export default class ArrowKeyNavigation {
 
   /* Moves to the cell directly above the current */
   static goToPrevious(startingIndex) {
-    const isBelow = (start, end) => (ArrowKeyNavigation.selectItemByIndex(start).offsetTop
-      < ArrowKeyNavigation.selectItemByIndex(end).offsetTop);
+    const isBelow = (start, end) =>
+      ArrowKeyNavigation.selectItemByIndex(start).offsetTop <
+      ArrowKeyNavigation.selectItemByIndex(end).offsetTop;
     const nextIndex = ArrowKeyNavigation.findPreviousRow(startingIndex);
     const count = nextIndex - startingIndex;
     const rowLen = nextIndex - ArrowKeyNavigation.findNextRow(startingIndex) + 1;
@@ -86,8 +103,9 @@ export default class ArrowKeyNavigation {
 
   /* Moves to the cell directly below the current */
   static goToNext(startingIndex) {
-    const isAbove = (start, end) => (ArrowKeyNavigation.selectItemByIndex(start).offsetTop
-      > ArrowKeyNavigation.selectItemByIndex(end).offsetTop);
+    const isAbove = (start, end) =>
+      ArrowKeyNavigation.selectItemByIndex(start).offsetTop >
+      ArrowKeyNavigation.selectItemByIndex(end).offsetTop;
     const nextIndex = ArrowKeyNavigation.findNextRow(startingIndex);
     const count = nextIndex - startingIndex;
     const rowLen = nextIndex - ArrowKeyNavigation.findPreviousRow(startingIndex) - 1;

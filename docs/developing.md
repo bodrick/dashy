@@ -76,10 +76,10 @@ You can set variables either in your environment, or using the [`.env`](https://
 - `PORT` - The port to expose the running application on
 - `HOST` - The host that Dashy is running on, domain or IP
 - `BASE_URL` - The default base path for serving up static assets
-- `VUE_APP_DOMAIN` - Usually the same as BASE_URL, but accessible in frontend
+- `VITE_APP_DOMAIN` - Usually the same as BASE_URL, but accessible in frontend
 - `INTEGRITY` - Should enable SRI for build script and link resources
 - `IS_DOCKER` - Computed automatically on build. Indicates if running in container
-- `VUE_APP_VERSION` - Again, set automatically using package.json during build time
+- `VITE_APP_VERSION` - Again, set automatically using package.json during build time
 
 ### Environment Modes
 
@@ -277,7 +277,7 @@ Styleguides:
 │  │  ├── MinimalHeading.vue      # Title part of minimal view
 │  │  ├── MinimalSearch.vue       # Search bar for minimal view
 │  │  ╰── MinimalSection.vue      # Tabbed-Item section for minimal view
-│  ├── PageStrcture               # Components relating the main structure of the page
+│  ├── PageStructure               # Components relating the main structure of the page
 │  │  ├── Footer.vue              # Footer, visible at the bottom of all pages
 │  │  ├── Header.vue              # Header, visible at the top of pages, and includes title and nav
 │  │  ├── LoadingScreen.vue       # Splash screen shown on first load

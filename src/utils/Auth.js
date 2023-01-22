@@ -1,5 +1,5 @@
 import sha256 from 'crypto-js/sha256';
-import ConfigAccumulator from '@/utils/ConfigAccumalator';
+import ConfigAccumulator from '@/utils/ConfigAccumulator';
 import ErrorHandler from '@/utils/ErrorHandler';
 import { cookieKeys, localStorageKeys, userStateEnum } from '@/utils/defaults';
 import { isKeycloakEnabled } from '@/utils/KeycloakAuth';
@@ -41,7 +41,7 @@ const getUsers = () => {
 const generateUserToken = (user) => {
   if (!user.user || !user.hash) {
     ErrorHandler('Invalid user object. Must have `user` and `hash` parameters');
-    return undefined;
+    return;
   }
   const strAndUpper = (input) => input.toString().toUpperCase();
   const sha = sha256(strAndUpper(user.user) + strAndUpper(user.hash));
@@ -75,7 +75,7 @@ export const isLoggedIn = () => {
 /* Returns true if authentication is enabled */
 export const isAuthEnabled = () => {
   const users = getUsers();
-  return (users.length > 0);
+  return users.length > 0;
 };
 
 /* Returns true if guest access is enabled */
@@ -101,18 +101,18 @@ export const checkCredentials = (username, pass, users, messages) => {
   let response; // Will store an object containing boolean and message
   if (!username) {
     response = { correct: false, msg: messages.missingUsername };
-  } else if (!pass) {
-    response = { correct: false, msg: messages.missingPassword };
-  } else {
-    users.forEach((user) => {
-      if (user.user.toLowerCase() === username.toLowerCase()) { // User found
-        if (user.hash.toLowerCase() === sha256(pass).toString().toLowerCase()) {
-          response = { correct: true, msg: messages.successMsg }; // Password is correct
-        } else { // User found, but password is not a match
-          response = { correct: false, msg: messages.incorrectPassword };
-        }
+  } else if (pass) {
+    for (const user of users) {
+      if (user.user.toLowerCase() === username.toLowerCase()) {
+        // User found
+        response =
+          user.hash.toLowerCase() === sha256(pass).toString().toLowerCase()
+            ? { correct: true, msg: messages.successMsg }
+            : { correct: false, msg: messages.incorrectPassword };
       }
-    });
+    }
+  } else {
+    response = { correct: false, msg: messages.missingPassword };
   }
   return response || { correct: false, msg: messages.incorrectUsername };
 };
@@ -127,8 +127,9 @@ export const login = (username, pass, timeout) => {
   const now = new Date();
   const expiry = new Date(now.setTime(now.getTime() + timeout)).toGMTString();
   const userObject = { user: username, hash: sha256(pass).toString().toLowerCase() };
-  document.cookie = `${cookieKeys.AUTH_TOKEN}=${generateUserToken(userObject)};`
-    + `${timeout > 0 ? `expires=${expiry}` : ''}`;
+  document.cookie =
+    `${cookieKeys.AUTH_TOKEN}=${generateUserToken(userObject)};` +
+    `${timeout > 0 ? `expires=${expiry}` : ''}`;
   localStorage.setItem(localStorageKeys.USERNAME, username);
 };
 
@@ -150,10 +151,10 @@ export const getCurrentUser = () => {
   const username = localStorage[localStorageKeys.USERNAME]; // Get username
   if (!username) return false; // No username
   let foundUserObject = false; // Value to return
-  getUsers().forEach((user) => {
+  for (const user of getUsers()) {
     // If current logged-in user found, then return that user
     if (user.user.toLowerCase() === username.toLowerCase()) foundUserObject = user;
-  });
+  }
   return foundUserObject;
 };
 
@@ -181,29 +182,23 @@ export const isUserAdmin = () => {
   if (!isLoggedIn()) return false; // Auth setup, but not signed in as a valid user
   const currentUser = localStorage[localStorageKeys.USERNAME];
   let isAdmin = false;
-  users.forEach((user) => {
-    if (user.user.toLowerCase() === currentUser.toLowerCase()) {
-      if (user.type === 'admin') isAdmin = true;
-    }
-  });
+  for (const user of users) {
+    if (user.user.toLowerCase() === currentUser.toLowerCase() && user.type === 'admin')
+      isAdmin = true;
+  }
   return isAdmin;
 };
 
 /**
-  * Determines which button should display, based on the user type
-  * 0 = Auth not configured (don't show anything)
-  * 1 = Auth configured, and user logged in (show logout button)
-  * 2 = Auth configured, guest access enabled, not logged in (show login)
-  * Note that if auth is enabled, but not guest access, and user not logged in,
-  * then they will never be able to view the homepage, so no button needed
-  */
+ * Determines which button should display, based on the user type
+ * 0 = Auth not configured (don't show anything)
+ * 1 = Auth configured, and user logged in (show logout button)
+ * 2 = Auth configured, guest access enabled, not logged in (show login)
+ * Note that if auth is enabled, but not guest access, and user not logged in,
+ * then they will never be able to view the homepage, so no button needed
+ */
 export const getUserState = () => {
-  const {
-    notConfigured,
-    loggedIn,
-    guestAccess,
-    keycloakEnabled,
-  } = userStateEnum; // Numeric enum options
+  const { notConfigured, loggedIn, guestAccess, keycloakEnabled } = userStateEnum; // Numeric enum options
   if (isKeycloakEnabled()) return keycloakEnabled; // Keycloak auth configured
   if (!isAuthEnabled()) return notConfigured; // No auth enabled
   if (isLoggedIn()) return loggedIn; // User is logged in

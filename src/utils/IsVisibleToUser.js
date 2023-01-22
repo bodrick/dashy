@@ -11,16 +11,16 @@ import { isLoggedInAsGuest } from '@/utils/Auth';
 /* Helper function, checks if a given testValue is found in the visibility list */
 const determineVisibility = (visibilityList, testValue) => {
   let isFound = false;
-  visibilityList.forEach((visibilityItem) => {
+  for (const visibilityItem of visibilityList) {
     if (visibilityItem.toLowerCase() === testValue.toLowerCase()) isFound = true;
-  });
+  }
   return isFound;
 };
 
 /* Helper function, determines if two arrays have any intersecting elements
    (one or more items that are the same) */
 const determineIntersection = (source = [], target = []) => {
-  const intersections = source.filter(item => target.indexOf(item) !== -1);
+  const intersections = source.filter((item) => target.includes(item));
   return intersections.length > 0;
 };
 
@@ -41,39 +41,47 @@ export const isVisibleToUser = (displayData, currentUser) => {
     if (!currentUser) return true;
     const cUsername = currentUser.user.toLowerCase();
     const showForUsers = displayData.showForUsers || [];
-    if (showForUsers.length < 1) return true;
+    if (showForUsers.length === 0) return true;
     return determineVisibility(showForUsers, cUsername);
   };
   const checkKeycloakVisibility = () => {
     if (!displayData.hideForKeycloakUsers) return true;
 
-    const { groups, roles } = JSON.parse(localStorage.getItem(localStorageKeys.KEYCLOAK_INFO) || '{}');
+    const { groups, roles } = JSON.parse(
+      localStorage.getItem(localStorageKeys.KEYCLOAK_INFO) || '{}'
+    );
     const hideForGroups = displayData.hideForKeycloakUsers.groups || [];
     const hideForRoles = displayData.hideForKeycloakUsers.roles || [];
 
-    return !(determineIntersection(hideForRoles, roles)
-      || determineIntersection(hideForGroups, groups));
+    return !(
+      determineIntersection(hideForRoles, roles) || determineIntersection(hideForGroups, groups)
+    );
   };
   const checkKeycloakHiddenability = () => {
     if (!displayData.showForKeycloakUsers) return true;
 
-    const { groups, roles } = JSON.parse(localStorage.getItem(localStorageKeys.KEYCLOAK_INFO) || '{}');
+    const { groups, roles } = JSON.parse(
+      localStorage.getItem(localStorageKeys.KEYCLOAK_INFO) || '{}'
+    );
     const showForGroups = displayData.showForKeycloakUsers.groups || [];
     const showForRoles = displayData.showForKeycloakUsers.roles || [];
 
-    return determineIntersection(showForRoles, roles)
-      || determineIntersection(showForGroups, groups);
+    return (
+      determineIntersection(showForRoles, roles) || determineIntersection(showForGroups, groups)
+    );
   };
   // Checks if the current user is a guest, and if section/item allows for guests
   const checkIfHideForGuest = () => {
     const hideForGuest = displayData.hideForGuests;
     return !(hideForGuest && isGuest);
   };
-  return checkVisibility()
-    && checkHiddenability()
-    && checkIfHideForGuest()
-    && checkKeycloakVisibility()
-    && checkKeycloakHiddenability();
+  return (
+    checkVisibility() &&
+    checkHiddenability() &&
+    checkIfHideForGuest() &&
+    checkKeycloakVisibility() &&
+    checkKeycloakHiddenability()
+  );
 };
 
 export default isVisibleToUser;

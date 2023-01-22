@@ -4,7 +4,7 @@
     <p class="intro">{{ $t('language-switcher.dropdown-label') }}:</p>
     <v-select
       v-model="language"
-      :selectOnTab="true"
+      :select-on-tab="true"
       :options="languageList"
       class="language-dropdown"
       label="friendlyName"
@@ -14,12 +14,10 @@
       {{ $t('language-switcher.save-button') }}
       <SaveConfigIcon />
     </Button>
-    <p v-if="language" class="current-lang">
-      🌐 {{ language.flag }} {{ language.name }}
-    </p>
+    <p v-if="language" class="current-lang">🌐 {{ language.flag }} {{ language.name }}</p>
     <p v-if="$i18n.availableLocales.length <= 1" class="sad-times">
-      There are not currently any additional languages supported,
-      but stay tuned as more are on their way!
+      There are not currently any additional languages supported, but stay tuned as more are on
+      their way!
     </p>
   </div>
 </template>
@@ -44,10 +42,6 @@ export default {
       modalName: modalNames.LANG_SWITCHER, // Key for modal
     };
   },
-  created() {
-    // Initiate the current language, with VueX state
-    this.language = this.savedLanguage;
-  },
   computed: {
     /* Get appConfig from store */
     appConfig() {
@@ -63,11 +57,15 @@ export default {
       },
     },
     /* Return the array of language objects, plus a friends name */
-    languageList: () => languages.map((lang) => {
-      const newLang = lang;
-      newLang.friendlyName = `${lang.flag} ${lang.name}`;
-      return newLang;
-    }),
+    languageList: () =>
+      languages.map((lang) => {
+        lang.friendlyName = `${lang.flag} ${lang.name}`;
+        return lang;
+      }),
+  },
+  created() {
+    // Initiate the current language, with VueX state
+    this.language = this.savedLanguage;
   },
   methods: {
     /* Check if language is supported */
@@ -81,7 +79,7 @@ export default {
       if (this.language && this.language.code) {
         this.$i18n.locale = this.language.code;
       } else {
-        ErrorHandler('Error applying language, it\'s config may be missing of incomplete');
+        ErrorHandler("Error applying language, it's config may be missing of incomplete");
       }
     },
     /* Save language to local storage, show success msg and close modal */
@@ -91,46 +89,53 @@ export default {
         localStorage.setItem(localStorageKeys.LANGUAGE, selectedLanguage.code);
         this.applyLanguageLocally();
         this.savedLanguage = selectedLanguage;
-        const successMsg = `${selectedLanguage.flag} `
-          + `${this.$t('language-switcher.success-msg')} ${selectedLanguage.name}`;
+        const successMsg =
+          `${selectedLanguage.flag} ` +
+          `${this.$t('language-switcher.success-msg')} ${selectedLanguage.name}`;
         this.$toasted.show(successMsg, { className: 'toast-success' });
         this.$modal.hide(this.modalName);
-      } else {
-        this.$toasted.show('Unable to update language', { className: 'toast-error' });
-        ErrorHandler('Unable to apply language');
+        return;
       }
+      this.$toasted.show('Unable to update language', { className: 'toast-error' });
+      ErrorHandler('Unable to apply language');
+    },
+    getLanguageFromIso(iso) {
+      return languages.find((lang) => lang.code === iso);
     },
     /* Gets the ISO code for a given language object */
     getIsoFromLangObj(langObj) {
-      const getLanguageFromIso = (iso) => languages.find((lang) => lang.code === iso);
-      return getLanguageFromIso(langObj);
+      return this.getLanguageFromIso(langObj);
     },
   },
 };
 </script>
 
 <style scoped lang="scss">
-
 .language-switcher {
   height: 100%;
   margin: 0;
   padding: 1rem;
   background: var(--config-settings-background);
   color: var(--config-settings-color);
+
   h3.title {
     text-align: center;
   }
+
   p.intro {
     margin: 0;
   }
+
   button.save-button {
     margin: 0 auto;
     width: 100%;
   }
+
   p.sad-times {
     color: var(--warning);
     text-align: center;
   }
+
   p.current-lang {
     color: var(--success);
     opacity: var(--dimming-factor);
@@ -142,23 +147,26 @@ export default {
     bottom: 0;
   }
 }
-
 </style>
 
 <style lang="scss">
-@import '@/styles/style-helpers.scss';
+@import '@/styles/style-helpers';
+
 .language-dropdown {
   margin: 1rem auto;
+
   ul.vs__dropdown-menu {
     max-height: 14rem;
     @extend .scroll-bar;
   }
+
   div.vs__dropdown-toggle {
     padding: 0.2rem 0;
   }
-  div, input {
+
+  div,
+  input {
     cursor: pointer;
   }
 }
-
 </style>

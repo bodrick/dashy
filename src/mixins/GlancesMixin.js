@@ -3,7 +3,7 @@ export default {
   computed: {
     /* Required, hostname (e.g. IP + port) for Glances instance */
     hostname() {
-      if (!this.options.hostname) this.error('You must specify a \'hostname\' for Glaces');
+      if (!this.options.hostname) this.error("You must specify a 'hostname' for Glaces");
       return this.options.hostname;
     },
     /* Optionally specify the API version, defaults to V 3 */
@@ -21,7 +21,7 @@ export default {
   },
   methods: {
     /* Make the request to Glances API, and calls handler function with results
-    * Requires endpoint attribute and processData method to be implemented by child */
+     * Requires endpoint attribute and processData method to be implemented by child */
     fetchData() {
       this.makeRequest(this.endpoint, this.credentials).then(this.processData);
     },

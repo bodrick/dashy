@@ -2,7 +2,7 @@
   <div class="minimal-home" :style="getBackgroundImage() + setColumnCount()">
     <!-- Buttons for config and home page -->
     <div class="minimal-buttons">
-      <ConfigLauncher @modalChanged="updateModalVisibility" class="config-launcher" />
+      <ConfigLauncher class="config-launcher" @modalChanged="updateModalVisibility" />
     </div>
     <!-- Page title and search bar -->
     <div class="title-and-search">
@@ -10,11 +10,19 @@
         <h1>{{ pageInfo.title }}</h1>
       </router-link>
       <MinimalSearch
-        @user-is-searchin="(s) => { this.searchValue = s; }"
-        :active="!modalOpen" ref="filterComp" />
+        ref="filterComp"
+        :active="!modalOpen"
+        @user-is-searching="
+          (s) => {
+            searchValue = s;
+          }
+        "
+      />
     </div>
-    <div v-if="checkTheresData(sections)"
-      :class="`item-group-container ${!tabbedView ? 'showing-all' : ''}`">
+    <div
+      v-if="checkTheresData(sections)"
+      :class="`item-group-container ${!tabbedView ? 'showing-all' : ''}`"
+    >
       <!-- Section heading buttons -->
       <MinimalHeading
         v-for="(section, index) in getSections(sections)"
@@ -23,9 +31,9 @@
         :title="section.name"
         :icon="section.icon"
         :selected="selectedSection === index"
-        @sectionSelected="sectionSelected"
         class="headings"
-        :hideTitleText="sections.length > 8"
+        :hide-title-text="sections.length > 8"
+        @sectionSelected="sectionSelected"
       />
       <!-- Section item groups -->
       <MinimalSection
@@ -34,21 +42,21 @@
         :index="index"
         :title="section.name"
         :icon="section.icon || undefined"
-        :groupId="`section-${index}`"
+        :group-id="`section-${index}`"
         :items="filterTiles(section.items)"
         :widgets="section.widgets"
         :selected="selectedSection === index"
-        :showAll="!tabbedView"
-        itemSize="small"
+        :show-all="!tabbedView"
+        item-size="small"
         @sectionSelected="sectionSelected"
         @itemClicked="finishedSearching()"
         @change-modal-visibility="updateModalVisibility"
       />
       <div v-if="checkIfResults()" class="no-data">
-        {{searchValue ? $t('home.no-results') : $t('home.no-data')}}
+        {{ searchValue ? $t('home.no-results') : $t('home.no-data') }}
       </div>
     </div>
-    <div v-else class="no-data"> {{ $t('home.no-data') }} </div>
+    <div v-else class="no-data">{{ $t('home.no-data') }}</div>
   </div>
 </template>
 
@@ -61,14 +69,14 @@ import { localStorageKeys } from '@/utils/defaults';
 import ConfigLauncher from '@/components/Settings/ConfigLauncher';
 
 export default {
-  name: 'home',
-  mixins: [HomeMixin],
+  name: 'Home',
   components: {
     MinimalSection,
     MinimalHeading,
     MinimalSearch,
     ConfigLauncher,
   },
+  mixins: [HomeMixin],
   data: () => ({
     layout: '',
     selectedSection: 0, // The index of currently selected section
@@ -78,6 +86,11 @@ export default {
     searchValue() {
       this.tabbedView = !this.searchValue || this.searchValue.length === 0;
     },
+  },
+  mounted() {
+    this.initiateFontAwesome();
+    this.initiateMaterialDesignIcons();
+    this.setTheme();
   },
   methods: {
     sectionSelected(index) {
@@ -89,9 +102,9 @@ export default {
       const localSections = localStorage[localStorageKeys.CONF_SECTIONS];
       if (localSections) {
         const json = JSON.parse(localSections);
-        if (json.length >= 1) return json;
+        if (json.length > 0) return json;
       }
-      // Otherwise, return the usuall data from conf.yml
+      // Otherwise, return the usual data from conf.yml
       return sections;
     },
     /* Clears input field, once a searched item is opened */
@@ -100,16 +113,15 @@ export default {
     },
     /* Returns true if there is more than 1 sub-result visible during searching */
     checkIfResults() {
-      if (!this.sections) return false;
-      else {
+      if (this.sections) {
         let itemsFound = true;
-        this.sections.forEach((section) => {
+        for (const section of this.sections) {
           if (section.widgets || this.filterTiles(section.items).length > 0) {
             itemsFound = false;
           }
-        });
+        }
         return itemsFound;
-      }
+      } else return false;
     },
     /* Make CSS to set the number of columns based on the number of sections */
     setColumnCount() {
@@ -123,17 +135,12 @@ export default {
       return '';
     },
   },
-  mounted() {
-    this.initiateFontAwesome();
-    this.initiateMaterialDesignIcons();
-    this.setTheme();
-  },
 };
 </script>
 
 <style lang="scss" scoped>
-@import '@/styles/media-queries.scss';
-@import '@/styles/style-helpers.scss';
+@import '@/styles/media-queries';
+@import '@/styles/style-helpers';
 
 .minimal-home {
   display: flex;
@@ -149,17 +156,19 @@ export default {
 
 .title-and-search {
   text-align: center;
+
   h1 {
     color: var(--minimal-view-title-color);
     margin: 0;
     font-size: 3rem;
   }
+
   a {
     text-decoration: none;
   }
 }
 
-/* Outside container wrapping the item groups*/
+/* Outside container wrapping the item groups */
 .item-group-container {
   display: grid;
   gap: 0 0.5rem;
@@ -171,48 +180,60 @@ export default {
   &.showing-all {
     flex-direction: column;
     display: flex;
+
     .headings {
       display: none;
     }
   }
 }
 
- @include phone {
-   .item-group-container {
+@include phone {
+  .item-group-container {
     display: flex;
     flex-direction: column;
-   }
+  }
 }
 
 .no-data {
-    font-size: 2rem;
-    color: var(--minimal-view-background-color);
-    background: #ffffffeb;
-    width: fit-content;
-    margin: 2rem auto;
-    padding: 0.5rem 1rem;
-    border-radius: var(--curve-factor);
+  font-size: 2rem;
+  color: var(--minimal-view-background-color);
+  background: #ffffffeb;
+  width: fit-content;
+  margin: 2rem auto;
+  padding: 0.5rem 1rem;
+  border-radius: var(--curve-factor);
 }
 
 .minimal-buttons {
-    position: absolute;
-    top: 0.5rem;
-    right: 1rem;
-    display: flex;
-    .home-page-icon {
-      color: var(--minimal-view-settings-color);
-      width: 1.5rem;
-      height: 1.5rem;
-      @extend .svg-button;
-    }
+  position: absolute;
+  top: 0.5rem;
+  right: 1rem;
+  display: flex;
+
+  .home-page-icon {
+    color: var(--minimal-view-settings-color);
+    width: 1.5rem;
+    height: 1.5rem;
+    @extend .svg-button;
+  }
 }
 </style>
 
 <style lang="scss">
 .minimal-home .minimal-buttons {
-  .config-launcher span.config-label { display: none; }
-  svg { opacity: var(--dimming-factor); border: none; }
-  &:hover svg { opacity: 1; }
+  .config-launcher span.config-label {
+    display: none;
+  }
+
+  svg {
+    opacity: var(--dimming-factor);
+    border: none;
+  }
+
+  &:hover svg {
+    opacity: 1;
+  }
+
   .view-switcher {
     margin-top: 2rem;
     right: 0;

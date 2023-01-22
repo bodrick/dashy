@@ -7,65 +7,64 @@
     classes="dashy-modal edit-item"
     @closed="modalClosed"
   >
-  <div class="edit-item-inner" v-if="allowViewConfig">
-    <!-- Title and Item ID -->
-    <h3 class="title">Edit Item</h3>
-    <p class="sub-title">Editing {{item.title}} (ID: {{itemId}})</p>
-    <!-- If no elements added to form, show info message -->
-    <p class="warning-note" v-if="formData.length === 0">
-      No data configured yet. Click an attribute in the list below to add the field to the form.
-    </p>
-    <!-- For each data attribute, render the correct type of input field -->
-    <div class="row" v-for="(row, index) in formData" :key="row.name">
-      <!-- Text box, for text/ number/ raw input elements -->
-      <Input
-        v-if="row.type === 'text' || row.type === 'number'"
-        v-model="formData[index].value"
-        :description="row.description"
-        :label="row.title || row.name"
-        :type="row.type"
-        layout="horizontal"
+    <div v-if="allowViewConfig" class="edit-item-inner">
+      <!-- Title and Item ID -->
+      <h3 class="title">Edit Item</h3>
+      <p class="sub-title">Editing {{ item.title }} (ID: {{ itemId }})</p>
+      <!-- If no elements added to form, show info message -->
+      <p v-if="formData.length === 0" class="warning-note">
+        No data configured yet. Click an attribute in the list below to add the field to the form.
+      </p>
+      <!-- For each data attribute, render the correct type of input field -->
+      <div v-for="(row, index) in formData" :key="row.name" class="row">
+        <!-- Text box, for text/ number/ raw input elements -->
+        <Input
+          v-if="row.type === 'text' || row.type === 'number'"
+          v-model="formData[index].value"
+          :description="row.description"
+          :label="row.title || row.name"
+          :type="row.type"
+          layout="horizontal"
         />
-      <!-- Radio button, used for True or False input -->
-      <Radio
-        v-else-if="row.type === 'boolean'"
-        v-model="formData[index].value"
-        :description="row.description"
-        :label="row.title || row.name"
-        :options="[ ...boolRadioOptions ]"
-        :initialOption="boolToStr(formData[index].value)"
-      />
-      <!-- Select/ dropdown for enum multiple-choice input -->
-      <Select
-        v-else-if="row.type === 'select'"
-        v-model="formData[index].value"
-        :options="formData[index].enum"
-        :description="row.description"
-        :initialOption="formData[index].value"
-        :label="row.title || row.name"
-        class="edit-item-select"
-      />
-      <!-- Warning note, for any other data types, that aren't yet supported -->
-      <div v-else>
-        {{ row.name }} cannot currently be edited through the UI.
+        <!-- Radio button, used for True or False input -->
+        <Radio
+          v-else-if="row.type === 'boolean'"
+          v-model="formData[index].value"
+          :description="row.description"
+          :label="row.title || row.name"
+          :options="[...boolRadioOptions]"
+          :initial-option="boolToStr(formData[index].value)"
+        />
+        <!-- Select/ dropdown for enum multiple-choice input -->
+        <Select
+          v-else-if="row.type === 'select'"
+          v-model="formData[index].value"
+          :options="formData[index].enum"
+          :description="row.description"
+          :initial-option="formData[index].value"
+          :label="row.title || row.name"
+          class="edit-item-select"
+        />
+        <!-- Warning note, for any other data types, that aren't yet supported -->
+        <div v-else>{{ row.name }} cannot currently be edited through the UI.</div>
+        <BinIcon @click="() => removeField(row.name)" />
       </div>
-      <BinIcon @click="() => removeField(row.name)" />
-    </div>
-    <!-- Show Add chips, for adding more data elements to the form -->
-    <div class="add-more-inputs" v-if="additionalFormData.length > 0">
-      <h4>More Fields</h4>
-      <div class="more-fields">
-        <span
-          v-for="row in additionalFormData"
-          :key="row.name"
-          @click="() => appendNewField(row.name)"
-          class="add-field-tag">
-          <AddIcon /> {{ row.title || row.name }}
-        </span>
+      <!-- Show Add chips, for adding more data elements to the form -->
+      <div v-if="additionalFormData.length > 0" class="add-more-inputs">
+        <h4>More Fields</h4>
+        <div class="more-fields">
+          <span
+            v-for="row in additionalFormData"
+            :key="row.name"
+            class="add-field-tag"
+            @click="() => appendNewField(row.name)"
+          >
+            <AddIcon /> {{ row.title || row.name }}
+          </span>
+        </div>
       </div>
-    </div>
-    <!-- Save to state button -->
-    <SaveCancelButtons :saveClick="saveItem" :cancelClick="modalClosed" />
+      <!-- Save to state button -->
+      <SaveCancelButtons :save-click="saveItem" :cancel-click="modalClosed" />
     </div>
     <AccessError v-else />
   </modal>
@@ -118,7 +117,8 @@ export default {
     SaveCancelButtons,
   },
   mounted() {
-    if (!this.isNew) { // Get existing item data
+    if (!this.isNew) {
+      // Get existing item data
       this.item = this.getItemFromState(this.itemId);
     }
     this.formData = this.makeInitialFormData();
@@ -145,58 +145,61 @@ export default {
       const formData = [];
       const requiredFields = ['title', 'description', 'url', 'icon', 'target'];
       const unneededFields = ['id'];
-      const isPrimaryField = (property) => (
-        this.item[property] || requiredFields.includes(property)
-      ) && !unneededFields.includes(property);
-      Object.keys(this.schema).forEach((property) => {
+      const isPrimaryField = (property) =>
+        (this.item[property] || requiredFields.includes(property)) &&
+        !unneededFields.includes(property);
+      for (const property of Object.keys(this.schema)) {
         const singleRow = this.makeRowData(property);
         if (isPrimaryField(property)) {
           formData.push(singleRow);
         } else {
           this.additionalFormData.push(singleRow);
         }
-      });
+      }
       return formData;
     },
     /* Convert boolean to string */
     boolToStr(bool) {
       if (bool) return 'true';
       if (bool === false) return 'false';
-      return undefined;
+      return;
     },
     /* Adds field from extras list to main form, then removes from extras list */
     appendNewField(fieldId) {
-      Object.keys(this.schema).forEach((property) => {
+      for (const property of Object.keys(this.schema)) {
         if (property === fieldId) {
           this.formData.push(this.makeRowData(property));
         }
-      });
-      this.additionalFormData.forEach((elem, index) => {
+      }
+      for (const [index, elem] of this.additionalFormData.entries()) {
         if (elem.name === fieldId) {
           this.additionalFormData.splice(index, 1);
         }
-      });
+      }
     },
     /* On Remove Field click, removes field from main form, and adds to chip list */
     removeField(fieldId) {
-      this.formData.forEach((elem, index) => {
+      for (const [index, elem] of this.formData.entries()) {
         if (elem.name === fieldId) {
           this.formData.splice(index, 1);
           this.additionalFormData.push(elem);
         }
-      });
+      }
     },
     /* Use schema to determine type of form element to render, for a given attribute */
     getInputType(schemaItem) {
       const definedType = schemaItem.type;
-      if (definedType === 'text') {
-        return 'text';
-      } else if (definedType === 'number') {
-        return 'number';
-      } else if (definedType === 'boolean') {
-        return 'boolean';
-      } else if (schemaItem.enum) {
-        return 'select';
+      switch (definedType) {
+        case 'text':
+          return 'text';
+        case 'number':
+          return 'number';
+        case 'boolean':
+          return 'boolean';
+        default:
+          if (schemaItem.enum) {
+            return 'select';
+          }
       }
       return 'text';
     },
@@ -204,26 +207,30 @@ export default {
     saveItem() {
       // Convert form data back into section.item data structure
       const structured = {};
-      this.formData.forEach((row) => { structured[row.name] = row.value; });
-      if (!structured.title) { // Missing title, show error and don't proceed
-        this.$toasted.show(
-          this.$t('interactive-editor.edit-item.missing-title-err'),
-          { className: 'toast-error' },
-        );
-      } else {
+      for (const row of this.formData) {
+        structured[row.name] = row.value;
+      }
+      if (structured.title) {
         // Some attributes need a little extra formatting
         const newItem = this.formatBeforeSave(structured);
-        if (this.isNew) { // Insert new item into data store
+        if (this.isNew) {
+          // Insert new item into data store
           newItem.id = `temp_${newItem.title}`;
           const payload = { newItem, targetSection: this.parentSectionTitle };
           this.$store.commit(StoreKeys.INSERT_ITEM, payload);
-        } else { // Update existing item from form data, in the store
+        } else {
+          // Update existing item from form data, in the store
           this.$store.commit(StoreKeys.UPDATE_ITEM, { newItem, itemId: this.itemId });
         }
         // If we're not already in edit mode, enable it now
         this.$store.commit(StoreKeys.SET_EDIT_MODE, true);
         // Close edit menu
         this.$emit('closeEditMenu');
+      } else {
+        // Missing title, show error and don't proceed
+        this.$toasted.show(this.$t('interactive-editor.edit-item.missing-title-err'), {
+          className: 'toast-error',
+        });
       }
     },
     /* Some fields require a bit of extra processing before they're saved */
@@ -232,11 +239,16 @@ export default {
       newItem.id = this.itemId;
       if (newItem.hotkey) newItem.hotkey = parseInt(newItem.hotkey, 10);
       const strToTags = (tags) => {
-        const tagArr = (typeof tags === 'string') ? tags.split(',') : tags;
-        return tagArr.map((tag) => tag.trim().toLowerCase().replace(/[^a-z0-9]+/, ''));
+        const tagArr = typeof tags === 'string' ? tags.split(',') : tags;
+        return tagArr.map((tag) =>
+          tag
+            .trim()
+            .toLowerCase()
+            .replace(/[^\da-z]+/, '')
+        );
       };
       const strToBool = (str) => {
-        if (str === undefined) return undefined;
+        if (str === undefined) return;
         return str === 'true';
       };
       if (newItem.tags) newItem.tags = strToTags(newItem.tags);
@@ -257,8 +269,8 @@ export default {
 </script>
 
 <style lang="scss">
-@import '@/styles/style-helpers.scss';
-@import '@/styles/media-queries.scss';
+@import '@/styles/style-helpers';
+@import '@/styles/media-queries';
 
 .edit-item-inner {
   padding: 1rem;
@@ -267,39 +279,49 @@ export default {
   height: 100%;
   overflow-y: auto;
   @extend .svg-button;
+
   h3.title {
     font-size: 1.5rem;
     margin: 0.25rem 0;
   }
+
   p.sub-title {
     margin: 0.25rem 0;
     font-size: 0.8rem;
     font-style: italic;
     opacity: var(--dimming-factor);
   }
+
   p.warning-note {
     color: var(--warning);
   }
+
   .row {
     display: flex;
     padding: 0.5rem 0.25rem;
+
     &:not(:last-child) {
       border-bottom: 1px dotted var(--interactive-editor-color);
     }
-    .input-container, .select-container {
-        width: 100%;
-        input.input-field {
-          font-size: 1rem;
-          padding: 0.35rem 0.5rem;
+
+    .input-container,
+    .select-container {
+      width: 100%;
+
+      input.input-field {
+        font-size: 1rem;
+        padding: 0.35rem 0.5rem;
       }
     }
   }
+
   .more-fields {
     display: flex;
     flex-wrap: wrap;
+
     span.add-field-tag {
       margin: 0.2rem;
-      padding: 0.2rem 0.5rem;;
+      padding: 0.2rem 0.5rem;
       min-width: 2rem;
       display: flex;
       align-items: center;
@@ -307,14 +329,20 @@ export default {
       text-align: center;
       border: 1px solid var(--interactive-editor-color);
       border-radius: var(--curve-factor);
+
       &:hover {
         background: var(--interactive-editor-color);
         color: var(--interactive-editor-background);
+
         svg {
           background: var(--interactive-editor-color);
-          path { fill: var(--interactive-editor-background); }
+
+          path {
+            fill: var(--interactive-editor-background);
+          }
         }
       }
+
       svg {
         margin-right: 0.25rem;
         border: none;
@@ -330,26 +358,50 @@ export default {
     border-color: var(--interactive-editor-color);
     background: var(--interactive-editor-background);
   }
+
   svg {
-    path { fill: var(--interactive-editor-color); }
+    path {
+      fill: var(--interactive-editor-color);
+    }
+
     background: var(--interactive-editor-background);
-    &:hover, &.selected {
-      path { fill: var(--interactive-editor-background); }
+
+    &:hover,
+    &.selected {
+      path {
+        fill: var(--interactive-editor-background);
+      }
+
       background: var(--interactive-editor-color);
     }
   }
+
   .edit-item-select .v-select {
-    input.vs__search { color: var(--interactive-editor-color); }
+    input.vs__search {
+      color: var(--interactive-editor-color);
+    }
+
     div.vs__dropdown-toggle {
       border-color: var(--interactive-editor-color);
       background: var(--interactive-editor-background);
-      span.vs__selected { color: var(--interactive-editor-color); }
+
+      span.vs__selected {
+        color: var(--interactive-editor-color);
+      }
+
       .vs__actions svg {
         background: var(--interactive-editor-background);
-        path { fill: var(--interactive-editor-color); }
+
+        path {
+          fill: var(--interactive-editor-color);
+        }
+
         &:hover {
           background: var(--interactive-editor-color);
-          path { fill: var(--interactive-editor-background); }
+
+          path {
+            fill: var(--interactive-editor-background);
+          }
         }
       }
     }

@@ -2,16 +2,21 @@
   <div class="radio-container">
     <label v-if="label" class="radio-label">{{ label }}</label>
     <div class="radio-wrapper">
-      <div v-for="radio in options" :key="radio.value"
-        :class="`radio-option ${disabled ? 'wrap-disabled' : ''}`">
+      <div
+        v-for="radio in options"
+        :key="radio.value"
+        :class="`radio-option ${disabled ? 'wrap-disabled' : ''}`"
+      >
         <label :for="`id-${radio.value}`" class="option-label">{{ radio.label }}</label>
-        <input type="radio" class="radio-input"
-          :id=" `id-${radio.value}`"
+        <input
+          :id="`id-${radio.value}`"
+          v-model="selectedRadio"
+          type="radio"
+          class="radio-input"
           :name="makeGroupName"
           :value="radio.value"
           :disabled="disabled || radio.disabled"
-          v-model="selectedRadio"
-          v-on:input="updateValue($event.target.value)"
+          @input="updateValue($event.target.value)"
         />
       </div>
     </div>
@@ -20,15 +25,30 @@
 </template>
 
 <script>
-
 export default {
   name: 'Radio',
   components: {},
   props: {
-    options: Array, // Array of objects for available options
-    initialOption: String, // Optional default option
-    label: String, // Form label for element
-    description: String, // Optional description text
+    // Array of objects for available options
+    options: {
+      type: Array,
+      default: undefined,
+    },
+    // Optional default option
+    initialOption: {
+      type: String,
+      default: undefined,
+    },
+    // Form label for element
+    label: {
+      type: String,
+      default: undefined,
+    },
+    // Optional description text
+    description: {
+      type: String,
+      default: undefined,
+    },
     disabled: Boolean, // Disable all radio buttons
   },
   data() {
@@ -36,15 +56,15 @@ export default {
       selectedRadio: '', // The currently radio val
     };
   },
-  created() {
-    if (this.initialOption) {
-      this.updateValue(this.initialOption);
-    }
-  },
   computed: {
     makeGroupName() {
       return this.label.toLowerCase().replace(/[^a-z]+/, '');
     },
+  },
+  created() {
+    if (this.initialOption) {
+      this.updateValue(this.initialOption);
+    }
   },
   methods: {
     updateValue(value) {
@@ -63,6 +83,7 @@ div.radio-container {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+
   label.radio-label,
   .radio-wrapper,
   p.radio-description {
@@ -70,35 +91,43 @@ div.radio-container {
     flex-basis: 8rem;
     flex-grow: 1;
   }
-   label.radio-label {
+
+  label.radio-label {
     text-transform: capitalize;
   }
+
   p.radio-description {
     flex-grow: 3;
     opacity: var(--dimming-factor);
   }
+
   .radio-wrapper {
     display: flex;
     flex-grow: 2;
     margin: 0.5rem auto;
     font-size: 1.2rem;
     color: var(--primary);
-    background: var(--background);;
+    background: var(--background);
     border-radius: var(--curve-factor);
     min-width: 8rem;
+
     .radio-option {
       margin: 0.2rem;
       padding: 0.2rem;
       cursor: pointer;
       border: 1px solid transparent;
       border-radius: var(--curve-factor);
+
       &:hover:not(.wrap-disabled) {
         border: 1px solid var(--primary);
       }
+
       &:disabled {
         opacity: var(--dimming-factor);
       }
-      label.option-label, input.radio-input {
+
+      label.option-label,
+      input.radio-input {
         cursor: pointer;
         text-transform: capitalize;
         margin: 0.2rem;

@@ -1,5 +1,5 @@
 <template>
-  <div class="multi-taking-view" ref="container"></div>
+  <div ref="container" class="multi-taking-view"></div>
 </template>
 
 <script>
@@ -16,7 +16,9 @@ export default {
   }),
   watch: {
     /* Update the currently open app, when URL changes */
-    url() { this.launchApp(); },
+    url() {
+      this.launchApp();
+    },
   },
   methods: {
     /* Check if app already open or not, and call appropriate opener */
@@ -35,13 +37,13 @@ export default {
         propsData: { url: this.url, id: btoa(this.url) },
       });
       instance.$mount(); // pass nothing
-      this.$refs.container.appendChild(instance.$el);
+      this.$refs.container.append(instance.$el);
     },
     /* Switches visibility to an already open app */
     openExistingApp() {
-      Array.from(document.getElementsByClassName('web-content')).forEach((frame) => {
+      for (const frame of document.getElementsByClassName('web-content')) {
         frame.classList.add('hide');
-      });
+      }
       document.getElementById(btoa(this.url)).classList.remove('hide');
     },
   },
@@ -49,7 +51,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-
 iframe {
   position: absolute;
   left: var(--side-bar-width);
@@ -58,5 +59,4 @@ iframe {
   border: none;
   background: white;
 }
-
 </style>

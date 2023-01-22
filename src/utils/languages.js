@@ -31,7 +31,8 @@ export const languages = [
     locale: en,
     flag: '🇬🇧',
   },
-  { // German
+  {
+    // German
     name: 'Deutsch',
     code: 'de',
     locale: de,
@@ -61,103 +62,120 @@ export const languages = [
     locale: sl,
     flag: '🇸🇮',
   },
-  { // Spanish
+  {
+    // Spanish
     name: 'Español',
     code: 'es',
     locale: es,
     flag: '🇪🇸',
   },
-  { // Italian
+  {
+    // Italian
     name: 'Italiano',
     code: 'it',
     locale: it,
     flag: '🇮🇹',
   },
-  { // Chinese
+  {
+    // Chinese
     name: '简体中文',
     code: 'cn',
     locale: zhCN,
     flag: '🇨🇳',
   },
-  { // Chinese
+  {
+    // Chinese
     name: '繁體中文',
     code: 'zh-TW',
     locale: zhTW,
     flag: '🇹🇼',
   },
-  { // Arabic
+  {
+    // Arabic
     name: 'العربية',
     code: 'ar',
     locale: ar,
     flag: '🇦🇪',
   },
-  { // Hindi
+  {
+    // Hindi
     name: 'नहीं',
     code: 'hi',
     locale: hi,
     flag: '🇮🇳',
   },
-  { // Japanese
+  {
+    // Japanese
     name: '日本語',
     code: 'ja',
     locale: ja,
     flag: '🇯🇵',
   },
-  { // Portuguese
+  {
+    // Portuguese
     name: 'Português',
     code: 'pt',
     locale: pt,
     flag: '🇵🇹',
   },
-  { // Russian
+  {
+    // Russian
     name: 'Русский',
     code: 'ru',
     locale: ru,
     flag: '🇷🇺',
   },
-  { // Norwegian
+  {
+    // Norwegian
     name: 'Norsk',
     code: 'nb',
     locale: nb,
     flag: '🇳🇴',
   },
-  { // Joke Language - Pirate
+  {
+    // Joke Language - Pirate
     name: 'Pirate',
     code: 'pirate',
     locale: pirate,
     flag: '🏴‍☠️',
   },
-  { // Swedish
+  {
+    // Swedish
     name: 'Svenska',
     code: 'sv',
     locale: sv,
     flag: '🇸🇪',
   },
-  { // Bulgarian
+  {
+    // Bulgarian
     name: 'Български',
     code: 'bg',
     locale: bg,
     flag: '🇧🇬',
   },
-  { // Korean
+  {
+    // Korean
     name: '한국어',
     code: 'ko',
     locale: ko,
     flag: '🇰🇷',
   },
-  { // Slovak
+  {
+    // Slovak
     name: 'Slovenčina',
     code: 'sk',
     locale: sk,
     flag: '🇸🇰',
   },
-  { // Danish
+  {
+    // Danish
     name: 'Dansk',
     code: 'da',
     locale: da,
     flag: '🇩🇰',
   },
-  { // Czech
+  {
+    // Czech
     name: 'Čeština',
     code: 'cs',
     locale: cs,
@@ -178,7 +196,7 @@ export const languages = [
 
 // Prepare each language for export
 const i18nMessages = {};
-languages.forEach((lang) => {
+for (const lang of languages) {
   i18nMessages[lang.code] = lang.locale;
-});
+}
 export const messages = i18nMessages;
