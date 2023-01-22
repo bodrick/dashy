@@ -19,7 +19,7 @@ export default {
   },
   methods: {
     setTheme() {
-      document.getElementsByTagName('html')[0].dataset.theme = 'dashy-docs';
+      document.querySelectorAll('html')[0].dataset.theme = 'dashy-docs';
     },
   },
 };

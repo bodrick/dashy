@@ -1,30 +1,30 @@
 <template>
-<div class="ad-guard-top-domains-wrapper">
-  <!-- List of top blocked domains -->
-  <div class="sec blocked-domains" v-if="topBlockedDomains && !hideBlockedDomains">
-    <h3 class="sub-title">Top Blocked Domains</h3>
-    <div class="row title-row">
-      <span class="cell domain">Domain</span>
-      <span class="cell">Query Count</span>
+  <div class="ad-guard-top-domains-wrapper">
+    <!-- List of top blocked domains -->
+    <div v-if="topBlockedDomains && !hideBlockedDomains" class="sec blocked-domains">
+      <h3 class="sub-title">Top Blocked Domains</h3>
+      <div class="row title-row">
+        <span class="cell domain">Domain</span>
+        <span class="cell">Query Count</span>
+      </div>
+      <div v-for="(domain, ind) in topBlockedDomains" :key="ind" class="row">
+        <span class="cell domain">{{ domain.name }}</span>
+        <span class="cell count">{{ domain.count }}</span>
+      </div>
     </div>
-    <div class="row" v-for="(domain, ind) in topBlockedDomains" :key="ind">
-      <span class="cell domain">{{ domain.name }}</span>
-      <span class="cell count">{{ domain.count }}</span>
+    <!-- List of top queried domains -->
+    <div v-if="topQueriedDomains && !hideQueriedDomains" class="sec blocked-domains">
+      <h3 class="sub-title">Top Queried Domains</h3>
+      <div class="row title-row">
+        <span class="cell domain">Domain</span>
+        <span class="cell">Query Count</span>
+      </div>
+      <div v-for="(domain, ind) in topQueriedDomains" :key="ind" class="row">
+        <span class="cell domain">{{ domain.name }}</span>
+        <span class="cell count">{{ domain.count }}</span>
+      </div>
     </div>
   </div>
-  <!-- List of top queried domains -->
-  <div class="sec blocked-domains" v-if="topQueriedDomains && !hideQueriedDomains">
-    <h3 class="sub-title">Top Queried Domains</h3>
-    <div class="row title-row">
-      <span class="cell domain">Domain</span>
-      <span class="cell">Query Count</span>
-    </div>
-    <div class="row" v-for="(domain, ind) in topQueriedDomains" :key="ind">
-      <span class="cell domain">{{ domain.name }}</span>
-      <span class="cell count">{{ domain.count }}</span>
-    </div>
-  </div>
-</div>
 </template>
 
 <script>
@@ -32,6 +32,12 @@ import WidgetMixin from '@/mixins/WidgetMixin';
 
 export default {
   mixins: [WidgetMixin],
+  data() {
+    return {
+      topQueriedDomains: null,
+      topBlockedDomains: null,
+    };
+  },
   computed: {
     /* URL/ IP or hostname to the AdGuardHome instance, without trailing slash */
     hostname() {
@@ -58,12 +64,6 @@ export default {
       return `${this.hostname}/control/stats`;
     },
   },
-  data() {
-    return {
-      topQueriedDomains: null,
-      topBlockedDomains: null,
-    };
-  },
   methods: {
     /* Make GET request to AdGuard endpoint */
     fetchData() {
@@ -77,11 +77,11 @@ export default {
     /* Process AdGruard's weird data format, into something that can be rendered */
     makeDomainData(rawData) {
       const domains = [];
-      rawData.forEach((domainBlock) => {
-        Object.keys(domainBlock).forEach((domain) => {
+      for (const domainBlock of rawData) {
+        for (const domain of Object.keys(domainBlock)) {
           domains.push({ name: domain, count: domainBlock[domain] });
-        });
-      });
+        }
+      }
       return domains.slice(0, this.limit);
     },
   },

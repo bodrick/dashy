@@ -1,38 +1,38 @@
 <template>
   <div class="vpn-ip-addr-wrapper">
-  <div class="ip-row public-ip" v-if="public_ip">
-    <span class="lbl">{{ $t('widgets.gluetun-status.vpn-ip') }}</span>
-    <span class="val">{{ public_ip }}</span>
+    <div v-if="public_ip" class="ip-row public-ip">
+      <span class="lbl">{{ $t('widgets.gluetun-status.vpn-ip') }}</span>
+      <span class="val">{{ public_ip }}</span>
+    </div>
+    <div v-if="country" class="ip-row">
+      <span class="lbl">{{ $t('widgets.gluetun-status.country') }}</span>
+      <span class="val">{{ country }}</span>
+    </div>
+    <div v-if="region" class="ip-row">
+      <span class="lbl">{{ $t('widgets.gluetun-status.region') }}</span>
+      <span class="val">{{ region }}</span>
+    </div>
+    <div v-if="city" class="ip-row">
+      <span class="lbl">{{ $t('widgets.gluetun-status.city') }}</span>
+      <span class="val">{{ city }}</span>
+    </div>
+    <div v-if="postal_code" class="ip-row">
+      <span class="lbl">{{ $t('widgets.gluetun-status.post-code') }}</span>
+      <span class="val">{{ postal_code }}</span>
+    </div>
+    <div v-if="location" class="ip-row">
+      <span class="lbl">{{ $t('widgets.gluetun-status.location') }}</span>
+      <span class="val">{{ location }}</span>
+    </div>
+    <div v-if="timezone" class="ip-row">
+      <span class="lbl">{{ $t('widgets.gluetun-status.timezone') }}</span>
+      <span class="val">{{ timezone }}</span>
+    </div>
+    <div v-if="organization" class="ip-row">
+      <span class="lbl">{{ $t('widgets.gluetun-status.organization') }}</span>
+      <span class="val">{{ organization }}</span>
+    </div>
   </div>
-  <div class="ip-row" v-if="country">
-    <span class="lbl">{{ $t('widgets.gluetun-status.country') }}</span>
-    <span class="val">{{ country }}</span>
-  </div>
-  <div class="ip-row" v-if="region">
-    <span class="lbl">{{ $t('widgets.gluetun-status.region') }}</span>
-    <span class="val">{{ region }}</span>
-  </div>
-  <div class="ip-row" v-if="city">
-    <span class="lbl">{{ $t('widgets.gluetun-status.city') }}</span>
-    <span class="val">{{ city }}</span>
-  </div>
-  <div class="ip-row" v-if="postal_code">
-    <span class="lbl">{{ $t('widgets.gluetun-status.post-code') }}</span>
-    <span class="val">{{ postal_code }}</span>
-  </div>
-  <div class="ip-row" v-if="location">
-    <span class="lbl">{{ $t('widgets.gluetun-status.location') }}</span>
-    <span class="val">{{ location }}</span>
-  </div>
-  <div class="ip-row" v-if="timezone">
-    <span class="lbl">{{ $t('widgets.gluetun-status.timezone') }}</span>
-    <span class="val">{{ timezone }}</span>
-  </div>
-  <div class="ip-row" v-if="organization">
-    <span class="lbl">{{ $t('widgets.gluetun-status.organization') }}</span>
-    <span class="val">{{ organization }}</span>
-  </div>
-</div>
 </template>
 
 <script>

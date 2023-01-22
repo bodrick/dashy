@@ -1,13 +1,13 @@
 <template>
   <modal
     :name="modalName"
-    @closed="close"
     :resizable="true"
     width="40%"
     height="40%"
     classes="dashy-modal"
+    @closed="close"
   >
-    <div class="move-menu-inner" v-if="allowViewConfig">
+    <div v-if="allowViewConfig" class="move-menu-inner">
       <!-- Title and item ID -->
       <h3 class="move-title">Move or Copy Item</h3>
       <p class="item-id">Editing {{ itemId }}</p>
@@ -16,13 +16,13 @@
         v-model="operation"
         :options="operationRadioOptions"
         label="Operation Type"
-        :initialOption="operation"
+        :initial-option="operation"
       />
       <!-- Select destionation section -->
       <Select
         v-model="selectedSection"
         :options="sectionList"
-        :initialOption="selectedSection"
+        :initial-option="selectedSection"
         label="Destination"
       />
       <!-- Radio, for choosing append to beginning or end -->
@@ -30,10 +30,10 @@
         v-model="appendTo"
         :options="appendToRadioOptions"
         label="Append To"
-        :initialOption="appendTo"
+        :initial-option="appendTo"
       />
       <!-- Save and cancel buttons -->
-      <SaveCancelButtons :saveClick="save" :cancelClick="close" />
+      <SaveCancelButtons :save-click="save" :cancel-click="close" />
     </div>
     <AccessError v-else />
   </modal>
@@ -84,11 +84,11 @@ export default {
     },
     currentSection() {
       let sectionName = '';
-      this.sections.forEach((section) => {
-        (section.items || []).forEach((item) => {
+      for (const section of this.sections) {
+        for (const item of section.items || []) {
           if (item.id === this.itemId) sectionName = section.name;
-        });
-      });
+        }
+      }
       return sectionName;
     },
     allowViewConfig() {

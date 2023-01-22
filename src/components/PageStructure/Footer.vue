@@ -7,16 +7,14 @@
       Using: {{ $store.state.currentConfigInfo.confPath }}
     </span>
     <span>
-      Developed by <a :href="authorUrl">{{authorName}}</a>.
-      Licensed under <a :href="licenseUrl">{{license}}</a>
-      {{ showCopyright? '©': '' }} {{date}}.
-      Get the <a :href="repoUrl">Source Code</a>.
+      Developed by <a :href="authorUrl">{{ authorName }}</a
+      >. Licensed under <a :href="licenseUrl">{{ license }}</a> {{ showCopyright ? '©' : '' }}
+      {{ date }}. Get the <a :href="repoUrl">Source Code</a>.
     </span>
   </footer>
 </template>
 
 <script>
-
 import { shouldBeVisible } from '@/utils/SectionHelpers';
 
 export default {
@@ -68,11 +66,10 @@ footer {
   }
 }
 
-footer a{
+footer a {
   color: var(--footer-text-color);
   &:hover {
     color: var(--footer-text-color-link);
   }
 }
-
 </style>

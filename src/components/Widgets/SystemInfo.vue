@@ -1,19 +1,17 @@
 <template>
-<div class="system-info-wrapper">
-  <div class="some-info" v-if="info">
-    <p class="host">
-      {{ info.username | isUsername }}{{ info.hostname }}
-    </p>
-    <p class="system">
-      {{ info.system }} <span class="gap">|</span>
-      {{ $t('widgets.system-info.uptime') }}: {{ info.uptime | makeUptime }}
-    </p>
+  <div class="system-info-wrapper">
+    <div v-if="info" class="some-info">
+      <p class="host">{{ info.username | isUsername }}{{ info.hostname }}</p>
+      <p class="system">
+        {{ info.system }} <span class="gap">|</span> {{ $t('widgets.system-info.uptime') }}:
+        {{ info.uptime | makeUptime }}
+      </p>
+    </div>
+    <div class="some-charts">
+      <div :id="`memory-${chartId}`" class="mem-chart"></div>
+      <div :id="`load-${chartId}`" class="load-chart"></div>
+    </div>
   </div>
-  <div class="some-charts">
-    <div :id="`memory-${chartId}`" class="mem-chart"></div>
-    <div :id="`load-${chartId}`" class="load-chart"></div>
-  </div>
-</div>
 </template>
 
 <script>
@@ -23,8 +21,24 @@ import ChartingMixin from '@/mixins/ChartingMixin';
 import { serviceEndpoints } from '@/utils/defaults';
 
 export default {
-  mixins: [WidgetMixin, ChartingMixin],
   components: {},
+  filters: {
+    isUsername(username) {
+      return username ? `${username}@` : '';
+    },
+    makeUptime(seconds) {
+      if (!seconds) return '';
+      if (seconds < 60) return `${seconds} seconds`;
+      if (seconds < 3600) return `${(seconds / 60).toFixed(1)} minutes`;
+      if (seconds < 86_400) return `${(seconds / 3600).toFixed(2)} hours`;
+      if (seconds < 604_800) return `${(seconds / 86_400).toFixed(2)} days`;
+      if (seconds < 2_629_800) return `${(seconds / 604_800).toFixed(2)} weeks`;
+      if (seconds < 31_557_600) return `${(seconds / 2_629_800).toFixed(2)} months`;
+      if (seconds >= 31_557_600) return `${(seconds / 31_557_600).toFixed(2)} years`;
+      return '';
+    },
+  },
+  mixins: [WidgetMixin, ChartingMixin],
   data() {
     return {
       info: null,
@@ -36,26 +50,11 @@ export default {
       return `${baseUrl}${serviceEndpoints.systemInfo}`;
     },
   },
-  filters: {
-    isUsername(username) {
-      return username ? `${username}@` : '';
-    },
-    makeUptime(seconds) {
-      if (!seconds) return '';
-      if (seconds < 60) return `${seconds} seconds`;
-      if (seconds < 3600) return `${(seconds / 60).toFixed(1)} minutes`;
-      if (seconds < 86400) return `${(seconds / 3600).toFixed(2)} hours`;
-      if (seconds < 604800) return `${(seconds / 86400).toFixed(2)} days`;
-      if (seconds < 2629800) return `${(seconds / 604800).toFixed(2)} weeks`;
-      if (seconds < 31557600) return `${(seconds / 2629800).toFixed(2)} months`;
-      if (seconds >= 31557600) return `${(seconds / 31557600).toFixed(2)} years`;
-      return '';
-    },
-  },
   methods: {
     /* Make GET request to CoinGecko API endpoint */
     fetchData() {
-      axios.get(this.endpoint)
+      axios
+        .get(this.endpoint)
         .then((response) => {
           if (!response.data.success) this.error('Error generating backend data');
           this.processData(response.data);
@@ -72,21 +71,21 @@ export default {
       // Set class attributes for rendering
       this.info = data.meta;
       // Data for memory pie chart
-      const freeMem = parseInt(data.memory.freePercent, 10);
+      const freeMem = Number.parseInt(data.memory.freePercent, 10);
       const memoryChartData = {
         labels: ['Free', 'Used'],
-        datasets: [{
-          values: [freeMem, 100 - freeMem],
-        }],
+        datasets: [
+          {
+            values: [freeMem, 100 - freeMem],
+          },
+        ],
       };
       this.generateMemoryPie(memoryChartData);
 
       // Data for load bar chart
       const loadBarChartData = {
         labels: ['1 Min', '5 Mins', '15 Mins'],
-        datasets: [
-          { values: [data.load.one, data.load.five, data.load.fifteen] },
-        ],
+        datasets: [{ values: [data.load.one, data.load.five, data.load.fifteen] }],
       };
       this.generateLoadBar(loadBarChartData);
     },
@@ -100,7 +99,7 @@ export default {
         strokeWidth: 12,
         colors: ['#20e253', '#f80363'],
         tooltipOptions: {
-          formatTooltipY: d => `${Math.round(d)}%`,
+          formatTooltipY: (d) => `${Math.round(d)}%`,
         },
       });
     },
@@ -142,7 +141,8 @@ export default {
   }
   .some-charts {
     display: flex;
-    .mem-chart, .load-chart {
+    .mem-chart,
+    .load-chart {
       width: 50%;
       .chart-legend {
         transform: translate(50px, 140px);
@@ -150,5 +150,4 @@ export default {
     }
   }
 }
-
 </style>

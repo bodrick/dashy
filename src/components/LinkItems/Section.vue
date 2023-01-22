@@ -1,69 +1,71 @@
 <template>
   <Collapsable
+    :id="sectionRef"
+    :ref="sectionRef"
     :title="title"
     :icon="icon"
-    :uniqueKey="groupId"
+    :unique-key="groupId"
     :collapsed="displayData.collapsed"
     :cols="displayData.cols"
     :rows="displayData.rows"
     :color="displayData.color"
-    :customStyles="displayData.customStyles"
-    :cutToHeight="displayData.cutToHeight"
+    :custom-styles="displayData.customStyles"
+    :cut-to-height="displayData.cutToHeight"
     @openEditSection="openEditSection"
     @openContextMenu="openContextMenu"
-    :id="sectionRef"
-    :ref="sectionRef"
   >
     <!-- If no items, show message -->
     <div v-if="isEmpty" class="no-items">
       {{ $t('home.no-items-section') }}
     </div>
     <!-- Item Container -->
-    <div v-if="hasItems"
-      :class="`there-are-items ${isGridLayout? 'item-group-grid': ''} inner-size-${itemSize}`"
-      :style="gridStyle" :id="`section-${groupId}`"
-    > <!-- Show for each item -->
-      <template v-for="(item) in sortedItems">
+    <div
+      v-if="hasItems"
+      :id="`section-${groupId}`"
+      :class="`there-are-items ${isGridLayout ? 'item-group-grid' : ''} inner-size-${itemSize}`"
+      :style="gridStyle"
+    >
+      <!-- Show for each item -->
+      <template v-for="item in sortedItems">
         <SubItemGroup
           v-if="item.subItems"
           :key="item.id"
-          :itemId="item.id"
+          :item-id="item.id"
           :title="item.title"
-          :subItems="item.subItems"
+          :sub-items="item.subItems"
           @triggerModal="triggerModal"
         />
         <Item
           v-else
-          :item="item"
           :key="item.id"
-          :itemSize="itemSize"
-          :parentSectionTitle="title"
+          :item="item"
+          :item-size="itemSize"
+          :parent-section-title="title"
+          :is-add-new="false"
+          :section-width="sectionWidth"
+          :section-display-data="displayData"
           @itemClicked="$emit('itemClicked')"
           @triggerModal="triggerModal"
-          :isAddNew="false"
-          :sectionWidth="sectionWidth"
-          :sectionDisplayData="displayData"
         />
       </template>
       <!-- When in edit mode, show additional item, for Add New item -->
-      <Item v-if="isEditMode"
+      <Item
+        v-if="isEditMode"
+        key="add-new"
         :item="{
           icon: ':heavy_plus_sign:',
           title: 'Add New Item',
           description: 'Click to add new item',
           id: 'add-new',
         }"
-        :isAddNew="true"
-        :parentSectionTitle="title"
-        key="add-new"
+        :is-add-new="true"
+        :parent-section-title="title"
         class="add-new-item"
-        :sectionWidth="sectionWidth"
-        :itemSize="itemSize"
+        :section-width="sectionWidth"
+        :item-size="itemSize"
       />
     </div>
-    <div
-      v-if="hasWidgets"
-      :class="`widget-list ${isWide? 'wide' : ''}`">
+    <div v-if="hasWidgets" :class="`widget-list ${isWide ? 'wide' : ''}`">
       <WidgetBase
         v-for="(widget, widgetIndx) in widgets"
         :key="widgetIndx"
@@ -81,17 +83,17 @@
     <!-- Edit item menu -->
     <EditSection
       v-if="editMenuOpen"
+      :section-index="index"
+      :is-add-new="false"
       @closeEditSection="closeEditSection"
-      :sectionIndex="index"
-      :isAddNew="false"
     />
     <!-- Right-click item options context menu -->
     <ContextMenu
-      :show="contextMenuOpen"
-      :posX="contextPos.posX"
-      :posY="contextPos.posY"
       :id="`context-menu-${groupId}`"
       v-click-outside="closeContextMenu"
+      :show="contextMenuOpen"
+      :pos-x="contextPos.posX"
+      :pos-y="contextPos.posY"
       @openEditSection="openEditSection"
       @navigateToSection="navigateToSection"
       @expandCollapseSection="expandCollapseSection"
@@ -111,14 +113,19 @@ import EditSection from '@/components/InteractiveEditor/EditSection.vue';
 import ContextMenu from '@/components/LinkItems/SectionContextMenu.vue';
 import ErrorHandler from '@/utils/ErrorHandler';
 import StoreKeys from '@/utils/StoreMutations';
-import {
-  sortOrder as defaultSortOrder,
-  localStorageKeys,
-  modalNames,
-} from '@/utils/defaults';
+import { sortOrder as defaultSortOrder, localStorageKeys, modalNames } from '@/utils/defaults';
 
 export default {
   name: 'Section',
+  components: {
+    Collapsable,
+    ContextMenu,
+    Item,
+    SubItemGroup,
+    WidgetBase,
+    IframeModal,
+    EditSection,
+  },
   props: {
     groupId: String,
     title: String,
@@ -128,15 +135,6 @@ export default {
     widgets: Array,
     index: Number,
     isWide: Boolean,
-  },
-  components: {
-    Collapsable,
-    ContextMenu,
-    Item,
-    SubItemGroup,
-    WidgetBase,
-    IframeModal,
-    EditSection,
   },
   data() {
     return {
@@ -180,35 +178,62 @@ export default {
     sortedItems() {
       const items = [...this.items];
       if (this.appConfig.disableSmartSort) return items;
-      if (this.sortOrder === 'alphabetical') {
-        return this.sortAlphabetically(items);
-      } else if (this.sortOrder === 'reverse-alphabetical') {
-        return this.sortAlphabetically(items).reverse();
-      } else if (this.sortOrder === 'most-used') {
-        return this.sortByMostUsed(items);
-      } else if (this.sortOrder === 'last-used') {
-        return this.sortByLastUsed(items);
-      } else if (this.sortOrder === 'random') {
-        return this.sortRandomly(items);
-      } else if (this.sortOrder && this.sortOrder !== 'default') {
-        ErrorHandler(`Unknown Sort order '${this.sortOrder}' under '${this.title}'`);
+      switch (this.sortOrder) {
+        case 'alphabetical':
+          return this.sortAlphabetically(items);
+
+        case 'reverse-alphabetical':
+          return this.sortAlphabetically(items).reverse();
+
+        case 'most-used':
+          return this.sortByMostUsed(items);
+
+        case 'last-used':
+          return this.sortByLastUsed(items);
+
+        case 'random':
+          return this.sortRandomly(items);
+
+        default:
+          if (this.sortOrder && this.sortOrder !== 'default') {
+            ErrorHandler(`Unknown Sort order '${this.sortOrder}' under '${this.title}'`);
+          }
       }
       return items;
     },
     isGridLayout() {
-      return this.displayData.sectionLayout === 'grid'
-        || !!(this.displayData.itemCountX || this.displayData.itemCountY);
+      return (
+        this.displayData.sectionLayout === 'grid' ||
+        !!(this.displayData.itemCountX || this.displayData.itemCountY)
+      );
     },
     gridStyle() {
       let styles = '';
-      if (document.body.clientWidth > 600) { // Only proceed if not on tiny screen
+      if (document.body.clientWidth > 600) {
+        // Only proceed if not on tiny screen
         styles += this.displayData.itemCountX
-          ? `grid-template-columns: repeat(${this.displayData.itemCountX}, minmax(0, 1fr));` : '';
+          ? `grid-template-columns: repeat(${this.displayData.itemCountX}, minmax(0, 1fr));`
+          : '';
         styles += this.displayData.itemCountY
-          ? `grid-template-rows: repeat(${this.displayData.itemCountY}, minmax(0, 1fr));` : '';
+          ? `grid-template-rows: repeat(${this.displayData.itemCountY}, minmax(0, 1fr));`
+          : '';
       }
       return styles;
     },
+  },
+  mounted() {
+    // Set the section width, and recalculate when section resized
+    if (this.$refs[this.sectionRef]) {
+      this.resizeObserver = new ResizeObserver(this.calculateSectionWidth).observe(
+        this.$refs[this.sectionRef].$el
+      );
+    }
+  },
+  beforeDestroy() {
+    // If resize observer set, and element still present, then de-register
+    if (this.resizeObserver && this.$refs[this.sectionRef]) {
+      this.resizeObserver.unobserve(this.$refs[this.sectionRef].$el);
+    }
   },
   methods: {
     /* Opens the iframe modal */
@@ -273,7 +298,7 @@ export default {
     /* Deletes current section, in local state */
     removeSection() {
       const confirmMsg = this.$t('interactive-editor.edit-section.remove-confirm');
-      const youSure = confirm(confirmMsg); // eslint-disable-line no-alert, no-restricted-globals
+      const youSure = confirm(confirmMsg);
       if (youSure) {
         const payload = { sectionIndex: this.index, sectionName: this.title };
         this.$store.commit(StoreKeys.REMOVE_SECTION, payload);
@@ -301,19 +326,6 @@ export default {
       if (secElem && secElem.$el.clientWidth) this.sectionWidth = secElem.$el.clientWidth;
     },
   },
-  mounted() {
-    // Set the section width, and recalculate when section resized
-    if (this.$refs[this.sectionRef]) {
-      this.resizeObserver = new ResizeObserver(this.calculateSectionWidth)
-        .observe(this.$refs[this.sectionRef].$el);
-    }
-  },
-  beforeDestroy() {
-    // If resize observer set, and element still present, then de-register
-    if (this.resizeObserver && this.$refs[this.sectionRef]) {
-      this.resizeObserver.unobserve(this.$refs[this.sectionRef].$el);
-    }
-  },
 };
 </script>
 
@@ -322,15 +334,15 @@ export default {
 @import '@/styles/style-helpers.scss';
 
 .no-items {
-    width: 100px;
-    margin: 0 auto;
-    padding: 0.8rem;
-    text-align: center;
-    cursor: default;
-    color: var(--primary);
-    background: var(--item-background);
-    border-radius: var(--curve-factor);
-    box-shadow: var(--item-shadow);
+  width: 100px;
+  margin: 0 auto;
+  padding: 0.8rem;
+  text-align: center;
+  cursor: default;
+  color: var(--primary);
+  background: var(--item-background);
+  border-radius: var(--curve-factor);
+  box-shadow: var(--item-shadow);
 }
 
 .there-are-items {
@@ -341,12 +353,24 @@ export default {
     display: grid;
     overflow: auto;
     @extend .scroll-bar;
-    @include phone { --item-col-count: 1; }
-    @include tablet { --item-col-count: 2; }
-    @include laptop { --item-col-count: 2; }
-    @include monitor { --item-col-count: 3; }
-    @include big-screen { --item-col-count: 4; }
-    @include big-screen-up { --item-col-count: 5; }
+    @include phone {
+      --item-col-count: 1;
+    }
+    @include tablet {
+      --item-col-count: 2;
+    }
+    @include laptop {
+      --item-col-count: 2;
+    }
+    @include monitor {
+      --item-col-count: 3;
+    }
+    @include big-screen {
+      --item-col-count: 4;
+    }
+    @include big-screen-up {
+      --item-col-count: 5;
+    }
     grid-template-columns: repeat(var(--item-col-count, 2), minmax(0, 1fr));
   }
 }
@@ -355,22 +379,46 @@ export default {
   flex-direction: column;
   .there-are-items {
     display: grid;
-    @include phone { --item-col-count: 2; }
-    @include tablet { --item-col-count: 4; }
-    @include laptop { --item-col-count: 6; }
-    @include monitor { --item-col-count: 8; }
-    @include big-screen { --item-col-count: 10; }
-    @include big-screen-up { --item-col-count: 12; }
+    @include phone {
+      --item-col-count: 2;
+    }
+    @include tablet {
+      --item-col-count: 4;
+    }
+    @include laptop {
+      --item-col-count: 6;
+    }
+    @include monitor {
+      --item-col-count: 8;
+    }
+    @include big-screen {
+      --item-col-count: 10;
+    }
+    @include big-screen-up {
+      --item-col-count: 12;
+    }
     grid-template-columns: repeat(var(--item-col-count, 2), minmax(0, 1fr));
   }
   .there-are-items.inner-size-large {
     display: grid;
-    @include phone { --item-col-count: 1; }
-    @include tablet { --item-col-count: 2; }
-    @include laptop { --item-col-count: 3; }
-    @include monitor { --item-col-count: 5; }
-    @include big-screen { --item-col-count: 6; }
-    @include big-screen-up { --item-col-count: 8; }
+    @include phone {
+      --item-col-count: 1;
+    }
+    @include tablet {
+      --item-col-count: 2;
+    }
+    @include laptop {
+      --item-col-count: 3;
+    }
+    @include monitor {
+      --item-col-count: 5;
+    }
+    @include big-screen {
+      --item-col-count: 6;
+    }
+    @include big-screen-up {
+      --item-col-count: 8;
+    }
     grid-template-columns: repeat(var(--item-col-count, 2), minmax(0, 1fr));
   }
 }
@@ -387,7 +435,7 @@ export default {
     display: flex;
     align-items: flex-start;
     justify-content: space-around;
-    .widget-base  {
+    .widget-base {
       min-width: 10rem;
       width: stretch;
       width: -webkit-fill-available;
@@ -395,5 +443,4 @@ export default {
     }
   }
 }
-
 </style>

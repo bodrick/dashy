@@ -1,38 +1,44 @@
 <template>
-<div class="nextcloud-widget nextcloud-user-status-wrapper">
-  <div v-if="didLoadData" class="sep">
-    <!-- user statuses: list -->
-    <div v-for="(status, userId) in statuses" :key="userId" class="user">
-      <div>
-        <!-- user status: emoji -->
+  <div class="nextcloud-widget nextcloud-user-status-wrapper">
+    <div v-if="didLoadData" class="sep">
+      <!-- user statuses: list -->
+      <div v-for="(status, userId) in statuses" :key="userId" class="user">
         <div>
-          <i>{{ status.icon }}</i>
+          <!-- user status: emoji -->
+          <div>
+            <i>{{ status.icon }}</i>
+          </div>
+          <!-- user status: message -->
+          <div>
+            <p v-tooltip="clearAtTooltip(status.clearAt)">
+              <strong>{{ status.userId }}</strong
+              >&nbsp;
+              <small v-if="status.clearAt"><i class="fal fa-clock"></i></small>
+              <span v-else-if="status.message">•</span><em>{{ status.message }}</em>
+            </p>
+          </div>
+          <!-- user status: status -->
+          <div>
+            <p>
+              <small :class="`status ${status.status}`">
+                <i
+                  v-if="status.status === 'online' || status.status === 'dnd'"
+                  v-tooltip="tt(status.status)"
+                  class="fas fa-circle"
+                ></i>
+                <i v-else v-tooltip="tt(status.status)" class="far fa-circle"></i>
+              </small>
+            </p>
+          </div>
         </div>
-        <!-- user status: message -->
-        <div>
-          <p v-tooltip="clearAtTooltip(status.clearAt)">
-            <strong>{{ status.userId }}</strong>&nbsp;
-            <small v-if="status.clearAt"><i class="fal fa-clock"></i></small>
-            <span v-else-if="status.message">•</span><em>{{ status.message }}</em>
-          </p>
-        </div>
-        <!-- user status: status -->
-        <div>
-          <p>
-            <small :class="`status ${status.status}`">
-              <i v-if="status.status === 'online' || status.status === 'dnd'"
-                class="fas fa-circle" v-tooltip="tt(status.status)"></i>
-              <i v-else class="far fa-circle" v-tooltip="tt(status.status)"></i>
-            </small>
-          </p>
-        </div>
+        <hr />
       </div>
-      <hr/>
+    </div>
+    <!-- user statuses: no content -->
+    <div v-else class="sep">
+      <p>{{ tt('nothing-to-show') }}</p>
     </div>
   </div>
-   <!-- user statuses: no content -->
-  <div v-else class="sep"><p>{{ tt('nothing-to-show') }}</p></div>
-</div>
 </template>
 
 <script>
@@ -53,11 +59,16 @@ const fetchStrategies = {
  *  - userstatus: to fetch a single or all user statuses
  */
 export default {
-  mixins: [WidgetMixin, NextcloudMixin],
   components: {},
+  mixins: [WidgetMixin, NextcloudMixin],
+  data() {
+    return {
+      statuses: {},
+    };
+  },
   computed: {
     didLoadData() {
-      return !!Object.keys(this?.statuses || {}).length;
+      return Object.keys(this?.statuses || {}).length > 0;
     },
     fetchStrategy() {
       if (!this.options.fetchStrategy) {
@@ -77,20 +88,18 @@ export default {
       return !!this.options.showEmpty;
     },
   },
-  data() {
-    return {
-      statuses: {},
-    };
+  created() {
+    this.overrideUpdateInterval = 60;
   },
   methods: {
     allowedStatuscodes() {
       return [100, 200];
     },
     async fetchData() {
-      if (!this.hasValidCredentials() || !this.users.length) return;
+      if (!this.hasValidCredentials() || this.users.length === 0) return;
       await this.loadCapabilities();
       if (!this.capabilities?.userStatus) {
-        this.error('This Nextcloud server doesn\'t support the User Status API');
+        this.error("This Nextcloud server doesn't support the User Status API");
         return;
       }
       if (this.fetchStrategy === fetchStrategies.allAtOnce) {
@@ -100,12 +109,13 @@ export default {
       } else {
         const promises = [];
         this.newStatuses = {};
-        this.users.forEach((user) => {
+        for (const user of this.users) {
           promises.push(
-            this.makeRequest(`${this.endpoint('userstatus')}/${user}`, this.headers)
-              .then(this.processStatus),
+            this.makeRequest(`${this.endpoint('userstatus')}/${user}`, this.headers).then(
+              this.processStatus
+            )
           );
-        });
+        }
         Promise.all(promises)
           .then(() => {
             this.statuses = this.newStatuses;
@@ -117,31 +127,33 @@ export default {
     processStatuses(response) {
       const statuses = this.validateResponse(response);
       const newStatuses = {};
-      Object.values(statuses).forEach((status) => {
-        if (!this.users.includes(status.userId)) return;
-        if (!status.message && !this.showEmpty) return;
+      for (const status of Object.values(statuses)) {
+        if (!this.users.includes(status.userId)) continue;
+        if (!status.message && !this.showEmpty) continue;
         newStatuses[status.userId] = status;
-      });
+      }
       this.statuses = newStatuses;
     },
     processStatus(response) {
       const raw = this.validateResponse(response);
-      const status = Array.isArray(raw) && raw.length ? raw[0] : raw;
+      const status = Array.isArray(raw) && raw.length > 0 ? raw[0] : raw;
       if (status && (status.message || this.showEmpty)) {
         this.newStatuses[status.userId] = status;
       }
     },
     /* Tooltip generators */
     clearAtTooltip(clearAtTime) {
-      const content = clearAtTime ? `${this.tt('until')}`
-                    + ` ${new Date(clearAtTime * 1000).toLocaleString()}` : '';
+      const content = clearAtTime
+        ? `${this.tt('until')}` + ` ${new Date(clearAtTime * 1000).toLocaleString()}`
+        : '';
       return {
-        content, html: true, trigger: 'hover focus', delay: 250, classes: 'nc-tooltip',
+        content,
+        html: true,
+        trigger: 'hover focus',
+        delay: 250,
+        classes: 'nc-tooltip',
       };
     },
-  },
-  created() {
-    this.overrideUpdateInterval = 60;
   },
 };
 </script>
@@ -153,7 +165,7 @@ export default {
     float: right;
     i {
       position: relative;
-      top: .15rem;
+      top: 0.15rem;
       margin: 0;
     }
   }
@@ -182,7 +194,7 @@ export default {
     > div:nth-child(2) {
       p small i {
         top: 0;
-        opacity: .5;
+        opacity: 0.5;
         margin: 0;
       }
     }
@@ -192,8 +204,8 @@ export default {
     }
   }
   div.user hr {
-    margin-top: .3em;
-    margin-bottom: .3em;
+    margin-top: 0.3em;
+    margin-bottom: 0.3em;
   }
   div.user > div > div:last-child hr {
     margin-bottom: 0;

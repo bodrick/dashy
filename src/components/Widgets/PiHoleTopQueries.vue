@@ -1,13 +1,13 @@
 <template>
-<div class="pi-hole-queries-wrapper" v-if="results">
-  <div v-for="section in results" :key="section.id" class="query-section">
-    <p class="section-title">{{ section.title }}</p>
-    <div v-for="(query, i) in section.results" :key="i" class="query-row">
-      <p class="domain">{{ query.domain }}</p>
-      <p class="count">{{ query.count }}</p>
+  <div v-if="results" class="pi-hole-queries-wrapper">
+    <div v-for="section in results" :key="section.id" class="query-section">
+      <p class="section-title">{{ section.title }}</p>
+      <div v-for="(query, i) in section.results" :key="i" class="query-row">
+        <p class="domain">{{ query.domain }}</p>
+        <p class="count">{{ query.count }}</p>
+      </div>
     </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -15,8 +15,8 @@ import WidgetMixin from '@/mixins/WidgetMixin';
 import { showNumAsThousand } from '@/utils/MiscHelpers';
 
 export default {
-  mixins: [WidgetMixin],
   components: {},
+  mixins: [WidgetMixin],
   data() {
     return {
       results: null,
@@ -45,25 +45,24 @@ export default {
   methods: {
     /* Make GET request to local pi-hole instance */
     fetchData() {
-      this.makeRequest(this.endpoint)
-        .then((response) => {
-          if (Array.isArray(response)) {
-            this.error('Got success, but found no results, possible authorization error');
-          } else {
-            this.processData(response);
-          }
-        });
+      this.makeRequest(this.endpoint).then((response) => {
+        if (Array.isArray(response)) {
+          this.error('Got success, but found no results, possible authorization error');
+        } else {
+          this.processData(response);
+        }
+      });
     },
     /* Assign data variables to the returned data */
     processData(data) {
       const topAds = [];
-      Object.keys(data.top_ads).forEach((domain) => {
+      for (const domain of Object.keys(data.top_ads)) {
         topAds.push({ domain, count: showNumAsThousand(data.top_ads[domain]) });
-      });
+      }
       const topQueries = [];
-      Object.keys(data.top_queries).forEach((domain) => {
+      for (const domain of Object.keys(data.top_queries)) {
         topQueries.push({ domain, count: showNumAsThousand(data.top_queries[domain]) });
-      });
+      }
       this.results = [
         { id: '01', title: 'Top Ads Blocked', results: topAds },
         { id: '02', title: 'Top Queries', results: topQueries },
@@ -103,5 +102,4 @@ export default {
     }
   }
 }
-
 </style>

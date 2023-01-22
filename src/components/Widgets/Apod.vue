@@ -1,17 +1,17 @@
 <template>
-<div class="apod-wrapper" v-if="url">
-  <a :href="link" class="title" target="__blank" title="View Article">
-    {{ title }}
-  </a>
-  <a :href="hdurl" title="View HD Image" class="picture" target="__blank">
-    <img :src="url" :alt="title" />
-  </a>
-  <p class="copyright">{{ copyright }}</p>
-  <p class="explanation">{{ truncatedExplanation }}</p>
-  <p @click="toggleShowFull" class="expend-details-btn">
-    {{ showFullExp ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
-  </p>
-</div>
+  <div v-if="url" class="apod-wrapper">
+    <a :href="link" class="title" target="__blank" title="View Article">
+      {{ title }}
+    </a>
+    <a :href="hdurl" title="View HD Image" class="picture" target="__blank">
+      <img :src="url" :alt="title" />
+    </a>
+    <p class="copyright">{{ copyright }}</p>
+    <p class="explanation">{{ truncatedExplanation }}</p>
+    <p class="expend-details-btn" @click="toggleShowFull">
+      {{ showFullExp ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
+    </p>
+  </div>
 </template>
 
 <script>
@@ -34,12 +34,13 @@ export default {
   },
   computed: {
     truncatedExplanation() {
-      return this.showFullExp ? this.explanation : `${this.explanation.substring(0, 100)}...`;
+      return this.showFullExp ? this.explanation : `${this.explanation.slice(0, 100)}...`;
     },
   },
   methods: {
     fetchData() {
-      axios.get(widgetApiEndpoints.astronomyPictureOfTheDay)
+      axios
+        .get(widgetApiEndpoints.astronomyPictureOfTheDay)
         .then((response) => {
           this.processData(response.data);
         })
@@ -72,7 +73,9 @@ export default {
     margin: 0.5rem 0;
     color: var(--widget-text-color);
     text-decoration: none;
-    &:hover { text-decoration: underline; }
+    &:hover {
+      text-decoration: underline;
+    }
   }
   a.picture img {
     width: 100%;
@@ -102,11 +105,11 @@ export default {
     &:hover {
       border: 1px solid var(--widget-text-color);
     }
-    &:focus, &:active {
+    &:focus,
+    &:active {
       background: var(--widget-text-color);
       color: var(--widget-background-color);
     }
   }
 }
-
 </style>

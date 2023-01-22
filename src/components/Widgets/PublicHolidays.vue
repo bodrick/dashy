@@ -1,15 +1,15 @@
 <template>
-<div class="public-holidays-wrapper">
-  <div
-    v-for="(holiday, indx) in holidays"
-    :key="indx"
-    v-tooltip="tooltip(holiday)"
-    class="holiday-row"
-  >
-    <p class="holiday-date">{{ holiday.date }}</p>
-    <p class="holiday-name">{{ holiday.name }}</p>
+  <div class="public-holidays-wrapper">
+    <div
+      v-for="(holiday, indx) in holidays"
+      :key="indx"
+      v-tooltip="tooltip(holiday)"
+      class="holiday-row"
+    >
+      <p class="holiday-date">{{ holiday.date }}</p>
+      <p class="holiday-name">{{ holiday.name }}</p>
+    </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -19,8 +19,8 @@ import { widgetApiEndpoints } from '@/utils/defaults';
 import { timestampToDate, capitalize } from '@/utils/MiscHelpers';
 
 export default {
-  mixins: [WidgetMixin],
   components: {},
+  mixins: [WidgetMixin],
   data() {
     return {
       holidays: [],
@@ -32,8 +32,14 @@ export default {
       return navigator.language.split('-')[1] || 'GB';
     },
     holidayType() {
-      const options = ['all', 'public_holiday', 'observance',
-        'school_holiday', 'other_day', 'extra_working_day'];
+      const options = [
+        'all',
+        'public_holiday',
+        'observance',
+        'school_holiday',
+        'other_day',
+        'extra_working_day',
+      ];
       const usersChoice = this.options.holidayType;
       if (usersChoice && options.includes(usersChoice)) return usersChoice;
       return 'public_holiday';
@@ -51,7 +57,7 @@ export default {
     },
     endDate() {
       const now = new Date();
-      const then = new Date((now.setMonth(now.getMonth() + this.monthsToShow)));
+      const then = new Date(now.setMonth(now.getMonth() + this.monthsToShow));
       return `${then.getDate()}-${then.getMonth() + 1}-${then.getFullYear()}`;
     },
     region() {
@@ -61,16 +67,19 @@ export default {
       return '';
     },
     endpoint() {
-      return `${widgetApiEndpoints.holidays}`
-      + `&fromDate=${this.startDate}&toDate=${this.endDate}`
-      + `&country=${this.country}&holidayType=${this.holidayType}`
-      + `${this.region}`;
+      return (
+        `${widgetApiEndpoints.holidays}` +
+        `&fromDate=${this.startDate}&toDate=${this.endDate}` +
+        `&country=${this.country}&holidayType=${this.holidayType}` +
+        `${this.region}`
+      );
     },
   },
   methods: {
     /* Make GET request to CoinGecko API endpoint */
     fetchData() {
-      axios.get(this.endpoint)
+      axios
+        .get(this.endpoint)
         .then((response) => {
           this.processData(response.data);
         })
@@ -84,25 +93,28 @@ export default {
     /* Assign data variables to the returned data */
     processData(holidays) {
       const results = [];
-      const makeDate = (date) => timestampToDate(
-        new Date(`${date.year}-${date.month}-${date.day}`).getTime(),
-      );
+      const makeDate = (date) =>
+        timestampToDate(new Date(`${date.year}-${date.month}-${date.day}`).getTime());
       const formatType = (ht) => capitalize(ht.replaceAll('_', ' '));
-      holidays.forEach((holiday) => {
+      for (const holiday of holidays) {
         results.push({
           name: holiday.name[0].text,
           date: makeDate(holiday.date),
           type: formatType(holiday.holidayType),
           observed: holiday.observedOn ? makeDate(holiday.observedOn) : '',
         });
-      });
+      }
       this.holidays = results;
     },
     tooltip(holiday) {
       const observed = holiday.observed ? `<br><b>Observed On</b>: ${holiday.observed}` : '';
       const content = `<b>Type</b>: ${holiday.type}${observed}`;
       return {
-        content, trigger: 'hover focus', html: true, delay: 250, classes: 'in-modal-tt',
+        content,
+        trigger: 'hover focus',
+        html: true,
+        delay: 250,
+        classes: 'in-modal-tt',
       };
     },
   },
@@ -124,5 +136,4 @@ export default {
     }
   }
 }
-
 </style>

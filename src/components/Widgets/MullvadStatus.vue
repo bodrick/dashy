@@ -1,23 +1,29 @@
 <template>
-<div class="mullvad-wrapper" v-if="mullvadInfo">
-  <p v-if="mullvadInfo.isMullvad"  class="status connected"><span>✔</span> Connected</p>
-  <p v-else class="status not-connected"><span>✘</span> Not Connected</p>
-  <div class="connection-info">
-    <p><span class="lbl">IP</span><span class="val">{{ mullvadInfo.ip }}</span></p>
-    <p v-if="mullvadInfo.host">
-      <span class="lbl">Host</span><span class="val">{{ mullvadInfo.host }}</span>
-    </p>
-    <p><span class="lbl">Owner</span><span class="val">{{ mullvadInfo.ownedBy }}</span></p>
-    <p v-if="mullvadInfo.serverType">
-      <span class="lbl">Type</span><span class="val">{{ mullvadInfo.serverType }}</span>
-    </p>
-    <p><span class="lbl">Location</span><span class="val">{{ mullvadInfo.location }}</span></p>
-    <p>
-      <span class="lbl">Blacklisted?</span>
-      <span class="val">{{ mullvadInfo.isBlacklisted ? '✘ Yes' : '✔ No' }}</span>
-    </p>
+  <div v-if="mullvadInfo" class="mullvad-wrapper">
+    <p v-if="mullvadInfo.isMullvad" class="status connected"><span>✔</span> Connected</p>
+    <p v-else class="status not-connected"><span>✘</span> Not Connected</p>
+    <div class="connection-info">
+      <p>
+        <span class="lbl">IP</span><span class="val">{{ mullvadInfo.ip }}</span>
+      </p>
+      <p v-if="mullvadInfo.host">
+        <span class="lbl">Host</span><span class="val">{{ mullvadInfo.host }}</span>
+      </p>
+      <p>
+        <span class="lbl">Owner</span><span class="val">{{ mullvadInfo.ownedBy }}</span>
+      </p>
+      <p v-if="mullvadInfo.serverType">
+        <span class="lbl">Type</span><span class="val">{{ mullvadInfo.serverType }}</span>
+      </p>
+      <p>
+        <span class="lbl">Location</span><span class="val">{{ mullvadInfo.location }}</span>
+      </p>
+      <p>
+        <span class="lbl">Blacklisted?</span>
+        <span class="val">{{ mullvadInfo.isBlacklisted ? '✘ Yes' : '✔ No' }}</span>
+      </p>
+    </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -26,15 +32,15 @@ import { widgetApiEndpoints } from '@/utils/defaults';
 
 export default {
   mixins: [WidgetMixin],
-  computed: {
-    endpoint() {
-      return widgetApiEndpoints.mullvad;
-    },
-  },
   data() {
     return {
       mullvadInfo: null,
     };
+  },
+  computed: {
+    endpoint() {
+      return widgetApiEndpoints.mullvad;
+    },
   },
   methods: {
     /* Make GET request to Mullvad API endpoint */
@@ -79,11 +85,15 @@ export default {
     }
     &.not-connected {
       color: var(--danger);
-      span { background: var(--danger); }
+      span {
+        background: var(--danger);
+      }
     }
     &.connected {
       color: var(--success);
-      span { background: var(--success); }
+      span {
+        background: var(--success);
+      }
     }
   }
   .connection-info {
@@ -103,9 +113,10 @@ export default {
           font-family: monospace;
         }
       }
-      &:not(:last-child) { border-bottom: 1px dashed var(--widget-text-color); }
+      &:not(:last-child) {
+        border-bottom: 1px dashed var(--widget-text-color);
+      }
     }
   }
 }
-
 </style>

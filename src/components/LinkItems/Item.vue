@@ -1,11 +1,11 @@
 <template ref="container">
   <div :class="`item-wrapper wrap-size-${size} span-${makeColumnCount}`">
     <a
+      :id="`link-${item.id}`"
       v-longPress="true"
       v-tooltip="getTooltipOptions()"
       :href="item.url"
       :target="anchorTarget"
-      :id="`link-${item.id}`"
       :class="`item ${makeClassList}`"
       rel="noopener noreferrer"
       tabindex="0"
@@ -26,14 +26,14 @@
         :url="item.url"
         :size="size"
         :color="item.color"
-        v-bind:style="customStyles"
+        :style="customStyles"
         class="bounce"
       />
       <!-- Small icon, showing opening method on hover -->
       <ItemOpenMethodIcon
         class="opening-method-icon"
-        :isSmall="!itemIcon || size === 'small'"
-        :openingMethod="accumulatedTarget"
+        :is-small="!itemIcon || size === 'small'"
+        :opening-method="accumulatedTarget"
         position="bottom right"
         :hotkey="item.hotkey"
       />
@@ -41,8 +41,8 @@
       <StatusIndicator
         v-if="enableStatusCheck"
         class="status-indicator"
-        :statusSuccess="statusResponse ? statusResponse.successStatus : undefined"
-        :statusText="statusResponse ? statusResponse.message : undefined"
+        :status-success="statusResponse ? statusResponse.successStatus : undefined"
+        :status-text="statusResponse ? statusResponse.message : undefined"
       />
       <!-- Edit icon (displayed only when in edit mode) -->
       <EditModeIcon v-if="isEditMode" class="edit-mode-item" @click="openItemSettings()" />
@@ -52,20 +52,20 @@
       :id="`context-menu-${item.id}`"
       v-click-outside="closeContextMenu"
       :show="contextMenuOpen && !isAddNew"
-      :posX="contextPos.posX"
-      :posY="contextPos.posY"
+      :pos-x="contextPos.posX"
+      :pos-y="contextPos.posY"
       @launchItem="launchItem"
       @openItemSettings="openItemSettings"
       @openMoveItemMenu="openMoveItemMenu"
       @openDeleteItem="openDeleteItem"
     />
     <!-- Edit and move item menu modals -->
-    <MoveItemTo v-if="isEditMode" :itemId="item.id" />
+    <MoveItemTo v-if="isEditMode" :item-id="item.id" />
     <EditItem
       v-if="editMenuOpen"
-      :itemId="item.id"
-      :isNew="isAddNew"
-      :parentSectionTitle="parentSectionTitle"
+      :item-id="item.id"
+      :is-new="isAddNew"
+      :parent-section-title="parentSectionTitle"
       @closeEditMenu="closeEditMenu"
     />
   </div>
@@ -85,14 +85,6 @@ import { modalNames } from '@/utils/defaults';
 
 export default {
   name: 'Item',
-  mixins: [ItemMixin],
-  props: {
-    itemSize: String,
-    parentSectionTitle: String, // Title of parent section (for add new)
-    isAddNew: Boolean, // Only set if 'fake' item used as Add New button
-    sectionWidth: Number, // Width of parent section
-    sectionDisplayData: Object,
-  },
   components: {
     Icon,
     ItemOpenMethodIcon,
@@ -101,6 +93,19 @@ export default {
     MoveItemTo,
     EditItem,
     EditModeIcon,
+  },
+  mixins: [ItemMixin],
+  props: {
+    itemSize: String,
+    parentSectionTitle: String, // Title of parent section (for add new)
+    isAddNew: Boolean, // Only set if 'fake' item used as Add New button
+    sectionWidth: Number, // Width of parent section
+    sectionDisplayData: Object,
+  },
+  data() {
+    return {
+      editMenuOpen: false,
+    };
   },
   computed: {
     /* Returns either item.icon, or appConfig.defaultIcon, or null */
@@ -120,7 +125,7 @@ export default {
     makeClassList() {
       const { isAddNew, isEditMode, size } = this;
       return (
-        `size-${size} ${!this.itemIcon ? 'short' : ''} ` +
+        `size-${size} ${this.itemIcon ? '' : 'short'} ` +
         `${isAddNew ? 'add-new' : ''} ${isEditMode ? 'is-edit-mode' : ''}`
       );
     },
@@ -146,10 +151,19 @@ export default {
       }
     },
   },
-  data() {
-    return {
-      editMenuOpen: false,
-    };
+  mounted() {
+    // If ststus checking is enabled, then check service status
+    if (this.enableStatusCheck) {
+      this.checkWebsiteStatus();
+      // If continious status checking is enabled, then start ever-lasting loop
+      if (this.statusCheckInterval > 0) {
+        this.intervalId = setInterval(this.checkWebsiteStatus, this.statusCheckInterval * 1000);
+      }
+    }
+  },
+  beforeDestroy() {
+    // Stop periodic status-check when item is destroyed (e.g. navigating in multi-page setup)
+    if (this.intervalId) clearInterval(this.intervalId);
   },
   methods: {
     /* Returns configuration object for the tooltip */
@@ -196,20 +210,6 @@ export default {
       this.$store.commit(StoreKeys.REMOVE_ITEM, payload);
       this.closeContextMenu();
     },
-  },
-  mounted() {
-    // If ststus checking is enabled, then check service status
-    if (this.enableStatusCheck) {
-      this.checkWebsiteStatus();
-      // If continious status checking is enabled, then start ever-lasting loop
-      if (this.statusCheckInterval > 0) {
-        this.intervalId = setInterval(this.checkWebsiteStatus, this.statusCheckInterval * 1000);
-      }
-    }
-  },
-  beforeDestroy() {
-    // Stop periodic status-check when item is destroyed (e.g. navigating in multi-page setup)
-    if (this.intervalId) clearInterval(this.intervalId);
   },
 };
 </script>

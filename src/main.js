@@ -28,7 +28,7 @@ Vue.use(VModal);
 Vue.use(VTabs);
 Vue.use(TreeView);
 Vue.use(Toasted, toastedOptions);
-Vue.component('v-select', VSelect);
+Vue.component('VSelect', VSelect);
 Vue.directive('clickOutside', clickOutside);
 
 // When running in dev mode, enable Vue performance tools

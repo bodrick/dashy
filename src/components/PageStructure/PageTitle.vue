@@ -8,8 +8,7 @@
       <span class="subtitle">{{ description }}</span>
     </div>
     <!-- When in edit mode, show Edit Title button -->
-    <EditModeIcon v-if="isEditMode" @click="editTitle()"
-      class="edit-icon" v-tooltip="tooltip()" />
+    <EditModeIcon v-if="isEditMode" v-tooltip="tooltip()" class="edit-icon" @click="editTitle()" />
   </router-link>
 </template>
 
@@ -20,13 +19,13 @@ import { modalNames } from '@/utils/defaults';
 
 export default {
   name: 'PageTitle',
+  components: {
+    EditModeIcon,
+  },
   props: {
     title: String,
     description: String,
     logo: String,
-  },
-  components: {
-    EditModeIcon,
   },
   computed: {
     isEditMode() {
@@ -92,8 +91,12 @@ export default {
     cursor: pointer;
     border: 1px solid var(--background-darker);
     border-radius: var(--curve-factor);
-    path { fill: var(--primary); }
-    &:hover { border: 1px solid var(--primary); }
+    path {
+      fill: var(--primary);
+    }
+    &:hover {
+      border: 1px solid var(--primary);
+    }
   }
 }
 </style>

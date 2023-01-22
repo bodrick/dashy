@@ -1,70 +1,77 @@
 <template>
-<div class="sports-scores-wrapper" v-if="matches">
-  <!-- Show back to original button -->
-  <p v-if="whatToShow === 'team' && currentTeamId !== teamId"
-  @click="fetchTeamScores(teamId)" class="back-to-original">
-    ⇦ Back to Original Team
-  </p>
-  <p v-else-if="whatToShow === 'league' && leagueId && currentLeagueId !== leagueId"
-  @click="fetchLeagueScores(leagueId)" class="back-to-original">
-    ⇦ Back to Original League
-  </p>
-  <!-- Show toggle switch for past and future matches -->
-  <div class="past-or-future">
-    <span
-      :class="`btn ${whenToShow === 'past' ? 'selected' : ''}`"
-      v-tooltip="tooltip('View Recent Scores')"
-      @click="fetchPastFutureEvents('past')"
+  <div v-if="matches" class="sports-scores-wrapper">
+    <!-- Show back to original button -->
+    <p
+      v-if="whatToShow === 'team' && currentTeamId !== teamId"
+      class="back-to-original"
+      @click="fetchTeamScores(teamId)"
     >
-      Past Scores
-    </span>
-    <span
-      :class="`btn ${whenToShow === 'future' ? 'selected' : ''}`"
-      v-tooltip="tooltip('View Upcoming Games')"
-      @click="fetchPastFutureEvents('future')"
+      ⇦ Back to Original Team
+    </p>
+    <p
+      v-else-if="whatToShow === 'league' && leagueId && currentLeagueId !== leagueId"
+      class="back-to-original"
+      @click="fetchLeagueScores(leagueId)"
     >
-      Upcoming Games
-    </span>
-  </div>
-  <div class="match-row" v-for="match in matches" :key="match.id">
-    <!-- Banner Image -->
-    <div class="match-thumbnail-wrap" v-if="!hideImage">
-      <img :src="match.thumbnail" :alt="`${match.title} Banner Image`" class="match-thumbnail" />
-    </div>
-    <!-- Team Scores -->
-    <div class="score">
-      <div
-        :class="`score-block home ${currentTeamId !== match.home.id ? 'clickable' : ''}`"
-        v-tooltip="tooltip(`Click to view ${match.home.name} Scores`)"
-        @click="fetchTeamScores(match.home.id)"
+      ⇦ Back to Original League
+    </p>
+    <!-- Show toggle switch for past and future matches -->
+    <div class="past-or-future">
+      <span
+        v-tooltip="tooltip('View Recent Scores')"
+        :class="`btn ${whenToShow === 'past' ? 'selected' : ''}`"
+        @click="fetchPastFutureEvents('past')"
       >
-        <p class="team-score">{{ match.home.score }}</p>
-        <p class="team-name">{{ match.home.name }}</p>
-        <p class="team-location">Home</p>
-      </div>
-      <div class="colon">{{ match.home.score || match.away.score ? ':' : 'v' }}</div>
-      <div
-        class="score-block away clickable"
-        v-tooltip="tooltip(`Click to view ${match.away.name} Scores`)"
-        @click="fetchTeamScores(match.away.id)"
+        Past Scores
+      </span>
+      <span
+        v-tooltip="tooltip('View Upcoming Games')"
+        :class="`btn ${whenToShow === 'future' ? 'selected' : ''}`"
+        @click="fetchPastFutureEvents('future')"
       >
-        <p class="team-score">{{ match.away.score }}</p>
-        <p class="team-name">{{ match.away.name }}</p>
-        <p class="team-location">Away</p>
-      </div>
+        Upcoming Games
+      </span>
     </div>
-    <!-- Match Meta Info -->
-    <div class="match-info">
-      <p class="status">{{ match.status }} </p>
-      <p class="league" @click="fetchLeagueScores(match.leagueId)">
-        {{ match.league }}, {{ match.season }}
-      </p>
-      <p>
-        <a :href="match.venue | mapsUrl">{{ match.venue }}</a>
-        on {{ match.date | formatDate }} ({{ match.time | formatTime }})</p>
+    <div v-for="match in matches" :key="match.id" class="match-row">
+      <!-- Banner Image -->
+      <div v-if="!hideImage" class="match-thumbnail-wrap">
+        <img :src="match.thumbnail" :alt="`${match.title} Banner Image`" class="match-thumbnail" />
+      </div>
+      <!-- Team Scores -->
+      <div class="score">
+        <div
+          v-tooltip="tooltip(`Click to view ${match.home.name} Scores`)"
+          :class="`score-block home ${currentTeamId !== match.home.id ? 'clickable' : ''}`"
+          @click="fetchTeamScores(match.home.id)"
+        >
+          <p class="team-score">{{ match.home.score }}</p>
+          <p class="team-name">{{ match.home.name }}</p>
+          <p class="team-location">Home</p>
+        </div>
+        <div class="colon">{{ match.home.score || match.away.score ? ':' : 'v' }}</div>
+        <div
+          v-tooltip="tooltip(`Click to view ${match.away.name} Scores`)"
+          class="score-block away clickable"
+          @click="fetchTeamScores(match.away.id)"
+        >
+          <p class="team-score">{{ match.away.score }}</p>
+          <p class="team-name">{{ match.away.name }}</p>
+          <p class="team-location">Away</p>
+        </div>
+      </div>
+      <!-- Match Meta Info -->
+      <div class="match-info">
+        <p class="status">{{ match.status }}</p>
+        <p class="league" @click="fetchLeagueScores(match.leagueId)">
+          {{ match.league }}, {{ match.season }}
+        </p>
+        <p>
+          <a :href="match.venue | mapsUrl">{{ match.venue }}</a>
+          on {{ match.date | formatDate }} ({{ match.time | formatTime }})
+        </p>
+      </div>
     </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -74,6 +81,18 @@ import { timestampToDate, getPlaceUrl } from '@/utils/MiscHelpers';
 import { widgetApiEndpoints } from '@/utils/defaults';
 
 export default {
+  filters: {
+    formatDate(dateStr) {
+      return timestampToDate(dateStr);
+    },
+    formatTime(timeStr) {
+      if (!timeStr) return '';
+      return timeStr.slice(0, 5);
+    },
+    mapsUrl(placeName) {
+      return getPlaceUrl(placeName);
+    },
+  },
   mixins: [WidgetMixin],
   data() {
     return {
@@ -121,18 +140,6 @@ export default {
       }
     },
   },
-  filters: {
-    formatDate(dateStr) {
-      return timestampToDate(dateStr);
-    },
-    formatTime(timeStr) {
-      if (!timeStr) return '';
-      return timeStr.slice(0, 5);
-    },
-    mapsUrl(placeName) {
-      return getPlaceUrl(placeName);
-    },
-  },
   methods: {
     initiate() {
       if (!this.initiated) {
@@ -144,7 +151,8 @@ export default {
       }
     },
     fetchData() {
-      axios.get(this.endpoint)
+      axios
+        .get(this.endpoint)
         .then((response) => {
           this.processData(response.data.results || response.data.events);
         })
@@ -158,7 +166,7 @@ export default {
     },
     processData(data) {
       const matches = [];
-      data.forEach((match) => {
+      for (const match of data) {
         matches.push({
           id: match.idEvent,
           sport: match.strSport,
@@ -182,7 +190,7 @@ export default {
             score: match.intAwayScore,
           },
         });
-      });
+      }
       this.matches = matches.slice(0, this.limit);
     },
     teamOrLeague() {
@@ -215,7 +223,10 @@ export default {
     },
     tooltip(content) {
       return {
-        content, html: true, trigger: 'hover focus', delay: 250,
+        content,
+        html: true,
+        trigger: 'hover focus',
+        delay: 250,
       };
     },
   },
@@ -224,7 +235,7 @@ export default {
 
 <style scoped lang="scss">
 .sports-scores-wrapper {
- p {
+  p {
     font-size: 1rem;
     margin: 0.5rem auto;
     color: var(--widget-text-color);
@@ -286,7 +297,8 @@ export default {
       border-radius: var(--curve-factor);
       padding: 0.25rem 0.5rem;
       margin: 0.5rem auto 1rem auto;
-      p, a {
+      p,
+      a {
         color: var(--widget-text-color);
         opacity: var(--dimming-factor);
         font-size: 0.8rem;
@@ -336,5 +348,4 @@ export default {
     }
   }
 }
-
 </style>

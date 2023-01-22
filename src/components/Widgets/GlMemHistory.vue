@@ -1,7 +1,7 @@
 <template>
-<div class="glances-cpu-history-wrapper">
-  <div class="gl-history-chart" :id="chartId"></div>
-</div>
+  <div class="glances-cpu-history-wrapper">
+    <div :id="chartId" class="gl-history-chart"></div>
+  </div>
 </template>
 
 <script>
@@ -11,8 +11,8 @@ import ChartingMixin from '@/mixins/ChartingMixin';
 import { timestampToTime, getTimeAgo } from '@/utils/MiscHelpers';
 
 export default {
-  mixins: [WidgetMixin, GlancesMixin, ChartingMixin],
   components: {},
+  mixins: [WidgetMixin, GlancesMixin, ChartingMixin],
   data() {
     return {};
   },
@@ -24,20 +24,21 @@ export default {
       return this.makeGlancesUrl(`mem/history/${this.limit}`);
     },
   },
+  created() {
+    this.overrideUpdateInterval = 20;
+  },
   methods: {
     processData(memData) {
       const readings = memData.percent;
       const labels = [];
       const systemValues = [];
-      readings.forEach((dataPoint) => {
+      for (const dataPoint of readings) {
         labels.push(timestampToTime(dataPoint[0]));
         systemValues.push(dataPoint[1]);
-      });
+      }
 
       const chartTitle = this.makeTitle(readings);
-      const datasets = [
-        { name: 'Memory', type: 'bar', values: systemValues },
-      ];
+      const datasets = [{ name: 'Memory', type: 'bar', values: systemValues }];
       this.generateChart({ labels, datasets }, chartTitle);
     },
     makeTitle(system) {
@@ -60,20 +61,17 @@ export default {
           xAxisMode: 'tick',
         },
         tooltipOptions: {
-          formatTooltipY: d => `${Math.round(d)}%`,
+          formatTooltipY: (d) => `${Math.round(d)}%`,
         },
       });
     },
-
-  },
-  created() {
-    this.overrideUpdateInterval = 20;
   },
 };
 </script>
 
 <style scoped lang="scss">
 .glances-cpu-history-wrapper {
-  .gl-history-chart {}
+  .gl-history-chart {
+  }
 }
 </style>

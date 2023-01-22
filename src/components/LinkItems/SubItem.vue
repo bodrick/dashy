@@ -1,29 +1,36 @@
 <template ref="container">
   <div class="sub-item-wrapper">
-    <a @click="itemClicked"
+    <a
+      :id="`link-${id}`"
+      v-longPress="true"
+      v-tooltip="subItemTooltip"
+      :href="hyperLinkHref"
+      :target="anchorTarget"
+      rel="noopener noreferrer"
+      tabindex="0"
+      class="sub-item-link item"
+      @click="itemClicked"
       @contextmenu.prevent
       @long-press="openContextMenu"
       @mouseup.right="openContextMenu"
-      v-longPress="true"
-      :href="hyperLinkHref"
-      :target="anchorTarget"
-      v-tooltip="subItemTooltip"
-      rel="noopener noreferrer" tabindex="0"
-      :id="`link-${id}`"
-      class="sub-item-link item"
     >
       <!-- Item Icon -->
-      <Icon :icon="item.icon" :url="item.url"
-      size="small" v-bind:style="customStyles" class="sub-icon-img bounce" />
+      <Icon
+        :icon="item.icon"
+        :url="item.url"
+        size="small"
+        :style="customStyles"
+        class="sub-icon-img bounce"
+      />
     </a>
     <!-- Right-click context menu -->
     <ContextMenu
-      :show="contextMenuOpen && !isAddNew"
-      v-click-outside="closeContextMenu"
-      :posX="contextPos.posX"
-      :posY="contextPos.posY"
       :id="`context-menu-${id}`"
-      :disableEdit="true"
+      v-click-outside="closeContextMenu"
+      :show="contextMenuOpen && !isAddNew"
+      :pos-x="contextPos.posX"
+      :pos-y="contextPos.posY"
+      :disable-edit="true"
       @launchItem="launchItem"
     />
   </div>
@@ -37,22 +44,22 @@ import ItemMixin from '@/mixins/ItemMixin';
 
 export default {
   name: 'Item',
+  components: {
+    Icon,
+    ContextMenu,
+  },
   mixins: [ItemMixin],
   props: {
     id: String, // The unique ID of a tile (e.g. 001)
     item: Object,
   },
-  components: {
-    Icon,
-    ContextMenu,
+  data() {
+    return {};
   },
   computed: {
     subItemTooltip() {
       return this.title;
     },
-  },
-  data() {
-    return {};
   },
   methods: {},
 };

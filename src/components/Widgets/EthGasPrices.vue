@@ -1,46 +1,47 @@
 <template>
-<div class="eth-gas-wrapper" v-if="gasCosts">
-  <!-- Current Prices -->
-  <p class="current-label">Current Gas Prices</p>
-  <div v-for="gasCost in gasCosts" :key="gasCost.name" class="gas-row">
-    <p class="time-name">{{ gasCost.name }}</p>
-    <div class="cost">
-      <span class="usd">${{ gasCost.usd }}</span>
-      <span class="gwei">{{ gasCost.gwei }} GWEI</span>
+  <div v-if="gasCosts" class="eth-gas-wrapper">
+    <!-- Current Prices -->
+    <p class="current-label">Current Gas Prices</p>
+    <div v-for="gasCost in gasCosts" :key="gasCost.name" class="gas-row">
+      <p class="time-name">{{ gasCost.name }}</p>
+      <div class="cost">
+        <span class="usd">${{ gasCost.usd }}</span>
+        <span class="gwei">{{ gasCost.gwei }} GWEI</span>
+      </div>
+    </div>
+    <!-- Current ETH Price -->
+    <div class="current-price">
+      <span class="label">Current ETH Price:</span>
+      <span class="price">{{ gasInfo.ethPrice }}</span>
+    </div>
+    <!-- Historical Chart -->
+    <p class="time-frame-label">Historical Gas Prices</p>
+    <div class="time-frame-selector">
+      <span
+        v-for="time in timeOptions"
+        :key="time.value"
+        :class="time.value === selectedTimeFrame ? 'selected' : ''"
+        @click="updateTimeFrame(time.value)"
+      >
+        {{ time.label }}
+      </span>
+    </div>
+    <div :id="chartId"></div>
+    <!-- Meta Info -->
+    <div v-if="gasInfo" class="gas-info">
+      <p>Last Updated: {{ gasInfo.lastUpdated }}</p>
+      <div class="sources">
+        Sources:
+        <a
+          v-for="source in gasInfo.sources"
+          :key="source.name"
+          v-tooltip="tooltip(`Average: ${source.standard || '[UNKNOWN]'} GWEI`)"
+          :href="source.source"
+          >{{ source.name }}</a
+        >
+      </div>
     </div>
   </div>
-  <!-- Current ETH Price -->
-  <div class="current-price">
-    <span class="label">Current ETH Price:</span>
-    <span class="price">{{ gasInfo.ethPrice }}</span>
-  </div>
-  <!-- Historical Chart -->
-  <p class="time-frame-label">Historical Gas Prices</p>
-  <div class="time-frame-selector">
-    <span
-      v-for="time in timeOptions"
-      :key="time.value"
-      @click="updateTimeFrame(time.value)"
-      :class="time.value === selectedTimeFrame ? 'selected' : ''"
-    >
-    {{ time.label }}
-    </span>
-  </div>
-  <div :id="chartId"></div>
-  <!-- Meta Info -->
-  <div v-if="gasInfo" class="gas-info">
-    <p>Last Updated: {{ gasInfo.lastUpdated }}</p>
-    <div class="sources">
-      Sources:
-      <a
-        v-for="source in gasInfo.sources"
-        :key="source.name"
-        :href="source.source"
-        v-tooltip="tooltip(`Average: ${source.standard || '[UNKNOWN]'} GWEI`)"
-      >{{ source.name }}</a>
-    </div>
-  </div>
-</div>
 </template>
 
 <script>
@@ -51,15 +52,6 @@ import { timestampToTime, roundPrice, putCommasInBigNum } from '@/utils/MiscHelp
 
 export default {
   mixins: [WidgetMixin, ChartingMixin],
-  computed: {
-    numHours() {
-      return this.options.numHours || 24;
-    },
-    endpoint() {
-      const numHours = this.selectedTimeFrame || this.numHours;
-      return `${widgetApiEndpoints.ethGasHistory}?hours=${numHours}`;
-    },
-  },
   data() {
     return {
       gasInfo: null,
@@ -72,6 +64,18 @@ export default {
       ],
       selectedTimeFrame: null,
     };
+  },
+  computed: {
+    numHours() {
+      return this.options.numHours || 24;
+    },
+    endpoint() {
+      const numHours = this.selectedTimeFrame || this.numHours;
+      return `${widgetApiEndpoints.ethGasHistory}?hours=${numHours}`;
+    },
+  },
+  mounted() {
+    this.selectedTimeFrame = this.numHours;
   },
   methods: {
     /* Make GET request to CoinGecko API endpoint */
@@ -87,10 +91,10 @@ export default {
         { name: 'Instant', gwei: data.instant.gwei, usd: data.instant.usd },
       ];
       const sources = [];
-      data.sources.forEach((sourceInfo) => {
+      for (const sourceInfo of data.sources) {
         const { name, source, standard } = sourceInfo;
         sources.push({ name, source, standard });
-      });
+      }
       this.gasInfo = {
         lastUpdated: timestampToTime(data.lastUpdated),
         ethPrice: `$${putCommasInBigNum(roundPrice(data.ethPrice))}`,
@@ -122,7 +126,7 @@ export default {
           xAxisMode: 'tick',
         },
         tooltipOptions: {
-          formatTooltipY: d => `${d} GWEI`,
+          formatTooltipY: (d) => `${d} GWEI`,
         },
       });
     },
@@ -131,9 +135,6 @@ export default {
       this.selectedTimeFrame = newNumHours;
       this.fetchData();
     },
-  },
-  mounted() {
-    this.selectedTimeFrame = this.numHours;
   },
 };
 </script>
@@ -167,7 +168,9 @@ export default {
         }
       }
     }
-    &:not(:last-child) { border-bottom: 1px dashed var(--widget-text-color); }
+    &:not(:last-child) {
+      border-bottom: 1px dashed var(--widget-text-color);
+    }
   }
   .current-price {
     color: var(--widget-text-color);
@@ -181,7 +184,8 @@ export default {
     }
   }
   .gas-info {
-    p, .sources {
+    p,
+    .sources {
       margin: 0.5rem 0;
       font-size: 0.8rem;
       opacity: var(--dimming-factor);
@@ -224,5 +228,4 @@ export default {
     }
   }
 }
-
 </style>

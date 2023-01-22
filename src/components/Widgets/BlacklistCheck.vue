@@ -1,21 +1,21 @@
 <template>
-<div class="blacklist-check-wrapper" v-if="blacklisted">
-  <p v-if="message" class="summary-msg">{{ message }}</p>
-  <template v-if="showAll || (blacklisted && blacklistFiltered.length > 0)">
-    <div v-for="blacklist in blacklistFiltered" :key="blacklist.id" class="blacklist-row">
-      <span v-if="blacklist.detected" class="status detected">✘</span>
-      <span v-else class="status not-detected">✔</span>
-      <span>{{ blacklist.name }}</span>
+  <div v-if="blacklisted" class="blacklist-check-wrapper">
+    <p v-if="message" class="summary-msg">{{ message }}</p>
+    <template v-if="showAll || (blacklisted && blacklistFiltered.length > 0)">
+      <div v-for="blacklist in blacklistFiltered" :key="blacklist.id" class="blacklist-row">
+        <span v-if="blacklist.detected" class="status detected">✘</span>
+        <span v-else class="status not-detected">✔</span>
+        <span>{{ blacklist.name }}</span>
+      </div>
+    </template>
+    <div v-else class="all-clear">
+      <p>No Detections Found</p>
+      <span class="tick">✔</span>
     </div>
-  </template>
-  <div v-else class="all-clear">
-    <p>No Detections Found</p>
-    <span class="tick">✔</span>
+    <p class="toggle-view-all" @click="showAll = !showAll">
+      {{ showAll ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
+    </p>
   </div>
-  <p class="toggle-view-all" @click="showAll = !showAll">
-    {{ showAll ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
-  </p>
-</div>
 </template>
 
 <script>
@@ -24,6 +24,14 @@ import { widgetApiEndpoints } from '@/utils/defaults';
 
 export default {
   mixins: [WidgetMixin],
+  data() {
+    return {
+      blacklisted: null,
+      message: '',
+      showAll: false,
+      autoIp: null,
+    };
+  },
   computed: {
     version() {
       return this.options.version || 'v2';
@@ -41,24 +49,17 @@ export default {
       return `${widgetApiEndpoints.blacklistCheck}/${this.ipAddress}`;
     },
     blacklistFiltered() {
-      return this.showAll ? this.blacklisted : this.blacklisted.filter(bl => (bl.detected));
+      return this.showAll ? this.blacklisted : this.blacklisted.filter((bl) => bl.detected);
     },
-  },
-  data() {
-    return {
-      blacklisted: null,
-      message: '',
-      showAll: false,
-      autoIp: null,
-    };
   },
   methods: {
     /* Make GET request to CoinGecko API endpoint */
     fetchData() {
       if (!this.ipAddress) {
-        this.getUsersIpAddress(); return;
+        this.getUsersIpAddress();
+        return;
       }
-      this.defaultTimeout = 200000;
+      this.defaultTimeout = 200_000;
       const options = { Authorization: `Basic ${this.apiKey}` };
       this.makeRequest(this.endpoint, options).then(this.processData);
     },
@@ -68,11 +69,10 @@ export default {
       this.blacklisted = blResponse.blacklists;
     },
     getUsersIpAddress() {
-      this.makeRequest(widgetApiEndpoints.publicIp)
-        .then((ipInfo) => {
-          this.autoIp = ipInfo.ip;
-          this.fetchData();
-        });
+      this.makeRequest(widgetApiEndpoints.publicIp).then((ipInfo) => {
+        this.autoIp = ipInfo.ip;
+        this.fetchData();
+      });
     },
   },
 };
@@ -96,10 +96,18 @@ export default {
       border: 1px solid var(--widget-text-color);
       border-radius: 1rem;
       text-align: center;
-      &.detected { color: var(--danger); border-color: var(--danger); }
-      &.not-detected { color: var(--success); border-color: var(--success); }
+      &.detected {
+        color: var(--danger);
+        border-color: var(--danger);
+      }
+      &.not-detected {
+        color: var(--success);
+        border-color: var(--success);
+      }
     }
-    &:not(:last-child) { border-bottom: 1px dashed var(--widget-text-color); }
+    &:not(:last-child) {
+      border-bottom: 1px dashed var(--widget-text-color);
+    }
   }
   p.summary-msg {
     font-size: 0.85rem;
@@ -133,5 +141,4 @@ export default {
     }
   }
 }
-
 </style>

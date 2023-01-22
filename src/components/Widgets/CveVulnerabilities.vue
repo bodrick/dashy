@@ -1,25 +1,25 @@
 <template>
-<div class="cve-wrapper" v-if="cveList">
-  <div v-for="cve in cveList" :key="cve.id" class="cve-row">
-    <a class="upper" :href="cve.url" target="_blank">
-      <p :class="`score ${makeScoreColor(cve.score)}`">{{ cve.score }}</p>
-      <div class="title-wrap">
-        <p class="title">{{ cve.id }}</p>
-        <span class="date">{{ cve.publishDate | formatDate }}</span>
-        <span class="last-updated">Last Updated: {{ cve.updateDate | formatDate }}</span>
-        <span :class="`exploit-count ${makeExploitColor(cve.numExploits)}`">
-          {{ cve.numExploits | formatExploitCount }}
-        </span>
-      </div>
-    </a>
-    <p class="cve-description">
-      {{ cve.description | formatDescription }}
-      <a v-if="cve.description.length > 350" class="read-more" :href="cve.url" target="_blank">
-        {{ $t('widgets.general.open-link') }}
+  <div v-if="cveList" class="cve-wrapper">
+    <div v-for="cve in cveList" :key="cve.id" class="cve-row">
+      <a class="upper" :href="cve.url" target="_blank">
+        <p :class="`score ${makeScoreColor(cve.score)}`">{{ cve.score }}</p>
+        <div class="title-wrap">
+          <p class="title">{{ cve.id }}</p>
+          <span class="date">{{ cve.publishDate | formatDate }}</span>
+          <span class="last-updated">Last Updated: {{ cve.updateDate | formatDate }}</span>
+          <span :class="`exploit-count ${makeExploitColor(cve.numExploits)}`">
+            {{ cve.numExploits | formatExploitCount }}
+          </span>
+        </div>
       </a>
-    </p>
+      <p class="cve-description">
+        {{ cve.description | formatDescription }}
+        <a v-if="cve.description.length > 350" class="read-more" :href="cve.url" target="_blank">
+          {{ $t('widgets.general.open-link') }}
+        </a>
+      </p>
+    </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -28,13 +28,7 @@ import { timestampToDate, truncateStr } from '@/utils/MiscHelpers';
 import { widgetApiEndpoints, serviceEndpoints } from '@/utils/defaults';
 
 export default {
-  mixins: [WidgetMixin],
   components: {},
-  data() {
-    return {
-      cveList: null,
-    };
-  },
   filters: {
     formatDate(date) {
       return timestampToDate(date);
@@ -45,8 +39,14 @@ export default {
     formatExploitCount(numExploits) {
       if (!numExploits) return 'Number of exploits not known';
       if (numExploits === '0') return 'No published exploits';
-      return `${numExploits} known exploit${numExploits !== '1' ? 's' : ''}`;
+      return `${numExploits} known exploit${numExploits === '1' ? '' : 's'}`;
     },
+  },
+  mixins: [WidgetMixin],
+  data() {
+    return {
+      cveList: null,
+    };
   },
   computed: {
     /* Get sort order, defaults to publish date */
@@ -54,10 +54,17 @@ export default {
       const usersChoice = this.options.sortBy;
       let sortCode;
       switch (usersChoice) {
-        case ('publish-date'): sortCode = 1; break;
-        case ('last-update'): sortCode = 2; break;
-        case ('cve-code'): sortCode = 3; break;
-        default: sortCode = 1;
+        case 'publish-date':
+          sortCode = 1;
+          break;
+        case 'last-update':
+          sortCode = 2;
+          break;
+        case 'cve-code':
+          sortCode = 3;
+          break;
+        default:
+          sortCode = 1;
       }
       return `&orderby=${sortCode}`;
     },
@@ -71,10 +78,10 @@ export default {
       return `&cvssscoremin=${minScoreVal}`;
     },
     vendorId() {
-      return (this.options.vendorId) ? `&vendor_id=${this.options.vendorId}` : '';
+      return this.options.vendorId ? `&vendor_id=${this.options.vendorId}` : '';
     },
     productId() {
-      return (this.options.productId) ? `&product_id=${this.options.productId}` : '';
+      return this.options.productId ? `&product_id=${this.options.productId}` : '';
     },
     /* Should only show results with exploits, defaults to false */
     hasExploit() {
@@ -91,8 +98,10 @@ export default {
       return `&numrows=${numResults}`;
     },
     endpoint() {
-      return `${widgetApiEndpoints.cveVulnerabilities}?${this.sortBy}${this.limit}`
-        + `${this.minScore}${this.vendorId}${this.hasExploit}`;
+      return (
+        `${widgetApiEndpoints.cveVulnerabilities}?${this.sortBy}${this.limit}` +
+        `${this.minScore}${this.vendorId}${this.hasExploit}`
+      );
     },
     proxyReqEndpoint() {
       const baseUrl = import.meta.env.VITE_APP_DOMAIN || window.location.origin;
@@ -102,13 +111,13 @@ export default {
   methods: {
     /* Make GET request to CoinGecko API endpoint */
     fetchData() {
-      this.defaultTimeout = 12000;
+      this.defaultTimeout = 12_000;
       this.makeRequest(this.endpoint).then(this.processData);
     },
     /* Assign data variables to the returned data */
     processData(data) {
       const cveList = [];
-      data.forEach((cve) => {
+      for (const cve of data) {
         cveList.push({
           id: cve.cve_id,
           score: cve.cvss_score,
@@ -118,20 +127,20 @@ export default {
           publishDate: cve.publish_date,
           updateDate: cve.update_date,
         });
-      });
+      }
       this.cveList = cveList;
     },
     makeExploitColor(numExploits) {
-      if (!numExploits || Number.isNaN(parseInt(numExploits, 10))) return 'fg-grey';
-      const count = parseInt(numExploits, 10);
+      if (!numExploits || Number.isNaN(Number.parseInt(numExploits, 10))) return 'fg-grey';
+      const count = Number.parseInt(numExploits, 10);
       if (count === 0) return 'fg-green';
       if (count === 1) return 'fg-orange';
       if (count > 1) return 'fg-red';
       return 'fg-grey';
     },
     makeScoreColor(inputScore) {
-      if (!inputScore || Number.isNaN(parseFloat(inputScore))) return 'bg-grey';
-      const score = parseFloat(inputScore);
+      if (!inputScore || Number.isNaN(Number.parseFloat(inputScore))) return 'bg-grey';
+      const score = Number.parseFloat(inputScore);
       if (score >= 9) return 'bg-red';
       if (score >= 7) return 'bg-orange';
       if (score >= 4) return 'bg-yellow';
@@ -145,22 +154,48 @@ export default {
 <style scoped lang="scss">
 .cve-wrapper {
   .cve-row {
-    p, span, a {
+    p,
+    span,
+    a {
       font-size: 1rem;
       margin: 0.5rem 0;
       color: var(--widget-text-color);
-      &.bg-green { background: var(--success); }
-      &.bg-yellow { background: var(--warning); }
-      &.bg-orange { background: var(--error); }
-      &.bg-red { background: var(--danger); }
-      &.bg-blue { background: var(--info); }
-      &.bg-grey { background: var(--neutral); }
-      &.fg-green { color: var(--success); }
-      &.fg-yellow { color: var(--warning); }
-      &.fg-orange { color: var(--error); }
-      &.fg-red { color: var(--danger); }
-      &.fg-blue { color: var(--info); }
-      &.fg-grey { color: var(--neutral); }
+      &.bg-green {
+        background: var(--success);
+      }
+      &.bg-yellow {
+        background: var(--warning);
+      }
+      &.bg-orange {
+        background: var(--error);
+      }
+      &.bg-red {
+        background: var(--danger);
+      }
+      &.bg-blue {
+        background: var(--info);
+      }
+      &.bg-grey {
+        background: var(--neutral);
+      }
+      &.fg-green {
+        color: var(--success);
+      }
+      &.fg-yellow {
+        color: var(--warning);
+      }
+      &.fg-orange {
+        color: var(--error);
+      }
+      &.fg-red {
+        color: var(--danger);
+      }
+      &.fg-blue {
+        color: var(--info);
+      }
+      &.fg-grey {
+        color: var(--neutral);
+      }
     }
     a.upper {
       display: flex;
@@ -184,7 +219,8 @@ export default {
       font-weight: bold;
       margin: 0;
     }
-    .date, .last-updated {
+    .date,
+    .last-updated {
       font-size: 0.8rem;
       margin: 0;
       opacity: var(--dimming-factor);
@@ -217,10 +253,14 @@ export default {
       display: none;
     }
     &:hover {
-      .date { display: none; }
-      .exploit-count, .last-updated { display: inline; }
+      .date {
+        display: none;
+      }
+      .exploit-count,
+      .last-updated {
+        display: inline;
+      }
     }
   }
 }
-
 </style>

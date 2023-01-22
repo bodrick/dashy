@@ -1,5 +1,5 @@
 <template>
-<div class="load-history-chart" :id="chartId"></div>
+  <div :id="chartId" class="load-history-chart"></div>
 </template>
 
 <script>
@@ -7,8 +7,8 @@ import WidgetMixin from '@/mixins/WidgetMixin';
 import ChartingMixin from '@/mixins/ChartingMixin';
 
 export default {
-  mixins: [WidgetMixin, ChartingMixin],
   components: {},
+  mixins: [WidgetMixin, ChartingMixin],
   computed: {
     /* URL where NetData is hosted */
     netDataHost() {
@@ -27,7 +27,7 @@ export default {
     },
     /* A sudo-random ID for the chart DOM element */
     chartId() {
-      return `cpu-history-chart-${Math.round(Math.random() * 10000)}`;
+      return `cpu-history-chart-${Math.round(Math.random() * 10_000)}`;
     },
   },
   methods: {
@@ -41,12 +41,12 @@ export default {
       const load1min = [];
       const load5mins = [];
       const load15mins = [];
-      data.data.reverse().forEach((reading) => {
+      for (const reading of data.data.reverse()) {
         timeData.push(this.formatDate(reading[0] * 1000));
         load1min.push(reading[1]);
         load5mins.push(reading[2]);
         load15mins.push(reading[3]);
-      });
+      }
       const chartData = {
         labels: timeData,
         datasets: [
@@ -82,7 +82,7 @@ export default {
           xAxisMode: 'tick',
         },
         tooltipOptions: {
-          formatTooltipY: d => `${Math.round(d)}%`,
+          formatTooltipY: (d) => `${Math.round(d)}%`,
         },
       });
     },
@@ -96,11 +96,13 @@ export default {
     text-transform: capitalize;
     color: var(--widget-text-color);
   }
-  .axis, .chart-label {
+  .axis,
+  .chart-label {
     fill: var(--widget-text-color);
     opacity: var(--dimming-factor);
-    &:hover { opacity: 1; }
+    &:hover {
+      opacity: 1;
+    }
   }
 }
-
 </style>

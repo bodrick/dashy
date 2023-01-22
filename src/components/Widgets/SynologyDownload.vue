@@ -1,27 +1,38 @@
 <template>
-<div class="synology-download-wrapper" v-if="tasks">
-  <div v-for="(task, key) in tasks" :key="key" class="task-row">
-    <PercentageChart :title="task.DisplayTitle"
-      :showAsPercent=false
-      :showLegend=false
-      :values="[
-      { label: $t('widgets.synology-download.downloaded'),
-        size: task.Progress, color: '#20e253' },
-      { label: $t('widgets.synology-download.remaining'),
-        size: 100 - task.Progress, color: '#6092d1' },
-      ]" />
-    <p class="info">
-      <strong>{{ $t('widgets.synology-download.downloaded') }}</strong>:
-       {{ task.Downloaded | formatSize }}
-      / {{ task.TotalSize | formatSize }} ({{ task.Progress }}%)
-      ({{ task.DownSpeed | formatSize }}/s)<br/>
-      <strong>{{ $t('widgets.synology-download.uploaded') }}</strong>:
-       {{ task.Uploaded | formatSize }}
-      ({{ task.UpSpeed | formatSize }}/s)
-      (ratio : {{ Math.floor( task.Uploaded / task.Downloaded * 100 ) / 100 }})
-    </p>
+  <div v-if="tasks" class="synology-download-wrapper">
+    <div v-for="(task, key) in tasks" :key="key" class="task-row">
+      <PercentageChart
+        :title="task.DisplayTitle"
+        :show-as-percent="false"
+        :show-legend="false"
+        :values="[
+          {
+            label: $t('widgets.synology-download.downloaded'),
+            size: task.Progress,
+            color: '#20e253',
+          },
+          {
+            label: $t('widgets.synology-download.remaining'),
+            size: 100 - task.Progress,
+            color: '#6092d1',
+          },
+        ]"
+      />
+      <p class="info">
+        <strong>{{ $t('widgets.synology-download.downloaded') }}</strong
+        >:
+        {{ task.Downloaded | formatSize }}
+        / {{ task.TotalSize | formatSize }} ({{ task.Progress }}%) ({{
+          task.DownSpeed | formatSize
+        }}/s)<br />
+        <strong>{{ $t('widgets.synology-download.uploaded') }}</strong
+        >:
+        {{ task.Uploaded | formatSize }}
+        ({{ task.UpSpeed | formatSize }}/s) (ratio :
+        {{ Math.floor((task.Uploaded / task.Downloaded) * 100) / 100 }})
+      </p>
+    </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -32,10 +43,15 @@ import { getValueFromCss, convertBytes } from '@/utils/MiscHelpers';
 import { serviceEndpoints } from '@/utils/defaults';
 
 export default {
-  mixins: [WidgetMixin],
   components: {
     PercentageChart,
   },
+  filters: {
+    formatSize(byteValue) {
+      return convertBytes(byteValue);
+    },
+  },
+  mixins: [WidgetMixin],
   data() {
     return {
       tasks: null,
@@ -69,26 +85,26 @@ export default {
       return `${baseUrl}${serviceEndpoints.corsProxy}`;
     },
   },
-  filters: {
-    formatSize(byteValue) {
-      return convertBytes(byteValue);
-    },
+  mounted() {
+    this.background = getValueFromCss('widget-accent-color');
   },
   methods: {
     login() {
-      axios.request({
-        method: 'GET',
-        url: this.proxyReqEndpoint,
-        headers: { 'Target-URL': this.endpointLogin },
-      })
+      axios
+        .request({
+          method: 'GET',
+          url: this.proxyReqEndpoint,
+          headers: { 'Target-URL': this.endpointLogin },
+        })
         .then(this.processLogin);
     },
     getTasks() {
-      axios.request({
-        method: 'GET',
-        url: this.proxyReqEndpoint,
-        headers: { 'Target-URL': this.endpointTasks },
-      })
+      axios
+        .request({
+          method: 'GET',
+          url: this.proxyReqEndpoint,
+          headers: { 'Target-URL': this.endpointTasks },
+        })
         .then(this.processTask);
     },
     logout() {
@@ -114,19 +130,21 @@ export default {
       this.getTasks();
     },
     processTask(taskData) {
-      this.tasks = taskData.data.data.tasks.map(item => ({
-        Title: item.title,
-        DisplayTitle: `[${item.status}] ${item.title}`,
-        Status: item.status,
-        TotalSize: item.size,
-        CreatedTime: item.additional.detail.create_time,
-        Downloaded: item.additional.transfer.size_downloaded,
-        Uploaded: item.additional.transfer.size_uploaded,
-        DownSpeed: item.additional.transfer.speed_download,
-        UpSpeed: item.additional.transfer.speed_upload,
-        Progress: Math.floor((item.additional.transfer.size_downloaded / item.size) * 10000) / 100,
-      })).sort((a, b) => this.statusToInt(b) - this.statusToInt(a)
-        || b.CreatedTime - a.CreatedTime);
+      this.tasks = taskData.data.data.tasks
+        .map((item) => ({
+          Title: item.title,
+          DisplayTitle: `[${item.status}] ${item.title}`,
+          Status: item.status,
+          TotalSize: item.size,
+          CreatedTime: item.additional.detail.create_time,
+          Downloaded: item.additional.transfer.size_downloaded,
+          Uploaded: item.additional.transfer.size_uploaded,
+          DownSpeed: item.additional.transfer.speed_download,
+          UpSpeed: item.additional.transfer.speed_upload,
+          Progress:
+            Math.floor((item.additional.transfer.size_downloaded / item.size) * 10_000) / 100,
+        }))
+        .sort((a, b) => this.statusToInt(b) - this.statusToInt(a) || b.CreatedTime - a.CreatedTime);
       this.finishLoading();
       this.logout();
     },
@@ -142,9 +160,6 @@ export default {
           return 0;
       }
     },
-  },
-  mounted() {
-    this.background = getValueFromCss('widget-accent-color');
   },
 };
 </script>
@@ -171,6 +186,6 @@ export default {
   scrollbar-width: none;
 }
 .synology-download-wrapper::-webkit-scrollbar {
-    display: none;
+  display: none;
 }
 </style>

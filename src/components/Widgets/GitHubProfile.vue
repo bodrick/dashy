@@ -1,11 +1,11 @@
 <template>
-<div class="readme-stats">
-  <img class="stats-card" v-if="!hideProfileCard" :src="profileCard" alt="Profile Card" />
-  <img class="stats-card" v-if="!hideLanguagesCard" :src="topLanguagesCard" alt="Languages" />
-  <template v-if="repos">
-    <img class="stats-card" v-for="(repo, i) in repoCards" :key="i" :src="repo" :alt="repo" />
-  </template>
-</div>
+  <div class="readme-stats">
+    <img v-if="!hideProfileCard" class="stats-card" :src="profileCard" alt="Profile Card" />
+    <img v-if="!hideLanguagesCard" class="stats-card" :src="topLanguagesCard" alt="Languages" />
+    <template v-if="repos">
+      <img v-for="(repo, i) in repoCards" :key="i" class="stats-card" :src="repo" :alt="repo" />
+    </template>
+  </div>
 </template>
 
 <script>
@@ -38,14 +38,19 @@ export default {
     },
     colors() {
       const cssVars = getComputedStyle(document.documentElement);
-      const getColor = (colorVar) => cssVars.getPropertyValue(`--${colorVar}`).trim().replace('#', '');
+      const getColor = (colorVar) =>
+        cssVars.getPropertyValue(`--${colorVar}`).trim().replace('#', '');
       const primary = getColor('widget-text-color') || '7cd6fd';
       const accent = getColor('widget-accent-color') || '7cd6fd';
       const background = getColor('widget-background-color') || '7cd6fd';
       const radius = getColor('curve-factor').replace('px', '') || '6';
       const white = getColor('white') || 'fff';
       return {
-        primary, accent, background, white, radius,
+        primary,
+        accent,
+        background,
+        white,
+        radius,
       };
     },
     locale() {
@@ -54,25 +59,31 @@ export default {
     },
     cardConfig() {
       const c = this.colors;
-      return `&title_color=${c.primary}&text_color=${c.white}&icon_color=${c.primary}`
-        + `&bg_color=${c.background}&border_radius=${c.radius}&locale=${this.locale}`
-        + '&count_private=true&show_icons=true&hide_border=true';
+      return (
+        `&title_color=${c.primary}&text_color=${c.white}&icon_color=${c.primary}` +
+        `&bg_color=${c.background}&border_radius=${c.radius}&locale=${this.locale}` +
+        '&count_private=true&show_icons=true&hide_border=true'
+      );
     },
     profileCard() {
       return `${widgetApiEndpoints.readMeStats}?username=${this.username}${this.cardConfig}`;
     },
     topLanguagesCard() {
-      return `${widgetApiEndpoints.readMeStats}/top-langs/?username=${this.username}`
-      + `${this.cardConfig}&langs_count=12`;
+      return (
+        `${widgetApiEndpoints.readMeStats}/top-langs/?username=${this.username}` +
+        `${this.cardConfig}&langs_count=12`
+      );
     },
     repoCards() {
       const cards = [];
-      this.repos.forEach((repo) => {
+      for (const repo of this.repos) {
         const username = repo.split('/')[0];
         const repoName = repo.split('/')[1];
-        cards.push(`${widgetApiEndpoints.readMeStats}/pin/?username=${username}&repo=${repoName}`
-        + `${this.cardConfig}&show_owner=true`);
-      });
+        cards.push(
+          `${widgetApiEndpoints.readMeStats}/pin/?username=${username}&repo=${repoName}` +
+            `${this.cardConfig}&show_owner=true`
+        );
+      }
       return cards;
     },
   },
@@ -85,5 +96,4 @@ export default {
     width: 100%;
   }
 }
-
 </style>

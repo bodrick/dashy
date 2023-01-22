@@ -84,6 +84,27 @@ import { modalNames } from '@/utils/defaults';
 
 export default {
   name: 'EditItem',
+  components: {
+    Input,
+    Radio,
+    Select,
+    AddIcon,
+    BinIcon,
+    AccessError,
+    SaveCancelButtons,
+  },
+  props: {
+    itemId: {
+      type: String,
+      default: undefined,
+    },
+    isNew: Boolean,
+    // If adding new item, which section to add it under
+    parentSectionTitle: {
+      type: String,
+      default: undefined,
+    },
+  },
   data() {
     return {
       modalName: modalNames.EDIT_ITEM,
@@ -97,24 +118,10 @@ export default {
       ],
     };
   },
-  props: {
-    itemId: String,
-    isNew: Boolean,
-    parentSectionTitle: String, // If adding new item, which section to add it under
-  },
   computed: {
     allowViewConfig() {
       return this.$store.getters.permissions.allowViewConfig;
     },
-  },
-  components: {
-    Input,
-    Radio,
-    Select,
-    AddIcon,
-    BinIcon,
-    AccessError,
-    SaveCancelButtons,
   },
   mounted() {
     if (!this.isNew) {
@@ -143,11 +150,10 @@ export default {
     /* Make formatted data structure to be rendered as form elements */
     makeInitialFormData() {
       const formData = [];
-      const requiredFields = ['title', 'description', 'url', 'icon', 'target'];
-      const unneededFields = ['id'];
+      const requiredFields = new Set(['title', 'description', 'url', 'icon', 'target']);
+      const unneededFields = new Set(['id']);
       const isPrimaryField = (property) =>
-        (this.item[property] || requiredFields.includes(property)) &&
-        !unneededFields.includes(property);
+        (this.item[property] || requiredFields.has(property)) && !unneededFields.has(property);
       for (const property of Object.keys(this.schema)) {
         const singleRow = this.makeRowData(property);
         if (isPrimaryField(property)) {
@@ -226,18 +232,17 @@ export default {
         this.$store.commit(StoreKeys.SET_EDIT_MODE, true);
         // Close edit menu
         this.$emit('closeEditMenu');
-      } else {
-        // Missing title, show error and don't proceed
-        this.$toasted.show(this.$t('interactive-editor.edit-item.missing-title-err'), {
-          className: 'toast-error',
-        });
+        return;
       }
+      // Missing title, show error and don't proceed
+      this.$toasted.show(this.$t('interactive-editor.edit-item.missing-title-err'), {
+        className: 'toast-error',
+      });
     },
     /* Some fields require a bit of extra processing before they're saved */
     formatBeforeSave(item) {
-      const newItem = item;
-      newItem.id = this.itemId;
-      if (newItem.hotkey) newItem.hotkey = parseInt(newItem.hotkey, 10);
+      item.id = this.itemId;
+      if (item.hotkey) item.hotkey = Number.parseInt(item.hotkey, 10);
       const strToTags = (tags) => {
         const tagArr = typeof tags === 'string' ? tags.split(',') : tags;
         return tagArr.map((tag) =>
@@ -251,13 +256,13 @@ export default {
         if (str === undefined) return;
         return str === 'true';
       };
-      if (newItem.tags) newItem.tags = strToTags(newItem.tags);
-      if (newItem.statusCheck) newItem.statusCheck = strToBool(newItem.statusCheck);
-      if (newItem.statusCheckAllowInsecure) {
-        newItem.statusCheckAllowInsecure = strToBool(newItem.statusCheckAllowInsecure);
+      if (item.tags) item.tags = strToTags(item.tags);
+      if (item.statusCheck) item.statusCheck = strToBool(item.statusCheck);
+      if (item.statusCheckAllowInsecure) {
+        item.statusCheckAllowInsecure = strToBool(item.statusCheckAllowInsecure);
       }
       // if (newItem.hotkey) newItem.hotkey = parseInt(newItem.hotkey, 10);
-      return newItem;
+      return item;
     },
     /* Clean up work, triggered when modal closed */
     modalClosed() {

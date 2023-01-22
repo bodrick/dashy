@@ -1,7 +1,7 @@
 <template>
-<div class="placeholder-widget">
-  <p>Error finding and mounting specified widget</p>
-</div>
+  <div class="placeholder-widget">
+    <p>Error finding and mounting specified widget</p>
+  </div>
 </template>
 
 <script>

@@ -1,33 +1,33 @@
 <template>
-<div class="weather-forecast">
-  <template v-if="weatherData.length > 0">
-    <!-- For each day, show the weather -->
-    <div
-      class="weather-day"
-      v-for="weather in weatherData"
-      :key="weather.index"
-      v-tooltip="tooltip(weather.description)"
-      @click="showMoreInfo(weather.info)"
-    >
-      <p class="date">{{ weather.date }}</p>
-      <p class="description">{{ weather.main }}</p>
-      <p class="temp">{{ weather.temp }}</p>
-      <i :class="`owi owi-${weather.icon}`"></i>
+  <div class="weather-forecast">
+    <template v-if="weatherData.length > 0">
+      <!-- For each day, show the weather -->
+      <div
+        v-for="weather in weatherData"
+        :key="weather.index"
+        v-tooltip="tooltip(weather.description)"
+        class="weather-day"
+        @click="showMoreInfo(weather.info)"
+      >
+        <p class="date">{{ weather.date }}</p>
+        <p class="description">{{ weather.main }}</p>
+        <p class="temp">{{ weather.temp }}</p>
+        <i :class="`owi owi-${weather.icon}`"></i>
+      </div>
+    </template>
+    <!-- Show more details for a Clicked day -->
+    <div v-if="showDetails" class="details">
+      <div v-for="(section, indx) in moreInfo" :key="indx" class="info-wrap">
+        <p v-for="weather in section" :key="weather.label" class="info-line">
+          <span class="lbl">{{ weather.label }}</span>
+          <span class="val">{{ weather.value }}</span>
+        </p>
+      </div>
     </div>
-  </template>
-  <!-- Show more details for a Clicked day -->
-  <div class="details" v-if="showDetails">
-    <div class="info-wrap" v-for="(section, indx) in moreInfo" :key="indx">
-      <p class="info-line" v-for="weather in section" :key="weather.label">
-        <span class="lbl">{{weather.label}}</span>
-        <span class="val">{{ weather.value }}</span>
-      </p>
-    </div>
+    <p v-if="showDetails" class="more-details-btn" @click="toggleDetails">
+      {{ $t('widgets.general.show-less') }}
+    </p>
   </div>
-  <p class="more-details-btn" @click="toggleDetails" v-if="showDetails">
-    {{ $t('widgets.general.show-less') }}
-  </p>
-</div>
 </template>
 
 <script>
@@ -45,9 +45,6 @@ export default {
       moreInfo: [],
     };
   },
-  mounted() {
-    this.checkProps();
-  },
   computed: {
     units() {
       return this.options.units || 'metric';
@@ -62,18 +59,27 @@ export default {
     },
     tempDisplayUnits() {
       switch (this.units) {
-        case ('metric'): return '°C';
-        case ('imperial'): return '°F';
-        default: return '';
+        case 'metric':
+          return '°C';
+        case 'imperial':
+          return '°F';
+        default:
+          return '';
       }
     },
     speedDisplayUnits() {
       switch (this.units) {
-        case ('metric'): return 'm/s';
-        case ('imperial'): return 'mph';
-        default: return '';
+        case 'metric':
+          return 'm/s';
+        case 'imperial':
+          return 'mph';
+        default:
+          return '';
       }
     },
+  },
+  mounted() {
+    this.checkProps();
   },
   methods: {
     /* Adds units symbol to temperature, depending on metric or imperial */
@@ -92,7 +98,7 @@ export default {
     /* Process the results from the Axios request */
     processData(dataList) {
       const uiWeatherData = [];
-      dataList.list.forEach((day, index) => {
+      for (const [index, day] of dataList.list.entries()) {
         uiWeatherData.push({
           index,
           date: this.dateFromStamp(day.dt),
@@ -102,7 +108,7 @@ export default {
           temp: this.processTemp(day.temp.day),
           info: this.makeWeatherData(day),
         });
-      });
+      }
       this.weatherData = uiWeatherData;
     },
     /* Process additional data, needed when user clicks a given day */
@@ -145,7 +151,7 @@ export default {
       if (!ops.apiKey) this.error('Missing API key for OpenWeatherMap');
       if (!ops.city) this.error('A city name is required to fetch weather');
       if (ops.units && ops.units !== 'metric' && ops.units !== 'imperial') {
-        this.error('Invalid units specified, must be either \'metric\' or \'imperial\'');
+        this.error("Invalid units specified, must be either 'metric' or 'imperial'");
       }
     },
   },
@@ -155,9 +161,9 @@ export default {
 <style scoped lang="scss">
 @import '@/styles/weather-icons.scss';
 
-  p {
-    color: var(--widget-text-color);
-  }
+p {
+  color: var(--widget-text-color);
+}
 
 .weather-forecast {
   display: flex;
@@ -218,7 +224,8 @@ export default {
     &:hover {
       border: 1px solid var(--widget-text-color);
     }
-    &:focus, &:active {
+    &:focus,
+    &:active {
       background: var(--widget-text-color);
       color: var(--widget-background-color);
     }
@@ -249,5 +256,4 @@ export default {
     }
   }
 }
-
 </style>

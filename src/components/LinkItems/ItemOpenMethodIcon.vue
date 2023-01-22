@@ -31,6 +31,16 @@ import UnknownIcon from '@/assets/interface-icons/unknown-icon.svg';
 
 export default {
   name: 'ItemOpenMethodIcon',
+  components: {
+    NewTabOpenIcon,
+    SameTabOpenIcon,
+    IframeOpenIcon,
+    WorkspaceOpenIcon,
+    ParentOpenIcon,
+    TopOpenIcon,
+    ClipboardOpenIcon,
+    UnknownIcon,
+  },
   props: {
     openingMethod: String, // newtab | sametab | parent | top | modal | workspace
     isSmall: Boolean, // If true, will apply small class
@@ -47,16 +57,6 @@ export default {
       ${transparent ? 'transparent' : ''}`;
     },
   },
-  components: {
-    NewTabOpenIcon,
-    SameTabOpenIcon,
-    IframeOpenIcon,
-    WorkspaceOpenIcon,
-    ParentOpenIcon,
-    TopOpenIcon,
-    ClipboardOpenIcon,
-    UnknownIcon,
-  },
 };
 </script>
 
@@ -70,10 +70,18 @@ export default {
       fill: currentColor;
     }
   }
-  &.top svg { top: 0; }
-  &.bottom svg { bottom: 0; }
-  &.left svg { left: 0; }
-  &.right svg { right: 0; }
+  &.top svg {
+    top: 0;
+  }
+  &.bottom svg {
+    bottom: 0;
+  }
+  &.left svg {
+    left: 0;
+  }
+  &.right svg {
+    right: 0;
+  }
 
   &.short svg {
     width: 0.8rem;
@@ -94,8 +102,11 @@ div.hotkey-denominator {
   border-radius: 18px;
   border: 1px solid currentColor;
   padding: 0.1rem 0.4rem 0.2rem 0.4rem;
-  &.top { right: 0; } // Position opposite of opening method icon
-  &.bottom { left: 0; }
+  &.top {
+    right: 0;
+  } // Position opposite of opening method icon
+  &.bottom {
+    left: 0;
+  }
 }
-
 </style>

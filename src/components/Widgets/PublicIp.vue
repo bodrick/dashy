@@ -1,16 +1,16 @@
 <template>
-<div class="ip-info-wrapper">
-  <p class="ip-address">{{ ipAddr }}</p>
-  <div class="region-wrapper">
-    <img class="flag-image" :src="flagImg" alt="Flag" />
-    <div class="info-text">
-      <p class="isp-name">{{ ispName }}</p>
-      <a class="ip-location" :href="mapsUrl" title="🗺️ Open in Maps">
-        {{ location }}
-      </a>
+  <div class="ip-info-wrapper">
+    <p class="ip-address">{{ ipAddr }}</p>
+    <div class="region-wrapper">
+      <img class="flag-image" :src="flagImg" alt="Flag" />
+      <div class="info-text">
+        <p class="isp-name">{{ ispName }}</p>
+        <a class="ip-location" :href="mapsUrl" title="🗺️ Open in Maps">
+          {{ location }}
+        </a>
+      </div>
     </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -20,6 +20,15 @@ import { getCountryFlag, getMapUrl } from '@/utils/MiscHelpers';
 
 export default {
   mixins: [WidgetMixin],
+  data() {
+    return {
+      ipAddr: null,
+      location: null,
+      ispName: null,
+      flagImg: null,
+      mapsUrl: null,
+    };
+  },
   computed: {
     endpoint() {
       if (this.provider === 'ipgeolocation') {
@@ -38,15 +47,6 @@ export default {
       return this.options.provider || 'ipapi.co';
     },
   },
-  data() {
-    return {
-      ipAddr: null,
-      location: null,
-      ispName: null,
-      flagImg: null,
-      mapsUrl: null,
-    };
-  },
   methods: {
     /* Make GET request to CoinGecko API endpoint */
     fetchData() {
@@ -54,26 +54,36 @@ export default {
     },
     /* Assign data variables to the returned data */
     processData(ipInfo) {
-      if (this.provider === 'ipapi.co') {
-        this.ipAddr = ipInfo.ip;
-        this.ispName = ipInfo.org;
-        this.location = `${ipInfo.city}, ${ipInfo.region}`;
-        this.flagImg = getCountryFlag(ipInfo.country_code);
-        this.mapsUrl = getMapUrl({ lat: ipInfo.latitude, lon: ipInfo.longitude });
-      } else if (this.provider === 'ipgeolocation') {
-        this.ipAddr = ipInfo.ip;
-        this.ispName = ipInfo.organization || ipInfo.isp;
-        this.location = `${ipInfo.city}, ${ipInfo.country_name}`;
-        this.flagImg = ipInfo.country_flag;
-        this.mapsUrl = getMapUrl({ lat: ipInfo.latitude, lon: ipInfo.longitude });
-      } else if (this.provider === 'ip-api') {
-        this.ipAddr = ipInfo.query;
-        this.ispName = ipInfo.isp;
-        this.location = `${ipInfo.city}, ${ipInfo.regionName}`;
-        this.flagImg = getCountryFlag(ipInfo.countryCode);
-        this.mapsUrl = getMapUrl({ lat: ipInfo.lat, lon: ipInfo.lon });
-      } else {
-        this.error('Unknown API provider fo IP address');
+      switch (this.provider) {
+        case 'ipapi.co':
+          this.ipAddr = ipInfo.ip;
+          this.ispName = ipInfo.org;
+          this.location = `${ipInfo.city}, ${ipInfo.region}`;
+          this.flagImg = getCountryFlag(ipInfo.country_code);
+          this.mapsUrl = getMapUrl({ lat: ipInfo.latitude, lon: ipInfo.longitude });
+
+          break;
+
+        case 'ipgeolocation':
+          this.ipAddr = ipInfo.ip;
+          this.ispName = ipInfo.organization || ipInfo.isp;
+          this.location = `${ipInfo.city}, ${ipInfo.country_name}`;
+          this.flagImg = ipInfo.country_flag;
+          this.mapsUrl = getMapUrl({ lat: ipInfo.latitude, lon: ipInfo.longitude });
+
+          break;
+
+        case 'ip-api':
+          this.ipAddr = ipInfo.query;
+          this.ispName = ipInfo.isp;
+          this.location = `${ipInfo.city}, ${ipInfo.regionName}`;
+          this.flagImg = getCountryFlag(ipInfo.countryCode);
+          this.mapsUrl = getMapUrl({ lat: ipInfo.lat, lon: ipInfo.lon });
+
+          break;
+
+        default:
+          this.error('Unknown API provider fo IP address');
       }
     },
   },
@@ -114,5 +124,4 @@ export default {
     }
   }
 }
-
 </style>

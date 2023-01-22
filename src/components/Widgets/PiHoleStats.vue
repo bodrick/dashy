@@ -1,20 +1,20 @@
 <template>
-<div class="pi-hole-stats-wrapper">
-  <!-- Current Status -->
-  <div v-if="status" class="status">
-    <span class="status-lbl">{{ $t('widgets.pi-hole.status-heading') }}:</span>
-    <span :class="`status-val ${getStatusColor(status)}`">{{ status | capitalize }}</span>
-  </div>
-  <!-- Block Pie Chart -->
-  <p :id="chartId" class="block-pie"></p>
-  <!-- More Data -->
-  <div v-if="dataTable" class="data-table">
-    <div class="data-table-row" v-for="(row, inx) in dataTable" :key="inx" >
-      <p class="row-label">{{ row.lbl }}</p>
-      <p class="row-value">{{ row.val }}</p>
+  <div class="pi-hole-stats-wrapper">
+    <!-- Current Status -->
+    <div v-if="status" class="status">
+      <span class="status-lbl">{{ $t('widgets.pi-hole.status-heading') }}:</span>
+      <span :class="`status-val ${getStatusColor(status)}`">{{ status | capitalize }}</span>
+    </div>
+    <!-- Block Pie Chart -->
+    <p :id="chartId" class="block-pie"></p>
+    <!-- More Data -->
+    <div v-if="dataTable" class="data-table">
+      <div v-for="(row, inx) in dataTable" :key="inx" class="data-table-row">
+        <p class="row-label">{{ row.lbl }}</p>
+        <p class="row-value">{{ row.val }}</p>
+      </div>
     </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -24,8 +24,13 @@ import ChartingMixin from '@/mixins/ChartingMixin';
 import { capitalize } from '@/utils/MiscHelpers';
 
 export default {
-  mixins: [WidgetMixin, ChartingMixin],
   components: {},
+  filters: {
+    capitalize(str) {
+      return capitalize(str);
+    },
+  },
+  mixins: [WidgetMixin, ChartingMixin],
   data() {
     return {
       status: null,
@@ -43,22 +48,22 @@ export default {
     endpoint() {
       return `${this.hostname}/admin/api.php`;
     },
-    hideStatus() { return this.options.hideStatus; },
-    hideChart() { return this.options.hideChart; },
-    hideInfo() { return this.options.hideInfo; },
-  },
-  filters: {
-    capitalize(str) {
-      return capitalize(str);
+    hideStatus() {
+      return this.options.hideStatus;
+    },
+    hideChart() {
+      return this.options.hideChart;
+    },
+    hideInfo() {
+      return this.options.hideInfo;
     },
   },
   methods: {
     /* Make GET request to local pi-hole instance */
     fetchData() {
-      this.makeRequest(this.endpoint)
-        .then((response) => {
-          this.processData(response);
-        });
+      this.makeRequest(this.endpoint).then((response) => {
+        this.processData(response);
+      });
     },
     /* Assign data variables to the returned data */
     processData(data) {
@@ -81,16 +86,17 @@ export default {
     },
     getStatusColor(status) {
       if (status === 'enabled') return 'green';
-      if (status === 'disabled') return 'red';
-      else return 'blue';
+      return status === 'disabled' ? 'red' : 'blue';
     },
     /* Generate pie chart showing the proportion of queries blocked */
     generateBlockPie(blockedToday) {
       const chartData = {
         labels: ['Blocked', 'Allowed'],
-        datasets: [{
-          values: [blockedToday, 100 - blockedToday],
-        }],
+        datasets: [
+          {
+            values: [blockedToday, 100 - blockedToday],
+          },
+        ],
       };
       return new this.Chart(`#${this.chartId}`, {
         title: 'Block Percent',
@@ -100,7 +106,7 @@ export default {
         strokeWidth: 18,
         colors: ['#f80363', '#20e253'],
         tooltipOptions: {
-          formatTooltipY: d => `${Math.round(d)}%`,
+          formatTooltipY: (d) => `${Math.round(d)}%`,
         },
       });
     },
@@ -121,9 +127,15 @@ export default {
     .status-val {
       margin-left: 0.5rem;
       font-family: var(--font-monospace);
-      &.green { color: var(--success); }
-      &.red { color: var(--danger); }
-      &.blue { color: var(--info); }
+      &.green {
+        color: var(--success);
+      }
+      &.red {
+        color: var(--danger);
+      }
+      &.blue {
+        color: var(--info);
+      }
     }
   }
   img.block-percent-chart {
@@ -154,5 +166,4 @@ export default {
     }
   }
 }
-
 </style>

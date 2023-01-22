@@ -1,21 +1,21 @@
 <template>
-<div class="wallet-balance">
-  <template v-if="cryptoData">
-    <div
-      v-for="(asset, index) in cryptoData"
-      :key="index"
-      class="asset-wrapper"
-      v-tooltip="tooltip(asset.info)"
-    >
-      <img class="icon" :src="asset.image" :alt="`${asset} icon`" />
-      <p class="name">{{ asset.name }}</p>
-      <p class="price">{{ asset.price | formatPrice(currency) }}</p>
-      <p :class="`percent ${asset.percentChange > 0 ? 'up' : 'down'}`">
-        {{ asset.percentChange | formatPercentage }}
-      </p>
-    </div>
-  </template>
-</div>
+  <div class="wallet-balance">
+    <template v-if="cryptoData">
+      <div
+        v-for="(asset, index) in cryptoData"
+        :key="index"
+        v-tooltip="tooltip(asset.info)"
+        class="asset-wrapper"
+      >
+        <img class="icon" :src="asset.image" :alt="`${asset} icon`" />
+        <p class="name">{{ asset.name }}</p>
+        <p class="price">{{ asset.price | formatPrice(currency) }}</p>
+        <p :class="`percent ${asset.percentChange > 0 ? 'up' : 'down'}`">
+          {{ asset.percentChange | formatPercentage }}
+        </p>
+      </div>
+    </template>
+  </div>
 </template>
 
 <script>
@@ -23,12 +23,28 @@ import axios from 'axios';
 import WidgetMixin from '@/mixins/WidgetMixin';
 import { widgetApiEndpoints } from '@/utils/defaults';
 import {
-  findCurrencySymbol, timestampToDate, roundPrice, putCommasInBigNum,
+  findCurrencySymbol,
+  timestampToDate,
+  roundPrice,
+  putCommasInBigNum,
 } from '@/utils/MiscHelpers';
 
 export default {
-  mixins: [WidgetMixin],
   components: {},
+  filters: {
+    /* Append currency symbol to price */
+    formatPrice(price, currency) {
+      if (currency === undefined) return '';
+      return `${findCurrencySymbol(currency)}${putCommasInBigNum(roundPrice(price))}`;
+    },
+    /* Append percentage symbol, and up/ down arrow */
+    formatPercentage(change) {
+      if (!change) return '';
+      const symbol = change > 0 ? '↑' : '↓';
+      return `${symbol} ${change.toFixed(2)}%`;
+    },
+  },
+  mixins: [WidgetMixin],
   data() {
     return {
       cryptoData: null,
@@ -56,35 +72,29 @@ export default {
     order() {
       const userChoice = this.options.sortBy;
       switch (userChoice) {
-        case ('alphabetical'): return 'id_asc';
-        case ('volume'): return 'volume_desc';
-        case ('marketCap'): return 'market_cap_desc';
-        default: return 'market_cap_desc';
+        case 'alphabetical':
+          return 'id_asc';
+        case 'volume':
+          return 'volume_desc';
+        case 'marketCap':
+          return 'market_cap_desc';
+        default:
+          return 'market_cap_desc';
       }
     },
     /* The formatted GET request API endpoint to fetch crypto data from */
     endpoint() {
-      return `${widgetApiEndpoints.cryptoWatchList}?`
-      + `ids=${this.assets}&vs_currency=${this.currency}&order=${this.order}&per_page=${this.limit}`;
-    },
-  },
-  filters: {
-    /* Append currency symbol to price */
-    formatPrice(price, currency) {
-      if (currency === undefined) return '';
-      return `${findCurrencySymbol(currency)}${putCommasInBigNum(roundPrice(price))}`;
-    },
-    /* Append percentage symbol, and up/ down arrow */
-    formatPercentage(change) {
-      if (!change) return '';
-      const symbol = change > 0 ? '↑' : '↓';
-      return `${symbol} ${change.toFixed(2)}%`;
+      return (
+        `${widgetApiEndpoints.cryptoWatchList}?` +
+        `ids=${this.assets}&vs_currency=${this.currency}&order=${this.order}&per_page=${this.limit}`
+      );
     },
   },
   methods: {
     /* Make GET request to CoinGecko API endpoint */
     fetchData() {
-      axios.get(this.endpoint)
+      axios
+        .get(this.endpoint)
         .then((response) => {
           this.processData(response.data);
         })
@@ -98,7 +108,7 @@ export default {
     /* Convert response data into JSON to be consumed by the UI */
     processData(data) {
       const results = [];
-      data.forEach((token) => {
+      for (const token of data) {
         results.push({
           name: token.name,
           image: token.image,
@@ -114,19 +124,23 @@ export default {
             allTimeHighDate: token.ath_date,
           },
         });
-      });
+      }
       this.cryptoData = results;
     },
     /* Show additional info as a tooltip on hover */
     tooltip(info) {
       const maxSupply = info.maxSupply ? ` out of max supply of <b>${info.maxSupply}</b>` : '';
-      const content = `Rank: <b>${info.rank}</b> with market cap of `
-        + `<b>${this.$options.filters.formatPrice(info.marketCap)}</b>`
-        + `<br>Circulating Supply: <b>${info.supply} ${info.symbol.toUpperCase()}</b>${maxSupply}`
-        + `<br>All-time-high of <b>${info.allTimeHigh}</b> `
-        + `at <b>${timestampToDate(info.allTimeHighDate)}</b>`;
+      const content =
+        `Rank: <b>${info.rank}</b> with market cap of ` +
+        `<b>${this.$options.filters.formatPrice(info.marketCap)}</b>` +
+        `<br>Circulating Supply: <b>${info.supply} ${info.symbol.toUpperCase()}</b>${maxSupply}` +
+        `<br>All-time-high of <b>${info.allTimeHigh}</b> ` +
+        `at <b>${timestampToDate(info.allTimeHighDate)}</b>`;
       return {
-        content, html: true, trigger: 'hover focus', delay: 250,
+        content,
+        html: true,
+        trigger: 'hover focus',
+        delay: 250,
       };
     },
   },
@@ -134,7 +148,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
 .asset-wrapper {
   display: flex;
   align-items: center;
@@ -149,10 +162,15 @@ export default {
   .name {
     font-weight: bold;
   }
-  .percent, .price {
+  .percent,
+  .price {
     font-family: var(--font-monospace);
-    &.up { color: var(--success); }
-    &.down { color: var(--danger); }
+    &.up {
+      color: var(--success);
+    }
+    &.down {
+      color: var(--danger);
+    }
   }
   p {
     width: 28%;
@@ -161,5 +179,4 @@ export default {
     border-bottom: 1px dashed var(--widget-text-color);
   }
 }
-
 </style>

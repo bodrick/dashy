@@ -1,56 +1,58 @@
 <template>
-<div class="blacklist-check-wrapper">
-  <!-- Domain Name and Registration State / Expiry Count Down -->
-  <div class="expiry-wrap" v-if="domainMeta" @click="toggleDomainInfo">
-    <span class="name">{{ domainMeta.domainName }}</span>
-    <span v-if="!domainMeta.isRegistered" class="not-registered">
-      Not Registered
-    </span>
-    <span v-if="domainMeta.isRegistered"
-      :class="`is-registered expire-date ${ getExpireColor(domainRegistration.expireDate) }`">
-      {{ domainRegistration.expireDate | formatDate }}
-    </span>
-    <span v-if="domainMeta.isRegistered"
-      :class="`is-registered time-left ${getExpireColor(domainRegistration.expireDate) }`">
-      {{ domainRegistration.expireDate | formatTimeLeft }}
-    </span>
+  <div class="blacklist-check-wrapper">
+    <!-- Domain Name and Registration State / Expiry Count Down -->
+    <div v-if="domainMeta" class="expiry-wrap" @click="toggleDomainInfo">
+      <span class="name">{{ domainMeta.domainName }}</span>
+      <span v-if="!domainMeta.isRegistered" class="not-registered"> Not Registered </span>
+      <span
+        v-if="domainMeta.isRegistered"
+        :class="`is-registered expire-date ${getExpireColor(domainRegistration.expireDate)}`"
+      >
+        {{ domainRegistration.expireDate | formatDate }}
+      </span>
+      <span
+        v-if="domainMeta.isRegistered"
+        :class="`is-registered time-left ${getExpireColor(domainRegistration.expireDate)}`"
+      >
+        {{ domainRegistration.expireDate | formatTimeLeft }}
+      </span>
+    </div>
+    <!-- Domain Info -->
+    <div v-if="showDomainInfo && domainRegistration" class="domain-more-data">
+      <div class="row">
+        <span class="lbl">Created</span>
+        <span class="val">{{ domainRegistration.createdDate | formatDate }}</span>
+      </div>
+      <div class="row">
+        <span class="lbl">Updated</span>
+        <span class="val">{{ domainRegistration.updatedDate | formatDate }}</span>
+      </div>
+      <div class="row">
+        <span class="lbl">Expires</span>
+        <span class="val">{{ domainRegistration.expireDate | formatDate }}</span>
+      </div>
+      <div v-for="(ns, inx) in domainRegistration.nameServers" :key="inx" class="row">
+        <span class="lbl">NS {{ inx + 1 }}</span>
+        <span class="val">{{ ns }}</span>
+      </div>
+      <div class="row">
+        <span class="lbl">Domain ID</span>
+        <span class="val">{{ domainRegistration.domainId }}</span>
+      </div>
+      <div v-if="domainRegistration.registrar" class="row">
+        <span class="lbl">Registrar</span>
+        <span class="val">{{ domainRegistration.registrar }}</span>
+      </div>
+      <div v-if="domainRegistration.admin" class="row">
+        <span class="lbl">Admin</span>
+        <span class="val">{{ domainRegistration.admin }}</span>
+      </div>
+    </div>
+    <!-- Toggle Button -->
+    <p v-if="domainRegistration" class="expend-details-btn" @click="toggleDomainInfo">
+      {{ showDomainInfo ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
+    </p>
   </div>
-  <!-- Domain Info -->
-  <div v-if="showDomainInfo && domainRegistration" class="domain-more-data">
-    <div class="row">
-      <span class="lbl">Created</span>
-      <span class="val">{{ domainRegistration.createdDate | formatDate }}</span>
-    </div>
-    <div class="row">
-      <span class="lbl">Updated</span>
-      <span class="val">{{ domainRegistration.updatedDate | formatDate }}</span>
-    </div>
-    <div class="row">
-      <span class="lbl">Expires</span>
-      <span class="val">{{ domainRegistration.expireDate | formatDate }}</span>
-    </div>
-    <div class="row" v-for="(ns, inx) in domainRegistration.nameServers" :key="inx">
-      <span class="lbl">NS {{ inx + 1 }}</span>
-      <span class="val">{{ ns }}</span>
-    </div>
-    <div class="row">
-      <span class="lbl">Domain ID</span>
-      <span class="val">{{ domainRegistration.domainId }}</span>
-    </div>
-    <div class="row" v-if="domainRegistration.registrar">
-      <span class="lbl">Registrar</span>
-      <span class="val">{{ domainRegistration.registrar }}</span>
-    </div>
-    <div class="row" v-if="domainRegistration.admin">
-      <span class="lbl">Admin</span>
-      <span class="val">{{ domainRegistration.admin }}</span>
-    </div>
-  </div>
-  <!-- Toggle Button -->
-  <p @click="toggleDomainInfo" class="expend-details-btn" v-if="domainRegistration">
-    {{ showDomainInfo ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
-  </p>
-</div>
 </template>
 
 <script>
@@ -59,7 +61,23 @@ import { timestampToDate, getTimeAgo } from '@/utils/MiscHelpers';
 import { widgetApiEndpoints } from '@/utils/defaults';
 
 export default {
+  filters: {
+    formatDate(date) {
+      if (!date) return 'No Date Supplied';
+      return timestampToDate(date);
+    },
+    formatTimeLeft(date) {
+      return getTimeAgo(new Date(date)).replace('in', '');
+    },
+  },
   mixins: [WidgetMixin],
+  data() {
+    return {
+      domainMeta: null,
+      domainRegistration: null,
+      showDomainInfo: false,
+    };
+  },
   computed: {
     apiKey() {
       if (!this.options.apiKey) this.error('Missing API Key');
@@ -73,21 +91,8 @@ export default {
       return `${widgetApiEndpoints.domainMonitor}/?domain=${this.domain}&r=whois&apikey=${this.apiKey}`;
     },
   },
-  data() {
-    return {
-      domainMeta: null,
-      domainRegistration: null,
-      showDomainInfo: false,
-    };
-  },
-  filters: {
-    formatDate(date) {
-      if (!date) return 'No Date Supplied';
-      return timestampToDate(date);
-    },
-    formatTimeLeft(date) {
-      return getTimeAgo(new Date(date)).replace('in', '');
-    },
+  mounted() {
+    if (this.options.showFullInfo) this.showDomainInfo = true;
   },
   methods: {
     /* Make GET request to CoinGecko API endpoint */
@@ -116,7 +121,7 @@ export default {
       }
     },
     getExpireColor(targetDate) {
-      const now = new Date().getTime();
+      const now = Date.now();
       const then = new Date(targetDate).getTime();
       const diff = Math.round((then - now) / (1000 * 60 * 60 * 24));
       if (diff < 7) return 'red';
@@ -126,15 +131,16 @@ export default {
       return 'grey';
     },
     getRegistrar(contacts) {
-      if (!Array.isArray(contacts) || contacts.length < 1) return null;
+      if (!Array.isArray(contacts) || contacts.length === 0) return null;
       const registrar = contacts.find((contact) => contact.type === 'registrar');
       if (registrar) return registrar.name || registrar.organization;
       return null;
     },
     getAdmin(contacts) {
-      if (!Array.isArray(contacts) || contacts.length < 1) return null;
-      const accHolder = contacts.find((contact) => contact.type === 'admin')
-        || contacts.find((contact) => contact.type === 'registrant');
+      if (!Array.isArray(contacts) || contacts.length === 0) return null;
+      const accHolder =
+        contacts.find((contact) => contact.type === 'admin') ||
+        contacts.find((contact) => contact.type === 'registrant');
       if (accHolder) return accHolder.name || accHolder.organization;
       return null;
     },
@@ -142,9 +148,6 @@ export default {
     toggleDomainInfo() {
       this.showDomainInfo = !this.showDomainInfo;
     },
-  },
-  mounted() {
-    if (this.options.showFullInfo) this.showDomainInfo = true;
   },
 };
 </script>
@@ -177,13 +180,26 @@ export default {
     display: none;
     white-space: pre;
   }
-  span.expire-date, span.time-left {
-    &.red { color: var(--danger); }
-    &.orange { color: var(--error); }
-    &.yellow { color: var(--warning); }
-    &.green { color: var(--success); }
-    &.grey { color: var(--neutral); }
-    &.blue { color: var(--info); }
+  span.expire-date,
+  span.time-left {
+    &.red {
+      color: var(--danger);
+    }
+    &.orange {
+      color: var(--error);
+    }
+    &.yellow {
+      color: var(--warning);
+    }
+    &.green {
+      color: var(--success);
+    }
+    &.grey {
+      color: var(--neutral);
+    }
+    &.blue {
+      color: var(--info);
+    }
   }
 }
 
@@ -220,7 +236,9 @@ export default {
     justify-content: space-between;
     opacity: var(--dimming-factor);
     color: var(--widget-text-color);
-    &:not(:last-child) { border-bottom: 1px dashed var(--widget-text-color); }
+    &:not(:last-child) {
+      border-bottom: 1px dashed var(--widget-text-color);
+    }
     span.val {
       font-family: var(--font-monospace);
       max-width: 70%;
@@ -233,5 +251,4 @@ export default {
     }
   }
 }
-
 </style>

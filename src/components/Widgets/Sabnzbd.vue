@@ -1,34 +1,34 @@
 <template>
-<div class="sabznbd">
-  <!-- Sabznbd Header -->
-  <div class="intro">
-    <p class="download">{{ download_speed }}</p>
-    <em :class="`fas fa-${status}`"></em>
-  </div>
-  <!-- Sabnzbd Details, If hideDetails set False -->
-  <div class="details" v-if="sabnzbdDetails.length > 0">
-    <div class="info-wrap" v-for="(section, indx) in sabnzbdDetails" :key="indx">
-      <p class="info-line" v-for="sabznbd in section" :key="sabznbd.label">
-          <span class="lbl">{{sabznbd.label}}</span>
+  <div class="sabznbd">
+    <!-- Sabznbd Header -->
+    <div class="intro">
+      <p class="download">{{ download_speed }}</p>
+      <em :class="`fas fa-${status}`"></em>
+    </div>
+    <!-- Sabnzbd Details, If hideDetails set False -->
+    <div v-if="sabnzbdDetails.length > 0" class="details">
+      <div v-for="(section, indx) in sabnzbdDetails" :key="indx" class="info-wrap">
+        <p v-for="sabznbd in section" :key="sabznbd.label" class="info-line">
+          <span class="lbl">{{ sabznbd.label }}</span>
           <span class="val">{{ sabznbd.value }}</span>
         </p>
+      </div>
     </div>
-  </div>
-  <!-- Queue Details, If hideQueue set False -->
-  <div class="details" v-if="showQueue && sabnzbdQueue.length > 0">
-    <div class="info-wrap">
-      <p class="info-line" v-for="sabznbd in sabnzbdQueue" :key="sabznbd.label">
-        <em :class="`fas fa-${sabznbd.status}`"></em>
-        <span class="lbl">{{ sabznbd.filename }}</span>
-        <span class="lbl">{{ sabznbd.percentage }}%</span>
-      </p>
+    <!-- Queue Details, If hideQueue set False -->
+    <div v-if="showQueue && sabnzbdQueue.length > 0" class="details">
+      <div class="info-wrap">
+        <p v-for="sabznbd in sabnzbdQueue" :key="sabznbd.label" class="info-line">
+          <em :class="`fas fa-${sabznbd.status}`"></em>
+          <span class="lbl">{{ sabznbd.filename }}</span>
+          <span class="lbl">{{ sabznbd.percentage }}%</span>
+        </p>
+      </div>
     </div>
+    <!-- Show/ hide toggle button for Queue-->
+    <p v-if="sabnzbdQueue.length > 0" class="more-details-btn" @click="toggleQueue">
+      {{ showQueue ? 'Hide Queue' : 'Show Queue' }}
+    </p>
   </div>
-  <!-- Show/ hide toggle button for Queue-->
-  <p class="more-details-btn" @click="toggleQueue" v-if="sabnzbdQueue.length > 0">
-    {{ showQueue ? "Hide Queue" : "Show Queue" }}
-  </p>
-</div>
 </template>
 
 <script>
@@ -45,39 +45,29 @@ export default {
       sabnzbdQueue: [],
     };
   },
-  mounted() {
-    this.checkProps();
-  },
   computed: {
     endpoint() {
       const { apiKey, sabnzbdUrl } = this.options;
       return `${sabnzbdUrl}/sabnzbd/api?output=json&apikey=${apiKey}&mode=queue`;
     },
   },
+  mounted() {
+    this.checkProps();
+  },
   methods: {
     /* Reads the kbpersec value of the server status, converts to mb/s if over 1024 kb. */
     processKBperSec(kbpersec) {
-      if (kbpersec <= 1024) {
-        return `${Number(kbpersec).toFixed(0)} kb/s`;
-      } else {
-        return `${Number(kbpersec / 1024).toFixed(1)} mb/s`;
-      }
+      return kbpersec <= 1024
+        ? `${Number(kbpersec).toFixed(0)} kb/s`
+        : `${Number(kbpersec / 1024).toFixed(1)} mb/s`;
     },
     /* Reads the bool status output of the server status to append the correct icon */
     processPaused(paused) {
-      if (paused === true) {
-        return 'pause';
-      } else {
-        return 'play';
-      }
+      return paused === true ? 'pause' : 'play';
     },
     /* Reads the string status output of the queue list to append the correct icon */
     processPausedStr(paused) {
-      if (['Queued', 'Paused'].includes(paused)) {
-        return 'pause';
-      } else {
-        return 'play';
-      }
+      return ['Queued', 'Paused'].includes(paused) ? 'pause' : 'play';
     },
     fetchData() {
       this.makeRequest(this.endpoint).then(this.processData);
@@ -99,7 +89,6 @@ export default {
         [
           { label: 'Time Left', value: data.queue.timeleft },
           { label: 'Queue', value: data.queue.noofslots },
-
         ],
         [
           { label: 'Status', value: data.queue.status },
@@ -114,7 +103,7 @@ export default {
       for (i; i < data.queue.slots.length; i += 1) {
         this.sabnzbdQueue.push({
           status: this.processPausedStr(data.queue.slots[i].status),
-          filename: data.queue.slots[i].filename.substring(0, 25),
+          filename: data.queue.slots[i].filename.slice(0, 25),
           percentage: data.queue.slots[i].percentage,
         });
       }
@@ -126,7 +115,8 @@ export default {
     /* Validate input props, and print warning if incorrect */
     checkProps() {
       const ops = this.options;
-      if (!ops.sabnzbdUrl) this.error('Missing URL for Sabnzbd. Configure sabnzbdUrl in config file.');
+      if (!ops.sabnzbdUrl)
+        this.error('Missing URL for Sabnzbd. Configure sabnzbdUrl in config file.');
       if (!ops.apiKey) this.error('Missing API key for Sabnzbd. Configure apiKey in config file.');
     },
   },
@@ -138,9 +128,9 @@ export default {
   margin: 0 auto;
   display: flex;
 }
-  p {
-    color: var(--widget-text-color);
-  }
+p {
+  color: var(--widget-text-color);
+}
 
 .sabznbd {
   display: grid;
@@ -173,7 +163,8 @@ export default {
     &:hover {
       border: 1px solid var(--widget-text-color);
     }
-    &:focus, &:active {
+    &:focus,
+    &:active {
       background: var(--widget-text-color);
       color: var(--widget-background-color);
     }
@@ -208,5 +199,4 @@ export default {
     }
   }
 }
-
 </style>

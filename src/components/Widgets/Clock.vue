@@ -1,11 +1,11 @@
 <template>
-<div class="clock">
-  <div class="upper" v-if="!options.hideDate">
-    <p class="city">{{ cityName }}</p>
-    <p class="date">{{ date }}</p>
+  <div class="clock">
+    <div v-if="!options.hideDate" class="upper">
+      <p class="city">{{ cityName }}</p>
+      <p class="date">{{ date }}</p>
+    </div>
+    <p class="time">{{ time }}</p>
   </div>
-  <p class="time">{{ time }}</p>
-</div>
 </template>
 
 <script>
@@ -40,10 +40,25 @@ export default {
       return !this.options.hideSeconds;
     },
     use12Hour() {
-      if (typeof this.options.use12Hour === "boolean") return this.options.use12Hour;
+      if (typeof this.options.use12Hour === 'boolean') return this.options.use12Hour;
       // this is the default, it gets computed by the DateTimeFormat implementation
-      return Intl.DateTimeFormat(this.timeFormat, { timeZone: this.timeZone, hour: 'numeric' }).resolvedOptions().hour12 ?? false;
+      return (
+        Intl.DateTimeFormat(this.timeFormat, {
+          timeZone: this.timeZone,
+          hour: 'numeric',
+        }).resolvedOptions().hour12 ?? false
+      );
     },
+  },
+  created() {
+    // Set initial date and time
+    this.update();
+    // Update the time and date every second (1000 ms)
+    this.timeUpdateInterval = setInterval(this.update, 1000);
+  },
+  beforeDestroy() {
+    // Remove the clock interval listener
+    clearInterval(this.timeUpdateInterval);
   },
   methods: {
     update() {
@@ -70,16 +85,6 @@ export default {
         timeZone: this.timeZone,
       });
     },
-  },
-  created() {
-    // Set initial date and time
-    this.update();
-    // Update the time and date every second (1000 ms)
-    this.timeUpdateInterval = setInterval(this.update, 1000);
-  },
-  beforeDestroy() {
-    // Remove the clock interval listener
-    clearInterval(this.timeUpdateInterval);
   },
 };
 </script>
@@ -114,5 +119,4 @@ export default {
     font-family: Digital, var(--font-monospace);
   }
 }
-
 </style>

@@ -1,18 +1,18 @@
 <template>
-<div class="trending-repos-wrapper" v-if="trendingRepos">
-  <div v-for="repo in trendingRepos" :key="repo.idx" class="repo-row">
-    <img class="repo-img" v-if="repo.avatar" :src="repo.avatar" alt="Repo" />
-    <div class="repo-info">
-      <p class="repo-name">{{ repo.name }}</p>
-      <div class="star-wrap">
-        <p class="all-stars" v-if="repo.stars">{{ repo.stars | formatStars }}</p>
-        <p class="new-stars" v-if="repo.newStars">↑{{ repo.newStars | formatStars }}</p>
+  <div v-if="trendingRepos" class="trending-repos-wrapper">
+    <div v-for="repo in trendingRepos" :key="repo.idx" class="repo-row">
+      <img v-if="repo.avatar" class="repo-img" :src="repo.avatar" alt="Repo" />
+      <div class="repo-info">
+        <p class="repo-name">{{ repo.name }}</p>
+        <div class="star-wrap">
+          <p v-if="repo.stars" class="all-stars">{{ repo.stars | formatStars }}</p>
+          <p v-if="repo.newStars" class="new-stars">↑{{ repo.newStars | formatStars }}</p>
+        </div>
+        <a class="repo-link" :href="repo.link">{{ repo.slug }}</a>
+        <p class="repo-desc">{{ repo.desc }}</p>
       </div>
-      <a class="repo-link" :href="repo.link">{{ repo.slug }}</a>
-      <p class="repo-desc">{{ repo.desc }}</p>
     </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -22,19 +22,21 @@ import { widgetApiEndpoints } from '@/utils/defaults';
 import { capitalize, showNumAsThousand } from '@/utils/MiscHelpers';
 
 export default {
+  filters: {
+    formatStars(starCount) {
+      if (!starCount) return null;
+      const numericCount =
+        typeof starCount === 'string'
+          ? Number.parseInt(starCount.replaceAll(',', ''), 10)
+          : starCount;
+      return `${showNumAsThousand(numericCount) || starCount} ★`;
+    },
+  },
   mixins: [WidgetMixin],
   data() {
     return {
       trendingRepos: null,
     };
-  },
-  filters: {
-    formatStars(starCount) {
-      if (!starCount) return null;
-      const numericCount = typeof starCount === 'string'
-        ? parseInt(starCount.replaceAll(',', ''), 10) : starCount;
-      return `${showNumAsThousand(numericCount) || starCount} ★`;
-    },
   },
   computed: {
     since() {
@@ -55,7 +57,8 @@ export default {
   },
   methods: {
     fetchData() {
-      axios.get(this.endpoint)
+      axios
+        .get(this.endpoint)
         .then((response) => {
           if (response.data.items) {
             this.processData(response.data.items);
@@ -71,7 +74,7 @@ export default {
     processData(repos) {
       const mkeName = (r) => capitalize(r.split('/')[1].replaceAll('-', ' ').replaceAll('_', ' '));
       let results = [];
-      repos.forEach((repo) => {
+      for (const repo of repos) {
         results.push({
           name: mkeName(repo.repo),
           slug: repo.repo,
@@ -80,10 +83,10 @@ export default {
           link: repo.repo_link,
           stars: repo.stars,
           forks: repo.forks,
-          newStars: parseInt(repo.added_stars, 10),
+          newStars: Number.parseInt(repo.added_stars, 10),
           avatar: repo.avatars[0] || 'https://github.com/fluidicon.png',
         });
-      });
+      }
       if (this.limit && this.limit < results.length) {
         results = results.slice(0, this.limit);
       }
@@ -95,7 +98,7 @@ export default {
 
 <style scoped lang="scss">
 .trending-repos-wrapper {
- .repo-row {
+  .repo-row {
     display: flex;
     align-items: center;
     margin: 0.5rem 0;
@@ -134,8 +137,8 @@ export default {
         text-align: right;
         p {
           font-family: var(--font-monospace);
-           margin: 0;
-           &.all-stars {
+          margin: 0;
+          &.all-stars {
             color: var(--widget-text-color);
             font-size: 1.2rem;
             font-weight: bold;
@@ -151,7 +154,6 @@ export default {
     &:not(:last-child) {
       border-bottom: 1px dashed var(--widget-text-color);
     }
- }
+  }
 }
-
 </style>

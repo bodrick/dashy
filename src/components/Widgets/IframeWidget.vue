@@ -1,13 +1,13 @@
 <template>
-<div class="iframe-widget">
-  <iframe
-    v-if="frameUrl"
-    :src="frameUrl"
-    :id="frameId"
-    title="Iframe Widget"
-    :style="frameHeight ? `height: ${frameHeight}px` : ''"
-  />
-</div>
+  <div class="iframe-widget">
+    <iframe
+      v-if="frameUrl"
+      :id="frameId"
+      :src="frameUrl"
+      title="Iframe Widget"
+      :style="frameHeight ? `height: ${frameHeight}px` : ''"
+    />
+  </div>
 </template>
 
 <script>
@@ -33,7 +33,7 @@ export default {
     },
     /* Generates an ID for the iframe */
     frameId() {
-      return `iframe-${btoa(this.frameUrl || 'empty').substring(0, 16)}`;
+      return `iframe-${btoa(this.frameUrl || 'empty').slice(0, 16)}`;
     },
     /* Generate a URL param, to be updated in order to re-fetch image */
     updatePathParam() {
@@ -60,5 +60,4 @@ export default {
     border: 0;
   }
 }
-
 </style>

@@ -1,32 +1,32 @@
 <template>
-<div class="flight-wrapper">
-  <!-- Info -->
-  <p class="flight-intro">
-    Live {{ direction !== 'both' ? direction: 'flight' }} data from {{ airport }}
-  </p>
-  <!-- Departures -->
-  <div v-if="departures.length > 0" class="flight-group">
-    <h3 class="flight-type-subtitle" v-if="direction === 'both'">
-      {{ $t('widgets.flight-data.departures') }}
-    </h3>
-    <div v-for="flight in departures" :key="flight.number" class="flight" v-tooltip="tip(flight)">
-      <p class="info flight-time">{{ flight.time | formatDate }}</p>
-      <p class="info flight-number">{{ flight.number }}</p>
-      <p class="info flight-airport">{{ flight.airport }}</p>
+  <div class="flight-wrapper">
+    <!-- Info -->
+    <p class="flight-intro">
+      Live {{ direction !== 'both' ? direction : 'flight' }} data from {{ airport }}
+    </p>
+    <!-- Departures -->
+    <div v-if="departures.length > 0" class="flight-group">
+      <h3 v-if="direction === 'both'" class="flight-type-subtitle">
+        {{ $t('widgets.flight-data.departures') }}
+      </h3>
+      <div v-for="flight in departures" :key="flight.number" v-tooltip="tip(flight)" class="flight">
+        <p class="info flight-time">{{ flight.time | formatDate }}</p>
+        <p class="info flight-number">{{ flight.number }}</p>
+        <p class="info flight-airport">{{ flight.airport }}</p>
+      </div>
+    </div>
+    <!-- Arrivals -->
+    <div v-if="arrivals.length > 0" class="flight-group">
+      <h3 v-if="direction === 'both'" class="flight-type-subtitle">
+        {{ $t('widgets.flight-data.arrivals') }}
+      </h3>
+      <div v-for="flight in arrivals" :key="flight.number" v-tooltip="tip(flight)" class="flight">
+        <p class="info flight-time">{{ flight.time | formatDate }}</p>
+        <p class="info flight-number">{{ flight.number }}</p>
+        <p class="info flight-airport">{{ flight.airport }}</p>
+      </div>
     </div>
   </div>
-  <!-- Arrivals -->
-  <div v-if="arrivals.length > 0" class="flight-group">
-    <h3 class="flight-type-subtitle" v-if="direction === 'both'">
-      {{ $t('widgets.flight-data.arrivals') }}
-    </h3>
-    <div v-for="flight in arrivals" :key="flight.number" class="flight" v-tooltip="tip(flight)">
-      <p class="info flight-time">{{ flight.time | formatDate }}</p>
-      <p class="info flight-number">{{ flight.number }}</p>
-      <p class="info flight-airport">{{ flight.airport }}</p>
-    </div>
-  </div>
-</div>
 </template>
 
 <script>
@@ -35,20 +35,20 @@ import WidgetMixin from '@/mixins/WidgetMixin';
 import { widgetApiEndpoints } from '@/utils/defaults';
 
 export default {
-  mixins: [WidgetMixin],
   components: {},
-  data() {
-    return {
-      departures: [],
-      arrivals: [],
-    };
-  },
   filters: {
     formatDate(date) {
       const d = new Date(date);
       if (Number.isNaN(d.getHours())) return '[UNKNOWN]';
       return `${d.getHours()}:${d.getMinutes()}:${d.getSeconds()}`;
     },
+  },
+  mixins: [WidgetMixin],
+  data() {
+    return {
+      departures: [],
+      arrivals: [],
+    };
   },
   computed: {
     /* The users desired airport, specified as a 4-digit ICAO-code */
@@ -59,7 +59,7 @@ export default {
         return '';
       }
       const formattedAirport = usersChoice.toUpperCase().trim();
-      if (!(/[A-Z]{4}/).test(formattedAirport)) {
+      if (!/[A-Z]{4}/.test(formattedAirport)) {
         this.error('Incorrect airport format, must be a valid 4-digit ICAO-code');
         return '';
       }
@@ -117,12 +117,15 @@ export default {
           'x-rapidapi-key': this.apiKey,
         },
       };
-      axios.request(requestConfig)
+      axios
+        .request(requestConfig)
         .then((response) => {
           this.processData(response.data);
-        }).catch((error) => {
+        })
+        .catch((error) => {
           this.error('Unable to fetch flight data', error);
-        }).finally(() => {
+        })
+        .finally(() => {
           this.finishLoading();
         });
     },
@@ -134,7 +137,7 @@ export default {
     /* Gets the useful flight info out of departures or arrivals */
     makeFlightList(flights) {
       const results = [];
-      flights.forEach((flight) => {
+      for (const flight of flights) {
         results.push({
           number: flight.number,
           airline: flight.airline.name,
@@ -142,13 +145,16 @@ export default {
           airport: flight.movement.airport.name,
           time: flight.movement.actualTimeUtc,
         });
-      });
+      }
       return results;
     },
     tip(flight) {
       const content = `${flight.aircraft} | ${flight.airline}`;
       return {
-        content, trigger: 'hover focus', delay: 250, classes: 'in-modal-tt',
+        content,
+        trigger: 'hover focus',
+        delay: 250,
+        classes: 'in-modal-tt',
       };
     },
   },
@@ -168,7 +174,7 @@ export default {
     font-size: 1.2rem;
     color: var(--widget-text-color);
   }
- .flight-group {
+  .flight-group {
     .flight {
       display: flex;
       flex-direction: row;
@@ -185,5 +191,4 @@ export default {
     }
   }
 }
-
 </style>

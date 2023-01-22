@@ -1,9 +1,11 @@
 <template>
-<div class="glances-load-wrapper">
-  <div
-    :id="`load-${chartId}`" class="load-chart"
-    v-tooltip="$t('widgets.glances.system-load-desc')"></div>
-</div>
+  <div class="glances-load-wrapper">
+    <div
+      :id="`load-${chartId}`"
+      v-tooltip="$t('widgets.glances.system-load-desc')"
+      class="load-chart"
+    ></div>
+  </div>
 </template>
 
 <script>
@@ -22,9 +24,7 @@ export default {
     processData(loadData) {
       const chartData = {
         labels: ['1 Min', '5 Mins', '15 Mins'],
-        datasets: [
-          { values: [loadData.min1, loadData.min5, loadData.min15] },
-        ],
+        datasets: [{ values: [loadData.min1, loadData.min5, loadData.min15] }],
       };
       const chartTitle = `Load Averages over ${loadData.cpucore} Cores`;
       this.renderChart(chartData, chartTitle);
@@ -40,7 +40,7 @@ export default {
           spaceRatio: 0.2,
         },
         tooltipOptions: {
-          formatTooltipY: d => `${d} Tasks`,
+          formatTooltipY: (d) => `${d} Tasks`,
         },
       });
     },
@@ -57,6 +57,8 @@ export default {
     margin: 0;
     visibility: hidden;
   }
-  &:hover p.desc { visibility: visible; }
+  &:hover p.desc {
+    visibility: visible;
+  }
 }
 </style>

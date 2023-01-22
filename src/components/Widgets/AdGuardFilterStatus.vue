@@ -1,31 +1,31 @@
 <template>
-<div class="ad-guard-filter-status-wrapper">
-  <!-- Current Status -->
-  <div v-if="status !== null && showOnOffStatusOnly" class="status">
-    <span class="status-lbl">{{ $t('widgets.pi-hole.status-heading') }}:</span>
-    <span :class="`status-val ${getStatusColor(status)}`">
-      {{ status ? 'Enabled' : 'Disabled' }}
-    </span>
-  </div>
-  <!-- List of filters -->
-  <div v-if="filters && !showOnOffStatusOnly" class="filters-list">
-    <div v-for="filter in filters" :key="filter.id" class="filter">
-      <!-- Filter status, name and query count -->
-      <div class="row-1">
-        <span :class="`on-off ${filter.enabled ? 'green' : 'red'}`">
-          {{ filter.enabled ? '✔' : '✘' }}
-        </span>
-        <span class="filter-name">{{ filter.name }}</span>
-        <span class="filter-rules-count">{{ filter.rules_count }}</span>
-      </div>
-      <!-- Date of last update, and link to list -->
-      <div class="row-2">
-        <span class="updated">Updated {{ filter.last_updated | formatDate }}</span>
-        <a class="filter-link" v-if="filter.url" :href="filter.url">View List</a>
+  <div class="ad-guard-filter-status-wrapper">
+    <!-- Current Status -->
+    <div v-if="status !== null && showOnOffStatusOnly" class="status">
+      <span class="status-lbl">{{ $t('widgets.pi-hole.status-heading') }}:</span>
+      <span :class="`status-val ${getStatusColor(status)}`">
+        {{ status ? 'Enabled' : 'Disabled' }}
+      </span>
+    </div>
+    <!-- List of filters -->
+    <div v-if="filters && !showOnOffStatusOnly" class="filters-list">
+      <div v-for="filter in filters" :key="filter.id" class="filter">
+        <!-- Filter status, name and query count -->
+        <div class="row-1">
+          <span :class="`on-off ${filter.enabled ? 'green' : 'red'}`">
+            {{ filter.enabled ? '✔' : '✘' }}
+          </span>
+          <span class="filter-name">{{ filter.name }}</span>
+          <span class="filter-rules-count">{{ filter.rules_count }}</span>
+        </div>
+        <!-- Date of last update, and link to list -->
+        <div class="row-2">
+          <span class="updated">Updated {{ filter.last_updated | formatDate }}</span>
+          <a v-if="filter.url" class="filter-link" :href="filter.url">View List</a>
+        </div>
       </div>
     </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -33,7 +33,19 @@ import WidgetMixin from '@/mixins/WidgetMixin';
 import { getTimeAgo } from '@/utils/MiscHelpers';
 
 export default {
+  filters: {
+    formatDate(date) {
+      if (!date) return 'Never';
+      return getTimeAgo(date);
+    },
+  },
   mixins: [WidgetMixin],
+  data() {
+    return {
+      status: null,
+      filters: null,
+    };
+  },
   computed: {
     /* URL/ IP or hostname to the AdGuardHome instance, without trailing slash */
     hostname() {
@@ -52,18 +64,6 @@ export default {
         return { Authorization: `Basic ${encoded}` };
       }
       return {};
-    },
-  },
-  data() {
-    return {
-      status: null,
-      filters: null,
-    };
-  },
-  filters: {
-    formatDate(date) {
-      if (!date) return 'Never';
-      return getTimeAgo(date);
     },
   },
   methods: {
@@ -94,9 +94,15 @@ export default {
     }
     .status-val {
       font-family: var(--font-monospace);
-      &.green { color: var(--success); }
-      &.red { color: var(--danger); }
-      &.blue { color: var(--info); }
+      &.green {
+        color: var(--success);
+      }
+      &.red {
+        color: var(--danger);
+      }
+      &.blue {
+        color: var(--info);
+      }
     }
   }
   .filters-list {
@@ -111,8 +117,12 @@ export default {
         align-items: center;
         span.on-off {
           margin-right: 0.5rem;
-          &.green { color: var(--success); }
-          &.red { color: var(--danger); }
+          &.green {
+            color: var(--success);
+          }
+          &.red {
+            color: var(--danger);
+          }
         }
         span.filter-name {
           width: 100%;
@@ -127,7 +137,8 @@ export default {
       .row-2 {
         display: flex;
         justify-content: space-between;
-        span.updated, a.filter-link {
+        span.updated,
+        a.filter-link {
           margin: 0.2rem 0;
           font-size: 0.8rem;
           opacity: var(--dimming-factor);

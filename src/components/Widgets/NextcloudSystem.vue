@@ -1,44 +1,46 @@
 <template>
-<div v-if="didLoadData" class="nextcloud-widget nextcloud-system-wrapper">
-  <div class="charts">
-    <!-- memory gauge -->
-    <div class="chart-container">
-      <small>{{ tt('overall') }} {{ tt('memory-utilisation') }}</small>
-      <GaugeChart :value="memoryGauge.value"
-                  :baseColor="memoryGauge.background"
-                  :gaugeColor="memoryGauge.color">
-        <p class="percentage">{{ memoryGauge.value }}%</p>
-      </GaugeChart>
-      <small>{{ getMemoryGaugeLabel() }}</small>
+  <div v-if="didLoadData" class="nextcloud-widget nextcloud-system-wrapper">
+    <div class="charts">
+      <!-- memory gauge -->
+      <div class="chart-container">
+        <small>{{ tt('overall') }} {{ tt('memory-utilisation') }}</small>
+        <GaugeChart
+          :value="memoryGauge.value"
+          :base-color="memoryGauge.background"
+          :gauge-color="memoryGauge.color"
+        >
+          <p class="percentage">{{ memoryGauge.value }}%</p>
+        </GaugeChart>
+        <small>{{ getMemoryGaugeLabel() }}</small>
+      </div>
+      <!-- cpu load chart -->
+      <div>
+        <div
+          :id="cpuLoadChartId"
+          v-tooltip="$t('widgets.glances.system-load-desc')"
+        class="load-chart"></div>
     </div>
-    <!-- cpu load chart -->
     <div>
-      <div
-        :id="cpuLoadChartId" class="load-chart"
-        v-tooltip="$t('widgets.glances.system-load-desc')"></div>
+      <!-- server info: server -->
+      <hr />
+      <p>
+        <i class="fal fa-server"></i>
+        <strong>Nextcloud</strong>
+        <em>{{ server.nextcloud.system.version }}</em> <small>• </small>
+        <strong>{{ server.server.webserver }}/PHP</strong>
+        <em>{{ server.server.php.version }}</em>
+      </p>
+      <hr />
+      <!-- server info: database -->
+      <p>
+        <i class="fal fa-database"></i>
+        <strong>{{ server.server.database.type }}</strong>
+        <em>{{ server.server.database.version }}</em> <small>{{ tt('using') }}</small>
+        <em v-html="convertBytes(server.server.database.size)"></em>
+      </p>
+      <hr />
     </div>
   </div>
-  <div>
-    <!-- server info: server -->
-    <hr />
-    <p>
-      <i class="fal fa-server"></i>
-      <strong>Nextcloud</strong>
-      <em>{{ server.nextcloud.system.version }}</em> <small>• </small>
-      <strong>{{ server.server.webserver }}/PHP</strong>
-      <em>{{ server.server.php.version }}</em>
-    </p>
-    <hr />
-    <!-- server info: database -->
-    <p>
-      <i class="fal fa-database"></i>
-      <strong>{{ server.server.database.type }}</strong>
-      <em>{{ server.server.database.version }}</em> <small>{{ tt('using') }}</small>
-      <em v-html="convertBytes(server.server.database.size)"></em>
-    </p>
-    <hr/>
-  </div>
-</div>
 </template>
 
 <script>
@@ -53,8 +55,8 @@ import ChartingMixin from '@/mixins/ChartingMixin';
  *  - serverinfo: requires Nextcloud admin user
  */
 export default {
-  mixins: [WidgetMixin, NextcloudMixin, ChartingMixin],
   components: { GaugeChart },
+  mixins: [WidgetMixin, NextcloudMixin, ChartingMixin],
   data() {
     return {
       server: {
@@ -94,8 +96,17 @@ export default {
       return `nextcloud-cpu-load-chart-${Math.random().toString().slice(-4)}`;
     },
     didLoadData() {
-      return !!(this.server?.nextcloud?.system?.version);
+      return !!this.server?.nextcloud?.system?.version;
     },
+  },
+  created() {
+    this.overrideUpdateInterval = 30;
+  },
+  updated() {
+    const load = this.server?.nextcloud?.system?.cpuload;
+    if (load) this.updateCpuLoad(load);
+    const sys = this.server.nextcloud.system;
+    if (sys) this.updateMemoryGauge(sys);
   },
   methods: {
     allowedStatuscodes() {
@@ -116,19 +127,19 @@ export default {
       this.server.server.webserver = data.server?.webserver;
     },
     updateMemoryGauge(sys) {
-      this.memoryGauge.value = parseFloat(
+      this.memoryGauge.value = Number.parseFloat(
         (((sys.mem_total - sys.mem_free) / sys.mem_total) * 100).toFixed(2),
       );
       this.memoryGauge.color = this.getMemoryGaugeColor(this.memoryGauge.value);
     },
     updateOpcacheMemory() {
-      this.opcache_stats.opcache_hit_rate = parseFloat(
+      this.opcache_stats.opcache_hit_rate = Number.parseFloat(
         this.opcache_stats.opcache_hit_rate,
       ).toFixed(3);
       this.opcache.memory_usage.total_memory = (
         this.opcache.memory_usage.used_memory + this.opcache.memory_usage.free_memory
       );
-      this.opcache.memory_usage.used_memory_percentage = parseFloat(
+      this.opcache.memory_usage.used_memory_percentage = Number.parseFloat(
         (this.opcache.memory_usage.used_memory / this.opcache.memory_usage.total_memory) * 100,
       ).toFixed(1);
     },
@@ -137,7 +148,7 @@ export default {
         this.opcache.interned_strings_usage.used_memory
         + this.opcache.interned_strings_usage.free_memory
       );
-      this.opcache.interned_strings_usage.used_memory_percentage = parseFloat(
+      this.opcache.interned_strings_usage.used_memory_percentage = Number.parseFloat(
         (this.opcache.interned_strings_usage.used_memory
         / this.opcache.interned_strings_usage.total_memory) * 100,
       ).toFixed(5);
@@ -178,15 +189,6 @@ export default {
       });
     },
   },
-  created() {
-    this.overrideUpdateInterval = 30;
-  },
-  updated() {
-    const load = this.server?.nextcloud?.system?.cpuload;
-    if (load) this.updateCpuLoad(load);
-    const sys = this.server.nextcloud.system;
-    if (sys) this.updateMemoryGauge(sys);
-  },
 };
 </script>
 
@@ -205,7 +207,7 @@ export default {
         display: inline-block;
         width: 100%;
         text-align: center;
-        margin: .9em 0 1.4em 0;
+        margin: 0.9em 0 1.4em 0;
         opacity: 1;
       }
       small:last-child {
@@ -221,7 +223,7 @@ export default {
       text-align: center;
       position: absolute;
       font-size: 1.3em;
-      margin: .5em 0;
+      margin: 0.5em 0;
       width: 100%;
       bottom: 0;
     }

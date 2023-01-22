@@ -1,91 +1,108 @@
 <template>
-<div class="anonaddy-wrapper">
-  <!-- Account Info -->
-  <div class="account-info" v-if="meta && !hideMeta">
-    <PercentageChart title="Mail Stats"
-      :values="[
-      { label: 'Forwarded', size: meta.forwardCount, color: '#20e253' },
-      { label: 'Blocked', size: meta.blockedCount, color: '#f80363' },
-      { label: 'Replies', size: meta.repliesCount, color: '#04e4f4' },
-      { label: 'Sent', size: meta.sentCount, color: '#f6f000' },
-      ]" />
-    <div class="meta-item">
-      <span class="lbl">Bandwidth</span>
-      <span class="val">
-        {{ meta.bandwidth | formatBytes }} out of
-        {{ meta.bandwidthLimit !== 100000000 ? (formatBytes(meta.bandwidthLimit)) : '∞'}}
-      </span>
+  <div class="anonaddy-wrapper">
+    <!-- Account Info -->
+    <div v-if="meta && !hideMeta" class="account-info">
+      <PercentageChart
+        title="Mail Stats"
+        :values="[
+          { label: 'Forwarded', size: meta.forwardCount, color: '#20e253' },
+          { label: 'Blocked', size: meta.blockedCount, color: '#f80363' },
+          { label: 'Replies', size: meta.repliesCount, color: '#04e4f4' },
+          { label: 'Sent', size: meta.sentCount, color: '#f6f000' },
+        ]"
+      />
+      <div class="meta-item">
+        <span class="lbl">Bandwidth</span>
+        <span class="val">
+          {{ meta.bandwidth | formatBytes }} out of
+          {{ meta.bandwidthLimit !== 100000000 ? formatBytes(meta.bandwidthLimit) : '∞' }}
+        </span>
+      </div>
+      <div class="meta-item">
+        <span class="lbl">Active Domains</span>
+        <span class="val">{{ meta.activeDomains }} out of {{ meta.activeDomainsLimit }}</span>
+      </div>
+      <div class="meta-item">
+        <span class="lbl">Shared Domains</span>
+        <span class="val"
+          >{{ meta.sharedDomains }} out of {{ meta.sharedDomainsLimit || '∞' }}</span
+        >
+      </div>
+      <div class="meta-item">
+        <span class="lbl">Usernames</span>
+        <span class="val">{{ meta.usernamesCount }} out of {{ meta.usernamesLimit || '∞' }}</span>
+      </div>
     </div>
-    <div class="meta-item">
-      <span class="lbl">Active Domains</span>
-      <span class="val">{{ meta.activeDomains }} out of {{ meta.activeDomainsLimit }}</span>
-    </div>
-    <div class="meta-item">
-      <span class="lbl">Shared Domains</span>
-      <span class="val">{{ meta.sharedDomains }} out of {{ meta.sharedDomainsLimit || '∞'}}</span>
-    </div>
-    <div class="meta-item">
-      <span class="lbl">Usernames</span>
-      <span class="val">{{ meta.usernamesCount }} out of {{ meta.usernamesLimit || '∞'}}</span>
-    </div>
-  </div>
-  <!-- Email List -->
-  <div class="email-list" v-if="aliases && !hideAliases">
-    <div class="email-row" v-for="alias in aliases" :key="alias.id">
-      <!-- Email address and status -->
-      <div class="row-1">
-        <Toggle v-if="!disableControls" @change="toggleAlias"
-          :defaultState="alias.active" :id="alias.id" :hideLabels="true" />
-        <span v-if="disableControls"
-          :class="`status ${alias.active ? 'active' : 'inactive'}`">●</span>
-        <div class="address-copy" @click="copyToClipboard(alias.fullEmail)" title="Click to Copy">
-          <span class="txt-email">{{ alias.email }}</span>
-          <span class="txt-at">@</span>
-          <span class="txt-domain">{{ alias.domain }}</span>
+    <!-- Email List -->
+    <div v-if="aliases && !hideAliases" class="email-list">
+      <div v-for="alias in aliases" :key="alias.id" class="email-row">
+        <!-- Email address and status -->
+        <div class="row-1">
+          <Toggle
+            v-if="!disableControls"
+            :id="alias.id"
+            :default-state="alias.active"
+            :hide-labels="true"
+            @change="toggleAlias"
+          />
+          <span v-if="disableControls" :class="`status ${alias.active ? 'active' : 'inactive'}`"
+            >●</span
+          >
+          <div class="address-copy" title="Click to Copy" @click="copyToClipboard(alias.fullEmail)">
+            <span class="txt-email">{{ alias.email }}</span>
+            <span class="txt-at">@</span>
+            <span class="txt-domain">{{ alias.domain }}</span>
+          </div>
+          <ClipboardIcon
+            v-tooltip="tooltip('Copy alias to clipboard')"
+            class="copy-btn"
+            @click="copyToClipboard(alias.fullEmail)"
+          />
         </div>
-        <ClipboardIcon class="copy-btn"
-          @click="copyToClipboard(alias.fullEmail)"
-          v-tooltip="tooltip('Copy alias to clipboard')"
-        />
-      </div>
-      <!-- Optional description field -->
-      <div class="row-2" v-if="alias.description">
-        <span class="description">{{ alias.description }}</span>
-      </div>
-      <!-- Num emails sent + received -->
-      <div class="row-3">
-        <span class="lbl">Forwarded</span>
-        <span class="val">{{ alias.forwardCount }}</span>
-        <span class="lbl">Blocked</span>
-        <span class="val">{{ alias.blockedCount }}</span>
-        <span class="lbl">Replied</span>
-        <span class="val">{{ alias.repliesCount }}</span>
-        <span class="lbl">Sent</span>
-        <span class="val">{{ alias.sentCount }}</span>
-      </div>
-      <!-- Date created / updated -->
-      <div class="row-4">
-        <span class="lbl">Created</span>
-        <span class="val as-date">{{ alias.createdAt | formatDate }}</span>
-        <span class="val as-time-ago">{{ alias.createdAt | formatTimeAgo }}</span>
+        <!-- Optional description field -->
+        <div v-if="alias.description" class="row-2">
+          <span class="description">{{ alias.description }}</span>
+        </div>
+        <!-- Num emails sent + received -->
+        <div class="row-3">
+          <span class="lbl">Forwarded</span>
+          <span class="val">{{ alias.forwardCount }}</span>
+          <span class="lbl">Blocked</span>
+          <span class="val">{{ alias.blockedCount }}</span>
+          <span class="lbl">Replied</span>
+          <span class="val">{{ alias.repliesCount }}</span>
+          <span class="lbl">Sent</span>
+          <span class="val">{{ alias.sentCount }}</span>
+        </div>
+        <!-- Date created / updated -->
+        <div class="row-4">
+          <span class="lbl">Created</span>
+          <span class="val as-date">{{ alias.createdAt | formatDate }}</span>
+          <span class="val as-time-ago">{{ alias.createdAt | formatTimeAgo }}</span>
+        </div>
       </div>
     </div>
+    <!-- Pagination Page Numbers -->
+    <div v-if="numPages && !hideAliases" class="pagination">
+      <span class="page-num first" @click="goToFirst()">«</span>
+      <span v-if="paginationRange[0] !== 1" class="page-num" @click="goToPrevious()">...</span>
+      <span
+        v-for="pageNum in paginationRange"
+        :key="pageNum"
+        :class="`page-num ${pageNum === currentPage ? 'selected' : ''}`"
+        @click="goToPage(pageNum)"
+        >{{ pageNum }}</span
+      >
+      <span
+        v-if="paginationRange[paginationRange.length - 1] < numPages"
+        class="page-num"
+        @click="goToNext()"
+        >...</span
+      >
+      <span class="page-num last" @click="goToLast()">»</span>
+      <p class="page-status">Page {{ currentPage }} of {{ numPages }}</p>
+    </div>
   </div>
-  <!-- Pagination Page Numbers -->
-  <div class="pagination" v-if="numPages && !hideAliases">
-    <span class="page-num first" @click="goToFirst()">«</span>
-    <span class="page-num" v-if="paginationRange[0] !== 1" @click="goToPrevious()">...</span>
-    <span
-      v-for="pageNum in paginationRange" :key="pageNum"
-      @click="goToPage(pageNum)"
-      :class="`page-num ${pageNum === currentPage ? 'selected' : ''}`"
-    >{{ pageNum }}</span>
-    <span class="page-num" @click="goToNext()"
-      v-if="paginationRange[paginationRange.length - 1] < numPages">...</span>
-    <span class="page-num last" @click="goToLast()">»</span>
-    <p class="page-status">Page {{ currentPage }} of {{ numPages }}</p>
-  </div>
-</div>
 </template>
 
 <script>
@@ -97,12 +114,23 @@ import { timestampToDate, getTimeAgo, convertBytes } from '@/utils/MiscHelpers';
 import ClipboardIcon from '@/assets/interface-icons/open-clipboard.svg';
 
 export default {
-  mixins: [WidgetMixin],
   components: {
     Toggle,
     PercentageChart,
     ClipboardIcon,
   },
+  filters: {
+    formatDate(timestamp) {
+      return timestampToDate(timestamp);
+    },
+    formatTimeAgo(timestamp) {
+      return getTimeAgo(timestamp);
+    },
+    formatBytes(bytes) {
+      return convertBytes(bytes);
+    },
+  },
+  mixins: [WidgetMixin],
   data() {
     return {
       aliases: null,
@@ -141,9 +169,11 @@ export default {
       return this.options.hideAliases;
     },
     endpoint() {
-      return `${this.hostname}/api/${this.apiVersion}/aliases?`
-        + `sort=${this.sortBy}&filter[search]=${this.searchTerm}`
-        + `&page[number]=${this.currentPage}&page[size]=${this.limit}`;
+      return (
+        `${this.hostname}/api/${this.apiVersion}/aliases?` +
+        `sort=${this.sortBy}&filter[search]=${this.searchTerm}` +
+        `&page[number]=${this.currentPage}&page[size]=${this.limit}`
+      );
     },
     aliasCountEndpoint() {
       return `${this.hostname}/api/${this.apiVersion}/aliases?filter[search]=${this.searchTerm}`;
@@ -159,23 +189,13 @@ export default {
       };
     },
     paginationRange() {
-      const arrOfRange = (start, end) => Array(end - start + 1).fill().map((_, idx) => start + idx);
+      const arrOfRange = (start, end) =>
+        new Array(end - start + 1).fill().map((_, idx) => start + idx);
       const maxNumbers = this.numPages > 10 ? 10 : this.numPages;
       if (this.currentPage > maxNumbers) {
         return arrOfRange(this.currentPage - maxNumbers, this.currentPage);
       }
       return arrOfRange(1, maxNumbers);
-    },
-  },
-  filters: {
-    formatDate(timestamp) {
-      return timestampToDate(timestamp);
-    },
-    formatTimeAgo(timestamp) {
-      return getTimeAgo(timestamp);
-    },
-    formatBytes(bytes) {
-      return convertBytes(bytes);
     },
   },
   created() {
@@ -201,7 +221,7 @@ export default {
       // this.numPages = 14; // data.meta.to;
       this.currentPage = data.meta.current_page;
       const aliases = [];
-      data.data.forEach((alias) => {
+      for (const alias of data.data) {
         aliases.push({
           id: alias.id,
           active: alias.active,
@@ -218,7 +238,7 @@ export default {
           deletedAt: alias.deleted_at,
           fullEmail: alias.email,
         });
-      });
+      }
       this.aliases = aliases;
     },
     processAccountInfo(data) {
@@ -226,7 +246,7 @@ export default {
       this.meta = {
         name: data.username || res.from_name,
         bandwidth: res.bandwidth,
-        bandwidthLimit: res.bandwidth_limit || 100000000,
+        bandwidthLimit: res.bandwidth_limit || 100_000_000,
         activeDomains: res.active_domain_count,
         activeDomainsLimit: res.active_domain_limit,
         sharedDomains: res.active_shared_domain_alias_count,
@@ -291,7 +311,9 @@ export default {
       &.lbl {
         font-weight: bold;
         margin-right: 0.25rem;
-        &::after { content: ':'; }
+        &::after {
+          content: ':';
+        }
       }
     }
     p.username {
@@ -300,7 +322,9 @@ export default {
   }
   .email-list {
     span.lbl {
-      &::after { content: ':'; }
+      &::after {
+        content: ':';
+      }
     }
     span.val {
       font-family: var(--font-monospace);
@@ -327,8 +351,12 @@ export default {
           line-height: 1rem;
           margin-right: 0.25rem;
           vertical-align: middle;
-          &.active { color: var(--success); }
-          &.inactive { color: var(--danger); }
+          &.active {
+            color: var(--success);
+          }
+          &.inactive {
+            color: var(--danger);
+          }
         }
         .copy-btn {
           float: right;
@@ -348,7 +376,8 @@ export default {
           font-style: italic;
         }
       }
-      .row-3, .row-4 {
+      .row-3,
+      .row-4 {
         font-size: 0.8rem;
         opacity: var(--dimming-factor);
       }
@@ -359,11 +388,17 @@ export default {
       }
       &:hover {
         .row-4 {
-          .as-date { display: none; }
-          .as-time-ago { display: inline; }
+          .as-date {
+            display: none;
+          }
+          .as-time-ago {
+            display: inline;
+          }
         }
       }
-      &:not(:last-child) { border-bottom: 1px dashed var(--widget-text-color); }
+      &:not(:last-child) {
+        border-bottom: 1px dashed var(--widget-text-color);
+      }
     }
   }
   .pagination {
@@ -396,5 +431,4 @@ export default {
     }
   }
 }
-
 </style>

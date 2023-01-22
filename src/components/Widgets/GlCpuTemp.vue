@@ -1,10 +1,10 @@
 <template>
-<div class="glances-temp-wrapper" v-if="tempData">
-  <div class="temp-row" v-for="sensor in tempData" :key="sensor.label">
-    <p class="label">{{ sensor.label | formatLbl }}</p>
-    <p :class="`temp range-${sensor.color}`">{{ sensor.value | formatVal }}</p>
+  <div v-if="tempData" class="glances-temp-wrapper">
+    <div v-for="sensor in tempData" :key="sensor.label" class="temp-row">
+      <p class="label">{{ sensor.label | formatLbl }}</p>
+      <p :class="`temp range-${sensor.color}`">{{ sensor.value | formatVal }}</p>
+    </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -13,6 +13,14 @@ import GlancesMixin from '@/mixins/GlancesMixin';
 import { capitalize, fahrenheitToCelsius } from '@/utils/MiscHelpers';
 
 export default {
+  filters: {
+    formatLbl(lbl) {
+      return capitalize(lbl);
+    },
+    formatVal(val) {
+      return `${Math.round(val)}°C`;
+    },
+  },
   mixins: [WidgetMixin, GlancesMixin],
   data() {
     return {
@@ -25,14 +33,6 @@ export default {
       return this.makeGlancesUrl('sensors');
     },
   },
-  filters: {
-    formatLbl(lbl) {
-      return capitalize(lbl);
-    },
-    formatVal(val) {
-      return `${Math.round(val)}°C`;
-    },
-  },
   methods: {
     getTempColor(temp) {
       if (temp <= 50) return 'green';
@@ -42,14 +42,14 @@ export default {
     },
     processData(sensorData) {
       const results = [];
-      sensorData.forEach((sensor) => {
+      for (const sensor of sensorData) {
         const tempC = sensor.unit === 'F' ? fahrenheitToCelsius(sensor.value) : sensor.value;
         results.push({
           label: sensor.label,
           value: tempC,
           color: this.getTempColor(tempC),
         });
-      });
+      }
       this.tempData = results;
     },
   },
@@ -70,10 +70,18 @@ export default {
       margin: 0.5rem 0;
       font-size: 1.5rem;
       font-weight: bold;
-      &.range-green { color: var(--success); }
-      &.range-yellow { color: var(--warning); }
-      &.range-red { color: var(--danger); }
-      &.range-grey { color: var(--medium-grey); }
+      &.range-green {
+        color: var(--success);
+      }
+      &.range-yellow {
+        color: var(--warning);
+      }
+      &.range-red {
+        color: var(--danger);
+      }
+      &.range-grey {
+        color: var(--medium-grey);
+      }
     }
     &:not(:last-child) {
       border-bottom: 1px dashed var(--widget-text-color);

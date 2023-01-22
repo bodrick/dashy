@@ -150,11 +150,11 @@ export default {
       const language = this.getLanguage();
       this.$store.commit(Keys.SET_LANGUAGE, language);
       this.$i18n.locale = language;
-      document.getElementsByTagName('html')[0].setAttribute('lang', language);
+      document.querySelectorAll('html')[0].setAttribute('lang', language);
     },
     /* If placeholder element still visible, hide it */
     hideLoader() {
-      const loader = document.getElementById('loader');
+      const loader = document.querySelector('#loader');
       if (loader) loader.style.display = 'none';
     },
     /* Called when in edit mode and navigating away from page */

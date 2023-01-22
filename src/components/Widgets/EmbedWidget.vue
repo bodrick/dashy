@@ -1,7 +1,7 @@
 <template>
-<div class="html-widget">
-  <div :id="elementId" />
-</div>
+  <div class="html-widget">
+    <div :id="elementId" />
+  </div>
 </template>
 
 <script>
@@ -28,7 +28,7 @@ export default {
     },
     /* Unique element ID */
     elementId() {
-      return `elem-${Math.round(Math.random() * 10000)}`;
+      return `elem-${Math.round(Math.random() * 10_000)}`;
     },
   },
   mounted() {
@@ -80,5 +80,4 @@ export default {
   width: 100%;
   min-height: 240px;
 }
-
 </style>

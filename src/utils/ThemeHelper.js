@@ -20,7 +20,7 @@ export const ApplyCustomVariables = (theme) => {
 
 /* Sets the theme, by updating data-theme attribute on the html tag */
 export const ApplyLocalTheme = (newTheme) => {
-  const htmlTag = document.getElementsByTagName('html')[0];
+  const htmlTag = document.querySelectorAll('html')[0];
   if (Object.hasOwn(htmlTag.dataset, 'theme')) delete htmlTag.dataset.theme;
   htmlTag.dataset.theme = newTheme;
 };
@@ -38,11 +38,11 @@ export const LoadExternalTheme = function th() {
     link.href = href;
     document.head.append(link);
     return new Promise((resolve, reject) => {
-      link.onload = (e) => {
+      link.addEventListener('load', (e) => {
         const { sheet } = e.target;
         sheet.disabled = true;
         resolve(sheet);
-      };
+      });
       link.onerror = reject;
     });
   };

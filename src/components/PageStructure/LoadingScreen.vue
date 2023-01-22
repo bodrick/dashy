@@ -1,17 +1,17 @@
 <template>
- <transition name="slide-fade">
-  <div id="loading" v-if="isLoading" :class="c" @click="c = 'hide'">
-    <h2>Dashy</h2>
-    <div class="inner-container">
-      <p>Loading</p>
-      <span class="dots-cont">
-        <span class="dot dot-1"></span>
-        <span class="dot dot-2"></span>
-        <span class="dot dot-3"></span>
-        <span class="dot dot-4"></span>
-      </span>
+  <transition name="slide-fade">
+    <div v-if="isLoading" id="loading" :class="c" @click="c = 'hide'">
+      <h2>Dashy</h2>
+      <div class="inner-container">
+        <p>Loading</p>
+        <span class="dots-cont">
+          <span class="dot dot-1"></span>
+          <span class="dot dot-2"></span>
+          <span class="dot dot-3"></span>
+          <span class="dot dot-4"></span>
+        </span>
+      </div>
     </div>
-  </div>
   </transition>
 </template>
 
@@ -40,7 +40,9 @@ div#loading {
   background: var(--loading-screen-background);
   color: var(--loading-screen-color);
 
-  &.hide { display: none; }
+  &.hide {
+    display: none;
+  }
 
   .inner-container {
     text-align: center;
@@ -105,9 +107,10 @@ div#loading {
 }
 
 .slide-fade-leave-active {
-  transition: all .2s cubic-bezier(1, 0.9, 0.7, 0.4);
+  transition: all 0.2s cubic-bezier(1, 0.9, 0.7, 0.4);
 }
-.slide-fade-enter, .slide-fade-leave-to  {
+.slide-fade-enter,
+.slide-fade-leave-to {
   transform: translateY(-200px);
   opacity: 0;
 }

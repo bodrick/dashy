@@ -1,7 +1,7 @@
 <template>
-<div class="glances-load-history-wrapper">
-  <div class="gl-history-chart" :id="chartId"></div>
-</div>
+  <div class="glances-load-history-wrapper">
+    <div :id="chartId" class="gl-history-chart"></div>
+  </div>
 </template>
 
 <script>
@@ -11,8 +11,8 @@ import ChartingMixin from '@/mixins/ChartingMixin';
 import { timestampToTime, getTimeAgo } from '@/utils/MiscHelpers';
 
 export default {
-  mixins: [WidgetMixin, GlancesMixin, ChartingMixin],
   components: {},
+  mixins: [WidgetMixin, GlancesMixin, ChartingMixin],
   data() {
     return {};
   },
@@ -24,22 +24,25 @@ export default {
       return this.makeGlancesUrl(`load/history/${this.limit}`);
     },
   },
+  created() {
+    this.overrideUpdateInterval = 20;
+  },
   methods: {
     processData(loadData) {
       const labels = [];
       const min1 = [];
       const min5 = [];
       const min15 = [];
-      loadData.min1.forEach((dataPoint) => {
+      for (const dataPoint of loadData.min1) {
         labels.push(timestampToTime(dataPoint[0]));
         min1.push(dataPoint[1]);
-      });
-      loadData.min5.forEach((dataPoint) => {
+      }
+      for (const dataPoint of loadData.min5) {
         min5.push(dataPoint[1]);
-      });
-      loadData.min15.forEach((dataPoint) => {
+      }
+      for (const dataPoint of loadData.min15) {
         min15.push(dataPoint[1]);
-      });
+      }
 
       const chartTitle = this.makeTitle(loadData.min1);
       const datasets = [
@@ -69,21 +72,18 @@ export default {
           xAxisMode: 'tick',
         },
         tooltipOptions: {
-          formatTooltipY: d => `${d} Processes`,
+          formatTooltipY: (d) => `${d} Processes`,
           // formatTooltipX: d => timestampToTime(d),
         },
       });
     },
-
-  },
-  created() {
-    this.overrideUpdateInterval = 20;
   },
 };
 </script>
 
 <style scoped lang="scss">
 .glances-load-history-wrapper {
-  .gl-history-chart {}
+  .gl-history-chart {
+  }
 }
 </style>

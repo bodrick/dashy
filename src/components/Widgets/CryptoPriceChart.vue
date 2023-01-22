@@ -1,5 +1,5 @@
 <template>
-<div class="crypto-price-chart" :id="chartId"></div>
+  <div :id="chartId" class="crypto-price-chart"></div>
 </template>
 
 <script>
@@ -10,8 +10,8 @@ import ChartingMixin from '@/mixins/ChartingMixin';
 import { widgetApiEndpoints } from '@/utils/defaults';
 
 export default {
-  mixins: [WidgetMixin, ChartingMixin],
   components: {},
+  mixins: [WidgetMixin, ChartingMixin],
   data() {
     return {
       chartData: null,
@@ -49,12 +49,14 @@ export default {
     },
     /* The formatted GET request API endpoint to fetch crypto data from */
     endpoint() {
-      return `${widgetApiEndpoints.cryptoPrices}${this.asset}/`
-      + `market_chart?vs_currency=${this.currency}&days=${this.numDays}`;
+      return (
+        `${widgetApiEndpoints.cryptoPrices}${this.asset}/` +
+        `market_chart?vs_currency=${this.currency}&days=${this.numDays}`
+      );
     },
     /* A sudo-random ID for the chart DOM element */
     chartId() {
-      return `crypto-price-chart-${Math.round(Math.random() * 10000)}`;
+      return `crypto-price-chart-${Math.round(Math.random() * 10_000)}`;
     },
   },
   methods: {
@@ -76,13 +78,14 @@ export default {
           xAxisMode: 'tick',
         },
         tooltipOptions: {
-          formatTooltipY: d => `${d} ${this.currency}`,
+          formatTooltipY: (d) => `${d} ${this.currency}`,
         },
       });
     },
     /* Make GET request to CoinGecko API endpoint */
     fetchData() {
-      axios.get(this.endpoint)
+      axios
+        .get(this.endpoint)
         .then((response) => {
           try {
             this.processData(response.data);
@@ -107,13 +110,18 @@ export default {
       const interval = Math.round(data.prices.length / this.dataPoints);
       const showTime = this.numDays < 5;
       // Counters for calculating averages between data points
-      let tmpCounter = 0; let tmpTotal = 0;
+      let tmpCounter = 0;
+      let tmpTotal = 0;
       const incrementAverage = (add) => {
-        tmpCounter += 1; tmpTotal += add;
-        if (add === null) { tmpCounter = 0; tmpTotal = 0; }
+        tmpCounter += 1;
+        tmpTotal += add;
+        if (add === null) {
+          tmpCounter = 0;
+          tmpTotal = 0;
+        }
       };
       // For each data point, calc average, and if interval is right, then append
-      data.prices.forEach((priceGroup, index) => {
+      for (const [index, priceGroup] of data.prices.entries()) {
         incrementAverage(priceGroup[1]); // Increment averages
         if (index % interval === 0) {
           const price = this.formatPrice(tmpTotal / tmpCounter);
@@ -121,7 +129,7 @@ export default {
           priceChartData.push(price);
           incrementAverage(null); // Reset counter
         }
-      });
+      }
       // Combine results with chart config
       this.chartData = {
         labels: priceLabels,
@@ -169,10 +177,13 @@ export default {
     text-transform: capitalize;
     color: var(--widget-text-color);
   }
-  .axis, .chart-label {
+  .axis,
+  .chart-label {
     fill: var(--widget-text-color);
     opacity: var(--dimming-factor);
-    &:hover { opacity: 1; }
+    &:hover {
+      opacity: 1;
+    }
   }
 }
 </style>

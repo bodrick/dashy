@@ -1,51 +1,51 @@
 <template>
-<div class="covid-stats-wrapper">
-  <div class="basic-stats" v-if="basicStats">
-    <div class="active-cases stat-wrap">
-      <span class="lbl">Active Cases</span>
-      <span class="val">{{ basicStats.active | numberFormat }}</span>
+  <div class="covid-stats-wrapper">
+    <div v-if="basicStats" class="basic-stats">
+      <div class="active-cases stat-wrap">
+        <span class="lbl">Active Cases</span>
+        <span class="val">{{ basicStats.active | numberFormat }}</span>
+      </div>
+      <div class="more-stats">
+        <div class="stat-wrap">
+          <span class="lbl">Total Confirmed</span>
+          <span class="val total">{{ basicStats.cases | numberFormat }}</span>
+        </div>
+        <div class="stat-wrap">
+          <span class="lbl">Total Recovered</span>
+          <span class="val recovered">{{ basicStats.recovered | numberFormat }}</span>
+        </div>
+        <div class="stat-wrap">
+          <span class="lbl">Total Deaths</span>
+          <span class="val deaths">{{ basicStats.deaths | numberFormat }}</span>
+        </div>
+      </div>
     </div>
-    <div class="more-stats">
-      <div class="stat-wrap">
-        <span class="lbl">Total Confirmed</span>
-        <span class="val total">{{ basicStats.cases | numberFormat }}</span>
-      </div>
-      <div class="stat-wrap">
-        <span class="lbl">Total Recovered</span>
-        <span class="val recovered">{{ basicStats.recovered | numberFormat }}</span>
-      </div>
-      <div class="stat-wrap">
-        <span class="lbl">Total Deaths</span>
-        <span class="val deaths">{{ basicStats.deaths | numberFormat }}</span>
+    <!-- Chart -->
+    <div v-if="showChart" :id="chartId" class="case-history-chart"></div>
+    <!-- Country Data -->
+    <div v-if="countryData" class="country-data">
+      <div v-for="country in countryData" :key="country.name" class="country-row">
+        <p class="name">
+          <img :src="country.flag" alt="Flag" class="flag" />
+          {{ country.name }}
+        </p>
+        <div class="country-case-wrap">
+          <div class="stat-wrap">
+            <span class="lbl">Confirmed</span>
+            <span class="val total">{{ country.cases | showInK }}</span>
+          </div>
+          <div class="stat-wrap">
+            <span class="lbl">Recovered</span>
+            <span class="val recovered">{{ country.recovered | showInK }}</span>
+          </div>
+          <div class="stat-wrap">
+            <span class="lbl">Deaths</span>
+            <span class="val deaths">{{ country.deaths | showInK }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
-  <!-- Chart -->
-  <div class="case-history-chart" :id="chartId" v-if="showChart"></div>
-  <!-- Country Data -->
-  <div class="country-data" v-if="countryData">
-    <div class="country-row" v-for="country in countryData" :key="country.name">
-      <p class="name">
-        <img :src="country.flag" alt="Flag" class="flag" />
-        {{ country.name }}
-      </p>
-      <div class="country-case-wrap">
-        <div class="stat-wrap">
-          <span class="lbl">Confirmed</span>
-          <span class="val total">{{ country.cases | showInK }}</span>
-        </div>
-        <div class="stat-wrap">
-          <span class="lbl">Recovered</span>
-          <span class="val recovered">{{ country.recovered | showInK }}</span>
-        </div>
-        <div class="stat-wrap">
-          <span class="lbl">Deaths</span>
-          <span class="val deaths">{{ country.deaths | showInK }}</span>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 </template>
 
 <script>
@@ -55,7 +55,21 @@ import { putCommasInBigNum, showNumAsThousand, timestampToDate } from '@/utils/M
 import { widgetApiEndpoints } from '@/utils/defaults';
 
 export default {
+  filters: {
+    numberFormat(caseNumber) {
+      return putCommasInBigNum(caseNumber);
+    },
+    showInK(caseNumber) {
+      return showNumAsThousand(caseNumber);
+    },
+  },
   mixins: [WidgetMixin, ChartingMixin],
+  data() {
+    return {
+      basicStats: null,
+      countryData: null,
+    };
+  },
   computed: {
     showChart() {
       return this.options.showChart || false;
@@ -83,20 +97,6 @@ export default {
       return 'https://covidapi.yubrajpoudel.com.np/stat';
     },
   },
-  data() {
-    return {
-      basicStats: null,
-      countryData: null,
-    };
-  },
-  filters: {
-    numberFormat(caseNumber) {
-      return putCommasInBigNum(caseNumber);
-    },
-    showInK(caseNumber) {
-      return showNumAsThousand(caseNumber);
-    },
-  },
   methods: {
     fetchData() {
       this.makeRequest(this.basicStatsEndpoint).then(this.processBasicStats);
@@ -112,7 +112,7 @@ export default {
     },
     processCountryInfo(data) {
       const countryData = [];
-      data.forEach((country) => {
+      for (const country of data) {
         const iso = country.countryInfo.iso3;
         if (!this.countries || this.countries.includes(iso)) {
           countryData.push({
@@ -123,7 +123,7 @@ export default {
             recovered: country.recovered,
           });
         }
-      });
+      }
       this.countryData = countryData.slice(0, this.limit);
     },
     processTimeSeries(data) {
@@ -131,11 +131,11 @@ export default {
       const totalCases = [];
       const totalDeaths = [];
       const totalRecovered = [];
-      timeLabels.forEach((date) => {
+      for (const date of timeLabels) {
         totalCases.push(data.cases[date]);
         totalDeaths.push(data.deaths[date]);
         totalRecovered.push(data.recovered[date]);
-      });
+      }
       const chartData = {
         labels: timeLabels,
         datasets: [
@@ -159,8 +159,8 @@ export default {
           xAxisMode: 'tick',
         },
         tooltipOptions: {
-          formatTooltipY: d => putCommasInBigNum(d),
-          formatTooltipX: d => timestampToDate(d),
+          formatTooltipY: (d) => putCommasInBigNum(d),
+          formatTooltipX: (d) => timestampToDate(d),
         },
       });
     },
@@ -194,36 +194,49 @@ export default {
     .country-case-wrap {
       min-width: 60%;
     }
-    &:not(:last-child) { border-bottom: 1px dashed var(--widget-text-color); }
+    &:not(:last-child) {
+      border-bottom: 1px dashed var(--widget-text-color);
+    }
   }
   .stat-wrap {
-      color: var(--widget-text-color);
-      display: flex;
-      flex-direction: column;
-      width: 33%;
-      margin: 0.25rem auto;
-      text-align: center;
-      cursor: default;
+    color: var(--widget-text-color);
+    display: flex;
+    flex-direction: column;
+    width: 33%;
+    margin: 0.25rem auto;
+    text-align: center;
+    cursor: default;
+    span.lbl {
+      font-size: 0.8rem;
+      opacity: var(--dimming-factor);
+    }
+    span.val {
+      font-weight: bold;
+      margin: 0.1rem 0;
+      font-family: var(--font-monospace);
+      &.total {
+        color: var(--warning);
+      }
+      &.recovered {
+        color: var(--success);
+      }
+      &.deaths {
+        color: var(--danger);
+      }
+    }
+    &.active-cases {
       span.lbl {
-        font-size: 0.8rem;
-        opacity: var(--dimming-factor);
+        font-size: 1.1rem;
       }
       span.val {
-        font-weight: bold;
-        margin: 0.1rem 0;
-        font-family: var(--font-monospace);
-        &.total { color: var(--warning); }
-        &.recovered { color: var(--success); }
-        &.deaths { color: var(--danger); }
-      }
-      &.active-cases {
-        span.lbl { font-size: 1.1rem; }
-        span.val { font-size: 1.3rem; }
+        font-size: 1.3rem;
       }
     }
-    .more-stats, .country-case-wrap {
-      display: flex;
-      justify-content: space-around;
-    }
+  }
+  .more-stats,
+  .country-case-wrap {
+    display: flex;
+    justify-content: space-around;
+  }
 }
 </style>

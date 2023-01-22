@@ -1,11 +1,14 @@
 <template>
-  <div :class="`widget-base ${ loading ? 'is-loading' : '' }`">
+  <div :class="`widget-base ${loading ? 'is-loading' : ''}`">
     <!-- Update and Full-Page Action Buttons  -->
-    <Button :click="update" class="action-btn update-btn" v-if="!hideControls && !loading">
+    <Button v-if="!hideControls && !loading" :click="update" class="action-btn update-btn">
       <UpdateIcon />
     </Button>
-    <Button :click="fullScreenWidget"
-      class="action-btn open-btn" v-if="!hideControls && !error && !loading">
+    <Button
+      v-if="!hideControls && !error && !loading"
+      :click="fullScreenWidget"
+      class="action-btn open-btn"
+    >
       <OpenIcon />
     </Button>
     <!-- Loading Spinner -->
@@ -19,15 +22,15 @@
       <p class="retry-link" @click="update">Retry</p>
     </div>
     <!-- Widget Label -->
-    <div class="widget-label" v-if="widgetOptions.label">{{ widgetOptions.label }}</div>
+    <div v-if="widgetOptions.label" class="widget-label">{{ widgetOptions.label }}</div>
     <!-- Widget -->
-    <div :class="`widget-wrap ${ error ? 'has-error' : '' }`">
+    <div :class="`widget-wrap ${error ? 'has-error' : ''}`">
       <component
-        v-bind:is="component"
+        :is="component"
+        :ref="widgetRef"
         :options="widgetOptions"
         @loading="setLoaderState"
         @error="handleError"
-        :ref="widgetRef"
       />
     </div>
   </div>
@@ -148,10 +151,15 @@ export default {
       const ignoreErrors = this.widget.ignoreErrors || false;
       const label = this.widget.label || null;
       const useProxy = this.appConfig.widgetsAlwaysUseProxy || !!this.widget.useProxy;
-      const updateInterval = this.widget.updateInterval !== undefined
-        ? this.widget.updateInterval : null;
+      const updateInterval =
+        this.widget.updateInterval === undefined ? null : this.widget.updateInterval;
       return {
-        timeout, ignoreErrors, label, useProxy, updateInterval, ...options,
+        timeout,
+        ignoreErrors,
+        label,
+        useProxy,
+        updateInterval,
+        ...options,
       };
     },
     /* A unique string to reference the widget by */
@@ -167,8 +175,11 @@ export default {
         ErrorHandler('Widget type was not found');
         return null;
       }
-      // eslint-disable-next-line prefer-template
-      return () => import('@/components/Widgets/' + type + '.vue').catch(() => import('@/components/Widgets/Blank.vue'));
+
+      return () =>
+        import('@/components/Widgets/' + type + '.vue').catch(() =>
+          import('@/components/Widgets/Blank.vue')
+        );
     },
   },
   methods: {
@@ -202,7 +213,7 @@ export default {
   background: var(--widget-base-background);
   box-shadow: var(--widget-base-shadow, none);
   // Refresh and full-page action buttons
-  button.action-btn  {
+  button.action-btn {
     height: 1rem;
     min-width: auto;
     width: 1.75rem;
@@ -235,7 +246,9 @@ export default {
       opacity: 0.5;
       border-radius: var(--curve-factor);
       background: #ffff0040;
-      &:hover { background: none; }
+      &:hover {
+        background: none;
+      }
     }
   }
   // Error message output
@@ -275,5 +288,4 @@ export default {
     }
   }
 }
-
 </style>

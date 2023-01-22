@@ -1,25 +1,25 @@
 <template>
-<div class="weather">
-  <!-- Icon + Temperature -->
-  <div class="intro">
-    <p class="temp">{{ temp }}</p>
-    <i :class="`owi owi-${icon}`"></i>
-  </div>
-  <!-- Weather description -->
-  <p class="description">{{ description }}</p>
-  <div class="details" v-if="showDetails && weatherDetails.length > 0">
-    <div class="info-wrap" v-for="(section, indx) in weatherDetails" :key="indx">
-      <p class="info-line" v-for="weather in section" :key="weather.label">
-          <span class="lbl">{{weather.label}}</span>
+  <div class="weather">
+    <!-- Icon + Temperature -->
+    <div class="intro">
+      <p class="temp">{{ temp }}</p>
+      <i :class="`owi owi-${icon}`"></i>
+    </div>
+    <!-- Weather description -->
+    <p class="description">{{ description }}</p>
+    <div v-if="showDetails && weatherDetails.length > 0" class="details">
+      <div v-for="(section, indx) in weatherDetails" :key="indx" class="info-wrap">
+        <p v-for="weather in section" :key="weather.label" class="info-line">
+          <span class="lbl">{{ weather.label }}</span>
           <span class="val">{{ weather.value }}</span>
         </p>
+      </div>
     </div>
+    <!-- Show/ hide toggle button -->
+    <p v-if="weatherDetails.length > 0" class="more-details-btn" @click="toggleDetails">
+      {{ showDetails ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
+    </p>
   </div>
-  <!-- Show/ hide toggle button -->
-  <p class="more-details-btn" @click="toggleDetails" v-if="weatherDetails.length > 0">
-    {{ showDetails ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
-  </p>
-</div>
 </template>
 
 <script>
@@ -38,9 +38,6 @@ export default {
       weatherDetails: [],
     };
   },
-  mounted() {
-    this.checkProps();
-  },
   computed: {
     units() {
       return this.options.units || 'metric';
@@ -51,18 +48,27 @@ export default {
     },
     tempDisplayUnits() {
       switch (this.units) {
-        case ('metric'): return '°C';
-        case ('imperial'): return '°F';
-        default: return '';
+        case 'metric':
+          return '°C';
+        case 'imperial':
+          return '°F';
+        default:
+          return '';
       }
     },
     speedDisplayUnits() {
       switch (this.units) {
-        case ('metric'): return 'm/s';
-        case ('imperial'): return 'mph';
-        default: return '';
+        case 'metric':
+          return 'm/s';
+        case 'imperial':
+          return 'mph';
+        default:
+          return '';
       }
     },
+  },
+  mounted() {
+    this.checkProps();
   },
   methods: {
     /* Adds units symbol to temperature, depending on metric or imperial */
@@ -108,7 +114,7 @@ export default {
       if (!ops.apiKey) this.error('Missing API key for OpenWeatherMap');
       if (!ops.city) this.error('A city name is required to fetch weather');
       if (ops.units && ops.units !== 'metric' && ops.units !== 'imperial') {
-        this.error('Invalid units specified, must be either \'metric\' or \'imperial\'');
+        this.error("Invalid units specified, must be either 'metric' or 'imperial'");
       }
     },
   },
@@ -122,9 +128,9 @@ export default {
   margin: 0 auto;
   display: flex;
 }
-  p {
-    color: var(--widget-text-color);
-  }
+p {
+  color: var(--widget-text-color);
+}
 
 .weather {
   display: grid;
@@ -166,7 +172,8 @@ export default {
     &:hover {
       border: 1px solid var(--widget-text-color);
     }
-    &:focus, &:active {
+    &:focus,
+    &:active {
       background: var(--widget-text-color);
       color: var(--widget-background-color);
     }
@@ -196,5 +203,4 @@ export default {
     }
   }
 }
-
 </style>

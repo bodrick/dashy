@@ -210,7 +210,7 @@ export default {
     /* Since Theme setter isn't loaded at this point, we must manually get and apply users theme */
     setTheme() {
       const theme = localStorage[localStorageKeys.THEME] || Defaults.theme;
-      document.getElementsByTagName('html')[0].dataset.theme = theme;
+      document.querySelectorAll('html')[0].dataset.theme = theme;
     },
   },
 };

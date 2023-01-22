@@ -7,8 +7,8 @@ import WidgetMixin from '@/mixins/WidgetMixin';
 import ChartingMixin from '@/mixins/ChartingMixin';
 
 export default {
-  mixins: [WidgetMixin, ChartingMixin],
   components: {},
+  mixins: [WidgetMixin, ChartingMixin],
   data() {
     return {
       status: null,
@@ -30,18 +30,17 @@ export default {
   methods: {
     /* Make GET request to local pi-hole instance */
     fetchData() {
-      this.makeRequest(this.endpoint)
-        .then((response) => {
-          if (this.validate(response)) {
-            this.processData(response);
-          }
-        });
+      this.makeRequest(this.endpoint).then((response) => {
+        if (this.validate(response)) {
+          this.processData(response);
+        }
+      });
     },
     validate(response) {
       if (!response.ads_over_time || !response.domains_over_time) {
         this.error('Expected data was not returned from Pi-Hole');
         return false;
-      } else if (response.ads_over_time.length < 1) {
+      } else if (response.ads_over_time.length === 0) {
         this.error('Request completed succesfully, but no data in Pi-Hole yet');
         return false;
       }
@@ -51,14 +50,14 @@ export default {
     processData(data) {
       const timeData = [];
       const domainsData = [];
-      Object.keys(data.domains_over_time).forEach((time) => {
+      for (const time of Object.keys(data.domains_over_time)) {
         timeData.push(this.formatTime(time * 1000));
         domainsData.push(data.domains_over_time[time]);
-      });
+      }
       const adsData = [];
-      Object.keys(data.ads_over_time).forEach((time) => {
+      for (const time of Object.keys(data.ads_over_time)) {
         adsData.push(data.ads_over_time[time]);
-      });
+      }
       const chartData = {
         labels: timeData,
         datasets: [

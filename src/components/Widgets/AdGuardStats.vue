@@ -1,13 +1,17 @@
 <template>
-<div class="ad-guard-stats-wrapper">
-  <!-- Show total query and block count -->
-  <div v-if="queryCount && blockCount" class="summary">
-    <div><span class="lbl">Queries:</span><span class="val">{{ queryCount }}</span></div>
-    <div><span class="lbl">Blocked:</span><span class="val">{{ blockCount }}</span></div>
+  <div class="ad-guard-stats-wrapper">
+    <!-- Show total query and block count -->
+    <div v-if="queryCount && blockCount" class="summary">
+      <div>
+        <span class="lbl">Queries:</span><span class="val">{{ queryCount }}</span>
+      </div>
+      <div>
+        <span class="lbl">Blocked:</span><span class="val">{{ blockCount }}</span>
+      </div>
+    </div>
+    <!-- Pie chart with block breakdown -->
+    <p :id="chartId" class="block-pie"></p>
   </div>
-  <!-- Pie chart with block breakdown -->
-  <p :id="chartId" class="block-pie"></p>
-</div>
 </template>
 
 <script>
@@ -16,6 +20,12 @@ import ChartingMixin from '@/mixins/ChartingMixin';
 
 export default {
   mixins: [WidgetMixin, ChartingMixin],
+  data() {
+    return {
+      queryCount: null,
+      blockCount: null,
+    };
+  },
   computed: {
     /* URL/ IP or hostname to the AdGuardHome instance, without trailing slash */
     hostname() {
@@ -32,12 +42,6 @@ export default {
       }
       return {};
     },
-  },
-  data() {
-    return {
-      queryCount: null,
-      blockCount: null,
-    };
   },
   methods: {
     /* Make GET request to AdGuard endpoint */
@@ -97,7 +101,7 @@ export default {
         strokeWidth: 20,
         colors,
         tooltipOptions: {
-          formatTooltipY: d => `${Math.round(d)} queries`,
+          formatTooltipY: (d) => `${Math.round(d)} queries`,
         },
       });
     },

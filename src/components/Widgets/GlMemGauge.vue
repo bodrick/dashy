@@ -1,18 +1,18 @@
 <template>
-<div class="glances-cpu-gauge-wrapper">
-  <GaugeChart :value="gaugeValue" :baseColor="background" :gaugeColor="gaugeColor">
-    <p class="percentage">{{ gaugeValue }}%</p>
-  </GaugeChart>
-  <p class="show-more-btn" @click="toggleMoreInfo">
-    {{ showMoreInfo ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
-  </p>
-  <div class="more-info" v-if="moreInfo && showMoreInfo">
-    <div class="more-info-row" v-for="(info, key) in moreInfo" :key="key">
-      <p class="label">{{ info.label }}</p>
-      <p class="value">{{ info.value }}</p>
+  <div class="glances-cpu-gauge-wrapper">
+    <GaugeChart :value="gaugeValue" :base-color="background" :gauge-color="gaugeColor">
+      <p class="percentage">{{ gaugeValue }}%</p>
+    </GaugeChart>
+    <p class="show-more-btn" @click="toggleMoreInfo">
+      {{ showMoreInfo ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
+    </p>
+    <div v-if="moreInfo && showMoreInfo" class="more-info">
+      <div v-for="(info, key) in moreInfo" :key="key" class="more-info-row">
+        <p class="label">{{ info.label }}</p>
+        <p class="value">{{ info.value }}</p>
+      </div>
     </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -22,10 +22,10 @@ import GaugeChart from '@/components/Charts/Gauge';
 import { getValueFromCss, capitalize, convertBytes } from '@/utils/MiscHelpers';
 
 export default {
-  mixins: [WidgetMixin, GlancesMixin],
   components: {
     GaugeChart,
   },
+  mixins: [WidgetMixin, GlancesMixin],
   data() {
     return {
       gaugeValue: 0,
@@ -40,17 +40,23 @@ export default {
       return this.makeGlancesUrl('mem');
     },
   },
+  created() {
+    this.overrideUpdateInterval = 2;
+  },
+  mounted() {
+    this.background = getValueFromCss('widget-accent-color');
+  },
   methods: {
     processData(memData) {
       this.gaugeValue = memData.percent;
       this.gaugeColor = this.getColor(memData.percent);
       const moreInfo = [];
-      const ignore = ['percent'];
-      Object.keys(memData).forEach((key) => {
-        if (!ignore.includes(key) && memData[key]) {
+      const ignore = new Set(['percent']);
+      for (const key of Object.keys(memData)) {
+        if (!ignore.has(key) && memData[key]) {
           moreInfo.push({ label: capitalize(key), value: convertBytes(memData[key]) });
         }
-      });
+      }
       this.moreInfo = moreInfo;
     },
     toggleMoreInfo() {
@@ -64,19 +70,13 @@ export default {
       return '#272f4d';
     },
   },
-  created() {
-    this.overrideUpdateInterval = 2;
-  },
-  mounted() {
-    this.background = getValueFromCss('widget-accent-color');
-  },
 };
 </script>
 
 <style scoped lang="scss">
 .glances-cpu-gauge-wrapper {
-    max-width: 18rem;
-    margin: 0.5rem auto;
+  max-width: 18rem;
+  margin: 0.5rem auto;
   p.percentage {
     color: var(--widget-text-color);
     text-align: center;
@@ -95,7 +95,8 @@ export default {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      p.label, p.value {
+      p.label,
+      p.value {
         color: var(--widget-text-color);
         margin: 0.25rem 0;
       }
@@ -121,7 +122,8 @@ export default {
     &:hover {
       border: 1px solid var(--widget-text-color);
     }
-    &:focus, &:active {
+    &:focus,
+    &:active {
       background: var(--widget-text-color);
       color: var(--widget-background-color);
     }

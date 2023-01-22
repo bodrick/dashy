@@ -1,10 +1,10 @@
 <template>
-<div class="xkcd-wrapper" v-tooltip="toolTip(alt)">
-  <h3 class="xkcd-title">{{ title }}</h3>
-  <a :href="`https://xkcd.com/${comicNum}/`">
-    <img :src="image" :alt="alt" class="xkcd-comic"/>
-  </a>
-</div>
+  <div v-tooltip="toolTip(alt)" class="xkcd-wrapper">
+    <h3 class="xkcd-title">{{ title }}</h3>
+    <a :href="`https://xkcd.com/${comicNum}/`">
+      <img :src="image" :alt="alt" class="xkcd-comic" />
+    </a>
+  </div>
 </template>
 
 <script>
@@ -13,8 +13,8 @@ import WidgetMixin from '@/mixins/WidgetMixin';
 import { widgetApiEndpoints } from '@/utils/defaults';
 
 export default {
-  mixins: [WidgetMixin],
   components: {},
+  mixins: [WidgetMixin],
   data() {
     return {
       image: null,
@@ -41,7 +41,8 @@ export default {
   methods: {
     /* Make GET request to CoinGecko API endpoint */
     fetchData() {
-      axios.get(this.endpoint)
+      axios
+        .get(this.endpoint)
         .then((response) => {
           this.processData(response.data);
         })
@@ -62,7 +63,11 @@ export default {
     toolTip(alt) {
       const content = alt;
       return {
-        content, html: false, trigger: 'hover focus', delay: 250, classes: 'xkcd-alt-tt',
+        content,
+        html: false,
+        trigger: 'hover focus',
+        delay: 250,
+        classes: 'xkcd-alt-tt',
       };
     },
   },
@@ -71,7 +76,7 @@ export default {
 
 <style scoped lang="scss">
 .xkcd-wrapper {
- .xkcd-title {
+  .xkcd-title {
     font-size: 1.2rem;
     margin: 0.25rem auto;
     color: var(--widget-text-color);
@@ -84,7 +89,6 @@ export default {
     border-radius: var(--curve-factor);
   }
 }
-
 </style>
 <style lang="scss">
 .xkcd-alt-tt {

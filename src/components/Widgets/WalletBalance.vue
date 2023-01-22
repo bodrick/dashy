@@ -1,42 +1,43 @@
 <template>
-<div class="wallet-balance-wrapper">
-  <p class="wallet-title">{{ getCoinNameFromSymbol(coin) }} Wallet</p>
-  <a v-if="metaInfo" :href="metaInfo.explorer" class="wallet-address">{{ address }}</a>
-  <div class="balance-inner">
-    <img v-if="metaInfo" :src="metaInfo.qrCode" alt="QR Code" class="wallet-qr" />
-    <div v-if="balances" class="balances-section">
-      <p class="main-balance" v-tooltip="makeBalanceTooltip(balances)">{{ balances.current }}</p>
-      <div class="balance-info">
-        <div class="balance-info-row">
-          <span class="label">Total In</span>
-          <span class="amount">+ {{ balances.totalReceived }}</span>
-        </div>
-        <div class="balance-info-row">
-          <span class="label">Total Out:</span>
-          <span class="amount">- {{ balances.totalSent }}</span>
-        </div>
-        <div class="balance-info-row">
-          <span class="label">Last Activity:</span>
-          <span class="amount">{{ balances.lastTransaction }}</span>
+  <div class="wallet-balance-wrapper">
+    <p class="wallet-title">{{ getCoinNameFromSymbol(coin) }} Wallet</p>
+    <a v-if="metaInfo" :href="metaInfo.explorer" class="wallet-address">{{ address }}</a>
+    <div class="balance-inner">
+      <img v-if="metaInfo" :src="metaInfo.qrCode" alt="QR Code" class="wallet-qr" />
+      <div v-if="balances" class="balances-section">
+        <p v-tooltip="makeBalanceTooltip(balances)" class="main-balance">{{ balances.current }}</p>
+        <div class="balance-info">
+          <div class="balance-info-row">
+            <span class="label">Total In</span>
+            <span class="amount">+ {{ balances.totalReceived }}</span>
+          </div>
+          <div class="balance-info-row">
+            <span class="label">Total Out:</span>
+            <span class="amount">- {{ balances.totalSent }}</span>
+          </div>
+          <div class="balance-info-row">
+            <span class="label">Last Activity:</span>
+            <span class="amount">{{ balances.lastTransaction }}</span>
+          </div>
         </div>
       </div>
     </div>
+    <div v-if="transactions" class="transactions">
+      <p class="transactions-title">Recent Transactions</p>
+      <a
+        v-for="transaction in transactions"
+        :key="transaction.hash"
+        v-tooltip="makeTransactionTooltip(transaction)"
+        class="transaction-row"
+        :href="transaction.url"
+      >
+        <span class="date">{{ transaction.date }}</span>
+        <span :class="`amount ${transaction.incoming ? 'in' : 'out'}`">
+          {{ transaction.incoming ? '+' : '-' }}{{ transaction.amount }}
+        </span>
+      </a>
+    </div>
   </div>
-  <div class="transactions" v-if="transactions">
-    <p class="transactions-title">Recent Transactions</p>
-    <a class="transaction-row"
-      v-for="transaction in transactions"
-      :key="transaction.hash"
-      :href="transaction.url"
-      v-tooltip="makeTransactionTooltip(transaction)"
-    >
-      <span class="date">{{ transaction.date }}</span>
-      <span :class="`amount ${transaction.incoming ? 'in' : 'out'}`">
-        {{ transaction.incoming ? '+' : '-'}}{{ transaction.amount }}
-      </span>
-    </a>
-  </div>
-</div>
 </template>
 
 <script>
@@ -46,9 +47,16 @@ import { timestampToDate, timestampToTime, getTimeAgo } from '@/utils/MiscHelper
 
 export default {
   mixins: [WidgetMixin],
+  data() {
+    return {
+      balances: null,
+      metaInfo: null,
+      transactions: null,
+    };
+  },
   computed: {
     coin() {
-      if (!this.options.coin) this.error('You must specify a coin, e.g. \'BTC\'');
+      if (!this.options.coin) this.error("You must specify a coin, e.g. 'BTC'");
       return this.options.coin.toLowerCase();
     },
     address() {
@@ -62,23 +70,24 @@ export default {
       return this.options.limit || 10;
     },
     endpoint() {
-      return `${widgetApiEndpoints.walletBalance}/`
-      + `${this.coin}/${this.network}/addrs/${this.address}`;
+      return (
+        `${widgetApiEndpoints.walletBalance}/` +
+        `${this.coin}/${this.network}/addrs/${this.address}`
+      );
     },
     divisionFactor() {
       switch (this.coin) {
-        case ('btc'): return 100000000;
-        case ('eth'): return 1000000000000000000;
-        default: return 1;
+        case 'btc':
+          return 100_000_000;
+        case 'eth':
+          return 1_000_000_000_000_000_000;
+        default:
+          return 1;
       }
     },
   },
-  data() {
-    return {
-      balances: null,
-      metaInfo: null,
-      transactions: null,
-    };
+  mounted() {
+    this.metaInfo = this.makeMetaInfo();
   },
   methods: {
     fetchData() {
@@ -99,7 +108,7 @@ export default {
         lastTransaction: data.txrefs[0] ? getTimeAgo(data.txrefs[0].confirmed) : 'Never',
       };
       const transactions = [];
-      data.txrefs.forEach((transaction) => {
+      for (const transaction of data.txrefs) {
         transactions.push({
           hash: transaction.tx_hash,
           amount: formatAmount(transaction.value),
@@ -111,7 +120,7 @@ export default {
           incoming: transaction.tx_input_n === -1,
           url: `https://live.blockcypher.com/${this.coin}/tx/${transaction.tx_hash}/`,
         });
-      });
+      }
       this.transactions = transactions.slice(0, this.limit);
     },
     getCoinNameFromSymbol(symbol) {
@@ -132,28 +141,26 @@ export default {
     makeBalanceTooltip(balances) {
       return this.tooltip(
         `<b>Unconfirmed:</b> ${balances.unconfirmed}<br><b>Final:</b> ${balances.final}`,
-        true,
+        true
       );
     },
     makeTransactionTooltip(transaction) {
       return this.tooltip(
-        `At ${transaction.time}<br>`
-        + `<b>BlockHeight:</b> ${transaction.blockHeight}<br>`
-        + `<b>Confirmations:</b> ${transaction.confirmations}<br>`
-        + `<b>Balance After:</b> ${transaction.balance}`,
-        true,
+        `At ${transaction.time}<br>` +
+          `<b>BlockHeight:</b> ${transaction.blockHeight}<br>` +
+          `<b>Confirmations:</b> ${transaction.confirmations}<br>` +
+          `<b>Balance After:</b> ${transaction.balance}`,
+        true
       );
     },
     makeMetaInfo() {
       const explorer = `https://live.blockcypher.com/${this.coin}/address/${this.address}/`;
       const coin = this.getCoinNameFromSymbol(this.coin).toLowerCase();
-      const qrCode = `${widgetApiEndpoints.walletQrCode}/`
-      + `?style=${coin.toLowerCase()}&color=11&address=${this.address}`;
+      const qrCode =
+        `${widgetApiEndpoints.walletQrCode}/` +
+        `?style=${coin.toLowerCase()}&color=11&address=${this.address}`;
       return { explorer, coin, qrCode };
     },
-  },
-  mounted() {
-    this.metaInfo = this.makeMetaInfo();
   },
 };
 </script>
@@ -202,7 +209,8 @@ export default {
       }
     }
   }
-  p.wallet-title, p.transactions-title {
+  p.wallet-title,
+  p.transactions-title {
     color: var(--widget-text-color);
     margin: 0.5rem 0 0.25rem;
     font-size: 1.2rem;
@@ -219,10 +227,16 @@ export default {
       font-family: var(--font-monospace);
     }
     span.amount {
-      &.in { color: var(--success); }
-      &.out { color: var(--danger); }
+      &.in {
+        color: var(--success);
+      }
+      &.out {
+        color: var(--danger);
+      }
     }
-    &:not(:last-child) { border-bottom: 1px dashed var(--widget-text-color); }
+    &:not(:last-child) {
+      border-bottom: 1px dashed var(--widget-text-color);
+    }
   }
 }
 </style>

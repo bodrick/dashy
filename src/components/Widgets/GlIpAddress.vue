@@ -1,22 +1,22 @@
 <template>
-<div class="glances-ip-addr-wrapper" v-if="ipAddresses">
-  <div class="ip-row public-ip" v-if="ipAddresses.public_address">
-    <span class="lbl">Public IP</span>
-    <span class="val">{{ ipAddresses.public_address }}</span>
+  <div v-if="ipAddresses" class="glances-ip-addr-wrapper">
+    <div v-if="ipAddresses.public_address" class="ip-row public-ip">
+      <span class="lbl">Public IP</span>
+      <span class="val">{{ ipAddresses.public_address }}</span>
+    </div>
+    <div v-if="ipAddresses.address" class="ip-row">
+      <span class="lbl">Local Address</span>
+      <span class="val">{{ ipAddresses.address }}</span>
+    </div>
+    <div v-if="ipAddresses.gateway" class="ip-row">
+      <span class="lbl">Gateway</span>
+      <span class="val">{{ ipAddresses.gateway }}</span>
+    </div>
+    <div v-if="ipAddresses.mask" class="ip-row">
+      <span class="lbl">Mask</span>
+      <span class="val">{{ ipAddresses.mask }}</span>
+    </div>
   </div>
-  <div class="ip-row" v-if="ipAddresses.address">
-    <span class="lbl">Local Address</span>
-    <span class="val">{{ ipAddresses.address }}</span>
-  </div>
-  <div class="ip-row" v-if="ipAddresses.gateway">
-    <span class="lbl">Gateway</span>
-    <span class="val">{{ ipAddresses.gateway }}</span>
-  </div>
-  <div class="ip-row" v-if="ipAddresses.mask">
-    <span class="lbl">Mask</span>
-    <span class="val">{{ ipAddresses.mask }}</span>
-  </div>
-</div>
 </template>
 
 <script>
@@ -24,6 +24,7 @@ import WidgetMixin from '@/mixins/WidgetMixin';
 import GlancesMixin from '@/mixins/GlancesMixin';
 
 export default {
+  filters: {},
   mixins: [WidgetMixin, GlancesMixin],
   data() {
     return {
@@ -35,7 +36,6 @@ export default {
       return this.makeGlancesUrl('ip');
     },
   },
-  filters: {},
   methods: {
     processData(ipData) {
       this.ipAddresses = ipData;

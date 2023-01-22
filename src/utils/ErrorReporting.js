@@ -16,7 +16,9 @@ const ErrorReporting = (Vue, router) => {
   // Check if error reporting is enabled. Only proceed if user has turned it on.
   if (appConfig.enableErrorReporting) {
     // Get current app version
-    const appVersion = import.meta.env.VITE_APP_VERSION ? `Dashy@${import.meta.env.VITE_APP_VERSION}` : '';
+    const appVersion = import.meta.env.VITE_APP_VERSION
+      ? `Dashy@${import.meta.env.VITE_APP_VERSION}`
+      : '';
     // Import Sentry
     const Sentry = require('@sentry/vue');
     const { Integrations } = require('@sentry/tracing');

@@ -1,7 +1,7 @@
 <template>
-<div class="image-widget">
-  <img :src="imagePath" :style="imageDimensions" class="embedded-image" />
-</div>
+  <div class="image-widget">
+    <img :src="imagePath" :style="imageDimensions" class="embedded-image" />
+  </div>
 </template>
 
 <script>
@@ -24,12 +24,15 @@ export default {
       if (!this.options.imageWidth && !this.options.imageHeight) return null;
       // Apply correct units to input val, if needed
       const makeDimensionsUnit = (userVal) => {
-        if (!userVal) { // Nothing set, use auto
+        if (!userVal) {
+          // Nothing set, use auto
           return 'auto';
-        } else if (!Number.isNaN(Number(userVal))) { // Number set, add px
-          return `${userVal}px`;
-        } else { // Value is string, likely already includes units
+        } else if (Number.isNaN(Number(userVal))) {
+          // Value is string, likely already includes units
           return userVal;
+        } else {
+          // Number set, add px
+          return `${userVal}px`;
         }
       };
       // Return CSS values for width and height

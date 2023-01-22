@@ -1,5 +1,5 @@
 <template>
-<div class="crypto-price-chart" :id="chartId"></div>
+  <div :id="chartId" class="crypto-price-chart"></div>
 </template>
 
 <script>
@@ -10,8 +10,8 @@ import ChartingMixin from '@/mixins/ChartingMixin';
 import { widgetApiEndpoints } from '@/utils/defaults';
 
 export default {
-  mixins: [WidgetMixin, ChartingMixin],
   components: {},
+  mixins: [WidgetMixin, ChartingMixin],
   data() {
     return {
       chartData: null,
@@ -25,7 +25,7 @@ export default {
     },
     /* The time interval between data points, in minutes */
     interval() {
-      return `${(this.options.interval || 30)}min`;
+      return `${this.options.interval || 30}min`;
     },
     /* The users API key for AlphaVantage */
     apiKey() {
@@ -34,8 +34,10 @@ export default {
     /* The formatted GET request API endpoint to fetch stock data from */
     endpoint() {
       const func = 'TIME_SERIES_INTRADAY';
-      return `${widgetApiEndpoints.stockPriceChart}?function=${func}`
-      + `&symbol=${this.stock}&interval=${this.interval}&apikey=${this.apiKey}`;
+      return (
+        `${widgetApiEndpoints.stockPriceChart}?function=${func}` +
+        `&symbol=${this.stock}&interval=${this.interval}&apikey=${this.apiKey}`
+      );
     },
     /* The number of data points to render on the chart */
     dataPoints() {
@@ -47,18 +49,24 @@ export default {
     },
     /* A sudo-random ID for the chart DOM element */
     chartId() {
-      return `stock-price-chart-${Math.round(Math.random() * 10000)}`;
+      return `stock-price-chart-${Math.round(Math.random() * 10_000)}`;
     },
     /* Which price for each interval should be used (API requires in stupid format) */
     priceTime() {
       const usersChoice = this.options.priceTime || 'high';
       switch (usersChoice) {
-        case ('open'): return '1. open';
-        case ('high'): return '2. high';
-        case ('low'): return '3. low';
-        case ('close'): return '4. close';
-        case ('volume'): return '5. volume';
-        default: return '2. high';
+        case 'open':
+          return '1. open';
+        case 'high':
+          return '2. high';
+        case 'low':
+          return '3. low';
+        case 'close':
+          return '4. close';
+        case 'volume':
+          return '5. volume';
+        default:
+          return '2. high';
       }
     },
   },
@@ -81,13 +89,14 @@ export default {
           xAxisMode: 'tick',
         },
         tooltipOptions: {
-          formatTooltipY: d => `$${d}`,
+          formatTooltipY: (d) => `$${d}`,
         },
       });
     },
     /* Make GET request to CoinGecko API endpoint */
     fetchData() {
-      axios.get(this.endpoint)
+      axios
+        .get(this.endpoint)
         .then((response) => {
           if (response.data.note) {
             this.error('API Error', response.data.Note);
@@ -113,18 +122,16 @@ export default {
       const dataKey = `Time Series (${this.interval})`;
       const rawMarketData = data[dataKey];
       const interval = Math.round(Object.keys(rawMarketData).length / this.dataPoints);
-      Object.keys(rawMarketData).forEach((timeGroup, index) => {
+      for (const [index, timeGroup] of Object.keys(rawMarketData).entries()) {
         if (index % interval === 0) {
           priceLabels.push(this.formatDate(timeGroup));
           priceValues.push(this.formatPrice(rawMarketData[timeGroup][this.priceTime]));
         }
-      });
+      }
       // // Combine results with chart config
       this.chartData = {
         labels: priceLabels.reverse(),
-        datasets: [
-          { name: `Price ${this.priceTime}`, type: 'bar', values: priceValues.reverse() },
-        ],
+        datasets: [{ name: `Price ${this.priceTime}`, type: 'bar', values: priceValues.reverse() }],
       };
       // // Call chart render function
       this.renderChart();
@@ -141,7 +148,7 @@ export default {
     },
     /* Format the price, rounding to given number of decimal places */
     formatPrice(priceStr) {
-      const price = parseFloat(priceStr);
+      const price = Number.parseFloat(priceStr);
       let numDecimals = 0;
       if (price < 10) numDecimals = 1;
       if (price < 1) numDecimals = 2;
@@ -160,10 +167,13 @@ export default {
     text-transform: capitalize;
     color: var(--widget-text-color);
   }
-  .axis, .chart-label {
+  .axis,
+  .chart-label {
     fill: var(--widget-text-color);
     opacity: var(--dimming-factor);
-    &:hover { opacity: 1; }
+    &:hover {
+      opacity: 1;
+    }
   }
 }
 </style>

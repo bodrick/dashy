@@ -89,7 +89,7 @@
 </template>
 
 <script>
-document.getElementsByTagName('html')[0].dataset.theme = 'callisto';
+document.querySelectorAll('html')[0].dataset.theme = 'callisto';
 </script>
 
 <style scoped lang="scss">

@@ -1,19 +1,19 @@
 <template>
-<div class="ad-guard-dns-info-wrapper">
-  <div class="enable-status" v-if="enabled !== null">
-    <p v-if="enabled"  class="status connected"><span>✔</span> Enabled</p>
-    <p v-else class="status not-connected"><span>✘</span> Disabled</p>
-  </div>
-  <p @click="toggleShowData" v-if="dnsInfo.length > 0" class="expend-details-btn">
-    {{ showData ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
-  </p>
-  <div v-if="showData && dnsInfo.length > 0" class="dns-info">
-    <div v-for="(item, index) in dnsInfo" :key="index" class="row">
-      <span class="lbl">{{ item.lbl }}: </span>
-      <span class="val">{{ item.val | renderVal }}</span>
+  <div class="ad-guard-dns-info-wrapper">
+    <div v-if="enabled !== null" class="enable-status">
+      <p v-if="enabled" class="status connected"><span>✔</span> Enabled</p>
+      <p v-else class="status not-connected"><span>✘</span> Disabled</p>
+    </div>
+    <p v-if="dnsInfo.length > 0" class="expend-details-btn" @click="toggleShowData">
+      {{ showData ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
+    </p>
+    <div v-if="showData && dnsInfo.length > 0" class="dns-info">
+      <div v-for="(item, index) in dnsInfo" :key="index" class="row">
+        <span class="lbl">{{ item.lbl }}: </span>
+        <span class="val">{{ item.val | renderVal }}</span>
+      </div>
     </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -21,7 +21,24 @@ import WidgetMixin from '@/mixins/WidgetMixin';
 import { capitalize } from '@/utils/MiscHelpers';
 
 export default {
+  filters: {
+    renderVal(val) {
+      if (val === undefined) return 'N/A';
+      if (Array.isArray(val) && val.length === 0) return 'N/A';
+      if (typeof val === 'boolean') return val ? '✔' : '✘';
+      if (typeof val === 'string') return capitalize(val);
+      if (Array.isArray(val)) return val.join('\n');
+      return val;
+    },
+  },
   mixins: [WidgetMixin],
+  data() {
+    return {
+      enabled: null,
+      dnsInfo: [],
+      showData: false,
+    };
+  },
   computed: {
     /* URL/ IP or hostname to the AdGuardHome instance, without trailing slash */
     hostname() {
@@ -45,22 +62,8 @@ export default {
       return {};
     },
   },
-  data() {
-    return {
-      enabled: null,
-      dnsInfo: [],
-      showData: false,
-    };
-  },
-  filters: {
-    renderVal(val) {
-      if (val === undefined) return 'N/A';
-      if (Array.isArray(val) && val.length === 0) return 'N/A';
-      if (typeof val === 'boolean') return val ? '✔' : '✘';
-      if (typeof val === 'string') return capitalize(val);
-      if (Array.isArray(val)) return val.join('\n');
-      return val;
-    },
+  mounted() {
+    if (this.showFullInfo) this.showData = true;
   },
   methods: {
     /* Make GET request to AdGuard endpoint */
@@ -96,9 +99,6 @@ export default {
       this.showData = !this.showData;
     },
   },
-  mounted() {
-    if (this.showFullInfo) this.showData = true;
-  },
 };
 </script>
 
@@ -106,30 +106,34 @@ export default {
 .ad-guard-dns-info-wrapper {
   color: var(--widget-text-color);
   .enable-status {
-      .status {
-        display: flex;
-        max-width: 250px;
+    .status {
+      display: flex;
+      max-width: 250px;
+      font-size: 1.5rem;
+      font-weight: bold;
+      align-items: center;
+      margin: 0.25rem auto;
+      justify-content: space-evenly;
+      span {
         font-size: 1.5rem;
-        font-weight: bold;
-        align-items: center;
-        margin: 0.25rem auto;
-        justify-content: space-evenly;
+        border-radius: 1.5rem;
+        padding: 0.3rem 0.7rem;
+        border: 1px solid;
+        color: var(--background);
+      }
+      &.not-connected {
+        color: var(--danger);
         span {
-          font-size: 1.5rem;
-          border-radius: 1.5rem;
-          padding: 0.3rem 0.7rem;
-          border: 1px solid;
-          color: var(--background);
-        }
-        &.not-connected {
-          color: var(--danger);
-          span { background: var(--danger); }
-        }
-        &.connected {
-          color: var(--success);
-          span { background: var(--success); }
+          background: var(--danger);
         }
       }
+      &.connected {
+        color: var(--success);
+        span {
+          background: var(--success);
+        }
+      }
+    }
   }
 
   p.expend-details-btn {
@@ -145,7 +149,8 @@ export default {
     &:hover {
       text-decoration: underline;
     }
-    &:focus, &:active {
+    &:focus,
+    &:active {
       background: var(--widget-text-color);
       color: var(--widget-background-color);
     }

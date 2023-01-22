@@ -1,19 +1,27 @@
 <template>
   <div v-if="icon" :class="`item-icon wrapper-${size}`">
     <!-- Font-Awesome Icon -->
-    <i v-if="iconType === 'font-awesome'" :class="`${icon} ${size}`" ></i>
+    <i v-if="iconType === 'font-awesome'" :class="`${icon} ${size}`"></i>
     <!-- Emoji Icon -->
-    <i v-else-if="iconType === 'emoji'" :class="`emoji-icon ${size}`" >{{getEmoji(iconPath)}}</i>
+    <i v-else-if="iconType === 'emoji'" :class="`emoji-icon ${size}`">{{ getEmoji(iconPath) }}</i>
     <!-- Material Design Icon -->
-    <span v-else-if="iconType === 'mdi'" :class=" `mdi ${icon} ${size}`"></span>
+    <span v-else-if="iconType === 'mdi'" :class="`mdi ${icon} ${size}`"></span>
     <!-- Simple-Icons -->
-    <svg v-else-if="iconType === 'si' && !broken" :class="`simple-icons ${size}`"
-      role="img" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <svg
+      v-else-if="iconType === 'si' && !broken"
+      :class="`simple-icons ${size}`"
+      role="img"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
       <path :d="getSimpleIcon(icon)" />
     </svg>
     <!-- Standard image asset icon -->
-    <img v-else-if="icon" :src="iconPath" @error="imageNotFound"
+    <img
+      v-else-if="icon"
+      :src="iconPath"
       :class="`tile-icon ${size} ${broken ? 'broken' : ''}`"
+      @error="imageNotFound"
     />
     <!-- Icon could not load/ broken url -->
     <BrokenImage v-if="broken" :class="`missing-image ${size}`" />
@@ -31,13 +39,19 @@ import { faviconApi as defaultFaviconApi, faviconApiEndpoints, iconCdns } from '
 
 export default {
   name: 'Icon',
+  components: {
+    BrokenImage, // Used when the desired image returns a 404
+  },
   props: {
     icon: String, // Path to icon asset
     url: String, // Used for fetching the favicon
     size: String, // Either small, medium or large
   },
-  components: {
-    BrokenImage, // Used when the desired image returns a 404
+  data() {
+    return {
+      broken: false, // If true, was unable to resolve icon
+      attemptedFallback: false,
+    };
   },
   computed: {
     /* Get appConfig from store */
@@ -53,12 +67,6 @@ export default {
       if (this.broken) return this.getFallbackIcon();
       return this.getIconPath(this.icon, this.url);
     },
-  },
-  data() {
-    return {
-      broken: false, // If true, was unable to resolve icon
-      attemptedFallback: false,
-    };
   },
   methods: {
     /* Determine icon type, e.g. local or remote asset, SVG, favicon, font-awesome, etc */
@@ -81,22 +89,35 @@ export default {
     /* Return the path to icon asset, depending on icon type */
     getIconPath(img, url) {
       switch (this.determineImageType(img)) {
-        case 'url': return img;
-        case 'img': return this.getLocalImagePath(img);
-        case 'favicon': return this.getFavicon(url);
-        case 'custom-favicon': return this.getCustomFavicon(url, img);
-        case 'generative': return this.getGenerativeIcon(url);
-        case 'mdi': return img; // Material design icons
-        case 'simple-icons': return this.getSimpleIcon(img);
-        case 'home-lab-icons': return this.getHomeLabIcon(img);
-        case 'svg': return img; // Local SVG icon
-        case 'emoji': return img; // Emoji/ unicode
-        default: return '';
+        case 'url':
+          return img;
+        case 'img':
+          return this.getLocalImagePath(img);
+        case 'favicon':
+          return this.getFavicon(url);
+        case 'custom-favicon':
+          return this.getCustomFavicon(url, img);
+        case 'generative':
+          return this.getGenerativeIcon(url);
+        case 'mdi':
+          return img; // Material design icons
+        case 'simple-icons':
+          return this.getSimpleIcon(img);
+        case 'home-lab-icons':
+          return this.getHomeLabIcon(img);
+        case 'svg':
+          return img; // Local SVG icon
+        case 'emoji':
+          return img; // Emoji/ unicode
+        default:
+          return '';
       }
     },
     /* Check if a string is in a URL format. Used to identify tile icon source */
     isUrl(str) {
-      const pattern = new RegExp(/(http|https):\/\/(\w+:{0,1}\w*)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%!\-/]))?/);
+      const pattern = new RegExp(
+        /(http|https):\/\/(\w+:{0,1}\w*)?(\S+)(:\d+)?(\/|\/([\w!#%&+./:=?\-]))?/
+      );
       return pattern.test(str);
     },
     /* Returns true if the input is a path to an image file */
@@ -104,16 +125,18 @@ export default {
       const fileExtRegex = /(?:\.([^.]+))?$/;
       const validImgExtensions = ['svg', 'png', 'jpg'];
       const splitPath = fileExtRegex.exec(img);
-      if (splitPath.length >= 1) return validImgExtensions.includes(splitPath[1]);
+      if (splitPath.length > 0) return validImgExtensions.includes(splitPath[1]);
       return false;
     },
     /* Determines if a given string is an emoji, and if so what type it is */
     isEmoji(img) {
-      if (EmojiUnicodeRegex.test(img) && img.match(/./gu).length) { // Is a unicode emoji
+      if (EmojiUnicodeRegex.test(img) && img.match(/./gu).length > 0) {
+        // Is a unicode emoji
         return { isEmoji: true, emojiType: 'glyph' };
-      } else if (new RegExp(/^:.*:$/).test(img)) { // Is a shortcode emoji
+      } else if (new RegExp(/^:.*:$/).test(img)) {
+        // Is a shortcode emoji
         return { isEmoji: true, emojiType: 'shortcode' };
-      } else if (img.substring(0, 2) === 'U+' && img.length === 7) {
+      } else if (img.slice(0, 2) === 'U+' && img.length === 7) {
         return { isEmoji: true, emojiType: 'unicode' };
       }
       return { isEmoji: false, emojiType: '' };
@@ -130,12 +153,20 @@ export default {
     /* Formats and gets emoji from either unicode, shortcode or glyph */
     getEmoji(emojiCode) {
       const { emojiType } = this.isEmoji(emojiCode);
-      if (emojiType === 'shortcode') { // Short code emoji
-        return this.getShortCodeEmoji(emojiCode);
-      } else if (emojiType === 'unicode') { // Unicode emoji
-        return String.fromCodePoint(parseInt(emojiCode.substr(2), 16));
-      } else if (emojiType === 'glyph') { // Emoji is a glyph
-        return emojiCode;
+      switch (emojiType) {
+        case 'shortcode':
+          // Short code emoji
+          return this.getShortCodeEmoji(emojiCode);
+
+        case 'unicode':
+          // Unicode emoji
+          return String.fromCodePoint(Number.parseInt(emojiCode.slice(2), 16));
+
+        case 'glyph':
+          // Emoji is a glyph
+          return emojiCode;
+
+        // No default
       }
       this.imageNotFound(`Unrecognized emoji: '${emojiCode}'`);
       return null;
@@ -144,10 +175,13 @@ export default {
     getFavicon(fullUrl, specificApi) {
       const fullUrlTrue = fullUrl || '';
       const faviconApi = specificApi || this.appConfig.faviconApi || defaultFaviconApi;
-      if (this.shouldUseDefaultFavicon(fullUrlTrue) || faviconApi === 'local') { // Check if we should use local icon
+      if (this.shouldUseDefaultFavicon(fullUrlTrue) || faviconApi === 'local') {
+        // Check if we should use local icon
         const urlParts = fullUrlTrue.split('/');
-        if (urlParts.length >= 2) return `${urlParts[0]}/${urlParts[1]}/${urlParts[2]}/${iconCdns.faviconName}`;
-      } else if (fullUrlTrue.includes('http')) { // Service is running publicly
+        if (urlParts.length >= 2)
+          return `${urlParts[0]}/${urlParts[1]}/${urlParts[2]}/${iconCdns.faviconName}`;
+      } else if (fullUrlTrue.includes('http')) {
+        // Service is running publicly
         const host = this.getHostName(fullUrlTrue);
         const endpoint = faviconApiEndpoints[faviconApi];
         return endpoint.replace('$URL', host);
@@ -167,13 +201,14 @@ export default {
       }
       // Error encountered, favicon service not found
       this.imageNotFound(errorMsg);
-      return undefined;
+      return;
     },
     /* If using favicon for icon, and if service is running locally (determined by local IP) */
     /* or if user prefers local favicon, then return true */
     shouldUseDefaultFavicon(fullUrl) {
-      const isLocalIP = /(127\.)|(192\.168\.)|(10\.)|(172\.1[6-9]\.)|(172\.2[0-9]\.)|(172\.3[0-1]\.)|(::1$)|([fF][cCdD])|(localhost)/;
-      return (isLocalIP.test(fullUrl) || this.appConfig.faviconApi === 'local');
+      const isLocalIP =
+        /(127\.)|(192\.168\.)|(10\.)|(172\.1[6-9]\.)|(172\.2\d\.)|(172\.3[01]\.)|(::1$)|([Ff][CDcd])|(localhost)/;
+      return isLocalIP.test(fullUrl) || this.appConfig.faviconApi === 'local';
     },
     /* Fetches the path of local images, from Docker container */
     getLocalImagePath(img) {
@@ -203,7 +238,7 @@ export default {
     getHostName(url) {
       try {
         return new URL(url).hostname;
-      } catch (e) {
+      } catch {
         ErrorHandler('Unable to format URL');
         return url;
       }
@@ -213,20 +248,24 @@ export default {
       let outputMessage = '';
       if (errorMsg && typeof errorMsg === 'string') {
         outputMessage = errorMsg;
-      } else if (!this.icon) {
-        outputMessage = 'Icon not specified';
-      } else {
+      } else if (this.icon) {
         outputMessage = `The path to '${this.icon}' could not be resolved`;
+      } else {
+        outputMessage = 'Icon not specified';
       }
       ErrorHandler(outputMessage);
       this.broken = true;
     },
     /* Called when initial icon has resulted in 404. Attempts to find new icon */
     getFallbackIcon() {
-      if (this.attemptedFallback) return undefined; // If this is second attempt, then give up
+      if (this.attemptedFallback) return; // If this is second attempt, then give up
       const iconType = this.iconType || '';
-      const markAsAttempted = () => { this.broken = false; this.attemptedFallback = true; };
-      if (iconType.includes('favicon')) { // Specify fallback for favicon-based icons
+      const markAsAttempted = () => {
+        this.broken = false;
+        this.attemptedFallback = true;
+      };
+      if (iconType.includes('favicon')) {
+        // Specify fallback for favicon-based icons
         markAsAttempted();
         return this.getFavicon(this.url, 'local');
       } else if (iconType === 'generative') {
@@ -236,14 +275,13 @@ export default {
         markAsAttempted();
         return this.getHomeLabIcon(this.icon, iconCdns.homeLabIconsFallback);
       }
-      return undefined;
+      return;
     },
   },
 };
 </script>
 
 <style lang="scss">
-
 /* Icon wraper */
 .item-icon {
   &.wrapper-medium {
@@ -255,82 +293,93 @@ export default {
   }
 }
 
-  /* Default Image Icon */
-  .tile-icon {
-      min-width: 1rem;
-      max-width: 2rem;
-      min-height: 1rem;
-      max-height: 2rem;
-      object-fit: cover;
-      filter: var(--item-icon-transform);
-      border-radius: var(--curve-factor);
-      &.small {
-        max-width: 1.5rem;
-        max-height: 1.5rem;
-      }
-      &.large {
-        max-width: 3rem;
-        max-height: 3rem;
-      }
-      &.broken {
-        display: none;
-      }
+/* Default Image Icon */
+.tile-icon {
+  min-width: 1rem;
+  max-width: 2rem;
+  min-height: 1rem;
+  max-height: 2rem;
+  object-fit: cover;
+  filter: var(--item-icon-transform);
+  border-radius: var(--curve-factor);
+  &.small {
+    max-width: 1.5rem;
+    max-height: 1.5rem;
   }
-  /* Font-Awesome and Material Design Icons */
-  i.fas, i.fab, i.far, i.fal, i.fad, span.mdi {
-    font-size: 2rem;
-    color: currentColor;
-    margin: 1px 4px;
-    &.small {
-      font-size: 1.5rem;
-    }
-    &.large {
-      font-size: 2.5rem;
-    }
+  &.large {
+    max-width: 3rem;
+    max-height: 3rem;
   }
-  span.mdi {
+  &.broken {
+    display: none;
+  }
+}
+/* Font-Awesome and Material Design Icons */
+i.fas,
+i.fab,
+i.far,
+i.fal,
+i.fad,
+span.mdi {
+  font-size: 2rem;
+  color: currentColor;
+  margin: 1px 4px;
+  &.small {
+    font-size: 1.5rem;
+  }
+  &.large {
     font-size: 2.5rem;
   }
-  object.tile-icon {
-    width: 55px;
-    height: 55px;
-    svg, svg g, svg g path {
-      fill: currentColor;
-    }
-  }
-  /* Simple Icons */
-  .item-icon .simple-icons {
-    width: 2rem;
-    &.small { width: 1.5rem; }
-    &.large { width: 2.5rem; }
-  }
-
-  .item-icon .simple-icons path {
+}
+span.mdi {
+  font-size: 2.5rem;
+}
+object.tile-icon {
+  width: 55px;
+  height: 55px;
+  svg,
+  svg g,
+  svg g path {
     fill: currentColor;
   }
-  /* Emoji Icons */
-  i.emoji-icon {
-    font-style: normal;
-    font-size: 2rem;
-    margin: 0.2rem;
-    &.small {
-      font-size: 1.5rem;
-    }
-    &.large {
-      font-size: 2.5rem;
-    }
+}
+/* Simple Icons */
+.item-icon .simple-icons {
+  width: 2rem;
+  &.small {
+    width: 1.5rem;
   }
-  /* Icon Not Found */
-  .missing-image {
-    width: 2rem;
-    &.small {
-      width: 1.5rem !important;
-    }
-    &.large {
-      width: 2.5rem;
-    }
-    path {
-      fill: currentColor;
-    }
+  &.large {
+    width: 2.5rem;
   }
+}
+
+.item-icon .simple-icons path {
+  fill: currentColor;
+}
+/* Emoji Icons */
+i.emoji-icon {
+  font-style: normal;
+  font-size: 2rem;
+  margin: 0.2rem;
+  &.small {
+    font-size: 1.5rem;
+  }
+  &.large {
+    font-size: 2.5rem;
+  }
+}
+/* Icon Not Found */
+.missing-image {
+  width: 2rem;
+  &.small {
+    width: 1.5rem !important;
+  }
+  &.large {
+    width: 2.5rem;
+  }
+  path {
+    fill: currentColor;
+  }
+}
 </style>

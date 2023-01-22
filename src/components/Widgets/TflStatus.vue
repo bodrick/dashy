@@ -1,25 +1,25 @@
 <template>
-<div class="tfl-status">
-  <template v-if="lineStatuses">
-    <div v-for="line in filterLines" :key="line.index" class="line-row">
-      <p class="row name">{{ line.line }}</p>
-      <p :class="`row status ${getStatusColor(line.statusCode)}`">{{ line.status }}</p>
-      <p class="row disruption" v-if="line.disruption">{{ line.disruption | format }}</p>
-    </div>
-    <div v-if="!showAll" class="line-row">
-      <p class="row all-other">
-        {{
-          filterLines.length > 0 ?
-          $t('widgets.tfl-status.good-service-rest') :
-          $t('widgets.tfl-status.good-service-all')
-        }}
+  <div class="tfl-status">
+    <template v-if="lineStatuses">
+      <div v-for="line in filterLines" :key="line.index" class="line-row">
+        <p class="row name">{{ line.line }}</p>
+        <p :class="`row status ${getStatusColor(line.statusCode)}`">{{ line.status }}</p>
+        <p v-if="line.disruption" class="row disruption">{{ line.disruption | format }}</p>
+      </div>
+      <div v-if="!showAll" class="line-row">
+        <p class="row all-other">
+          {{
+            filterLines.length > 0
+              ? $t('widgets.tfl-status.good-service-rest')
+              : $t('widgets.tfl-status.good-service-all')
+          }}
+        </p>
+      </div>
+      <p class="more-details-btn" @click="toggleAllLines">
+        {{ showAll ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
       </p>
-    </div>
-    <p class="more-details-btn" @click="toggleAllLines">
-      {{ showAll ? $t('widgets.general.show-less') : $t('widgets.general.show-more') }}
-    </p>
-  </template>
-</div>
+    </template>
+  </div>
 </template>
 
 <script>
@@ -28,6 +28,12 @@ import WidgetMixin from '@/mixins/WidgetMixin';
 import { widgetApiEndpoints } from '@/utils/defaults';
 
 export default {
+  filters: {
+    format(description) {
+      const parts = description.split(':');
+      return parts.length > 1 ? parts[1] : parts[0];
+    },
+  },
   mixins: [WidgetMixin],
   data() {
     return {
@@ -38,20 +44,17 @@ export default {
   computed: {
     /* Return only the lines without a good service, unless showing all */
     filterLines() {
-      if (this.showAll) { return this.lineStatuses; }
+      if (this.showAll) {
+        return this.lineStatuses;
+      }
       return this.lineStatuses.filter((line) => line.statusCode !== 10);
-    },
-  },
-  filters: {
-    format(description) {
-      const parts = description.split(':');
-      return parts.length > 1 ? parts[1] : parts[0];
     },
   },
   methods: {
     /* Makes GET request to the TFL API */
     fetchData() {
-      axios.get(widgetApiEndpoints.tflStatus)
+      axios
+        .get(widgetApiEndpoints.tflStatus)
         .then((response) => {
           this.lineStatuses = this.processData(response.data);
         })
@@ -65,7 +68,7 @@ export default {
     /* Processes the results to be rendered by the UI */
     processData(data) {
       let results = [];
-      data.forEach((line, index) => {
+      for (const [index, line] of data.entries()) {
         results.push({
           index,
           line: line.name,
@@ -73,7 +76,7 @@ export default {
           status: line.lineStatuses[0].statusSeverityDescription,
           disruption: line.lineStatuses[0].reason,
         });
-      });
+      }
       if (!this.options.sortAlphabetically) {
         results = this.sortByStatusCode(results);
       }
@@ -92,9 +95,9 @@ export default {
     },
     /* If user only wants to see results from certain lines, filter the rest out */
     filterByLineName(allLines, usersLines) {
-      const chosenLines = usersLines.map(name => name.toLowerCase());
-      const filtered = allLines.filter((line) => chosenLines.includes(line.line.toLowerCase()));
-      if (filtered.length < 1) {
+      const chosenLines = new Set(usersLines.map((name) => name.toLowerCase()));
+      const filtered = allLines.filter((line) => chosenLines.has(line.line.toLowerCase()));
+      if (filtered.length === 0) {
         this.error('No TFL lines match your filter');
         return allLines;
       }
@@ -113,7 +116,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
 .tfl-status {
   .line-row {
     display: grid;
@@ -125,11 +127,21 @@ export default {
     .status {
       font-weight: bold;
       text-align: right;
-      &.green { color: var(--success); }
-      &.orange { color: var(--warning); }
-      &.red { color: var(--danger); }
-      &.info { color: var(--info); }
-      &.dark { color: #fa360f; }
+      &.green {
+        color: var(--success);
+      }
+      &.orange {
+        color: var(--warning);
+      }
+      &.red {
+        color: var(--danger);
+      }
+      &.info {
+        color: var(--info);
+      }
+      &.dark {
+        color: #fa360f;
+      }
     }
     .disruption {
       opacity: var(--dimming-factor);
@@ -140,7 +152,7 @@ export default {
       grid-column-start: span 2;
       font-weight: bold;
       text-align: center;
-      color: var(--success)
+      color: var(--success);
     }
     &:not(:last-child) {
       border-bottom: 1px dashed var(--widget-text-color);
@@ -162,11 +174,11 @@ export default {
     &:hover {
       border: 1px solid var(--widget-text-color);
     }
-    &:focus, &:active {
+    &:focus,
+    &:active {
       background: var(--widget-text-color);
       color: var(--widget-background-color);
     }
   }
 }
-
 </style>

@@ -3,8 +3,8 @@
     <p v-if="title" class="sub-item-group-title">{{ title }}</p>
     <SubItem
       v-for="(subItem, subIndex) in subItems"
-      :key="subIndex"
       :id="`${itemId}-sub-${subIndex}`"
+      :key="subIndex"
       :item="subItem"
       @triggerModal="triggerModal"
     />
@@ -15,14 +15,14 @@
 import SubItem from '@/components/LinkItems/SubItem.vue';
 
 export default {
+  components: {
+    SubItem,
+  },
   props: {
     itemId: String,
     subItems: Array,
     title: String,
     subItemGridSize: Number,
-  },
-  components: {
-    SubItem,
   },
   computed: {
     /* Determine number of columns to split items into, depending on number of items */

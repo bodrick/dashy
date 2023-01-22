@@ -1,15 +1,15 @@
 <template>
-<div class="news-wrapper" v-if="news">
-  <div class="article" v-for="article in news" :key="article.id">
-    <a class="headline" :href="article.url">{{ article.title }}</a>
-    <div class="article-meta">
-      <span class="publisher">{{ article.author }}</span>
-      <span class="date">{{ article.published | date }}</span>
+  <div v-if="news" class="news-wrapper">
+    <div v-for="article in news" :key="article.id" class="article">
+      <a class="headline" :href="article.url">{{ article.title }}</a>
+      <div class="article-meta">
+        <span class="publisher">{{ article.author }}</span>
+        <span class="date">{{ article.published | date }}</span>
+      </div>
+      <p class="description">{{ article.description }}</p>
+      <img v-if="article.image && !hideImages" class="thumbnail" :src="article.image" alt="Image" />
     </div>
-    <p class="description">{{ article.description }}</p>
-    <img class="thumbnail" v-if="article.image && !hideImages" :src="article.image" alt="Image" />
   </div>
-</div>
 </template>
 
 <script>
@@ -19,8 +19,13 @@ import { widgetApiEndpoints } from '@/utils/defaults';
 import { timestampToDate } from '@/utils/MiscHelpers';
 
 export default {
-  mixins: [WidgetMixin],
   components: {},
+  filters: {
+    date(date) {
+      return timestampToDate(date);
+    },
+  },
+  mixins: [WidgetMixin],
   data() {
     return {
       news: null,
@@ -50,22 +55,20 @@ export default {
       return this.options.hideImages;
     },
     endpoint() {
-      return `${widgetApiEndpoints.news}?apiKey=${this.apiKey}`
-      + `${this.country}${this.category}${this.lang}${this.count}`;
-    },
-  },
-  filters: {
-    date(date) {
-      return timestampToDate(date);
+      return (
+        `${widgetApiEndpoints.news}?apiKey=${this.apiKey}` +
+        `${this.country}${this.category}${this.lang}${this.count}`
+      );
     },
   },
   methods: {
     /* Make GET request to CoinGecko API endpoint */
     fetchData() {
-      axios.get(this.endpoint)
+      axios
+        .get(this.endpoint)
         .then((response) => {
           if (!response.data.news || response.data.news.length === 0) {
-            this.error('API didn\'t return any results for your query');
+            this.error("API didn't return any results for your query");
           }
           this.news = response.data.news;
         })
@@ -91,7 +94,9 @@ export default {
       font-size: 1.2rem;
       padding: 0.5rem 0;
       text-decoration: none;
-      &:hover { text-decoration: underline; }
+      &:hover {
+        text-decoration: underline;
+      }
     }
     p.description {
       color: var(--widget-text-color);
@@ -110,7 +115,9 @@ export default {
       opacity: var(--dimming-factor);
       font-size: 0.8rem;
     }
-    &:not(:last-child) { border-bottom: 1px dashed var(--widget-text-color); }
+    &:not(:last-child) {
+      border-bottom: 1px dashed var(--widget-text-color);
+    }
   }
 }
 </style>

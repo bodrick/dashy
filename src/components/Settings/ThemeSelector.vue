@@ -164,7 +164,7 @@ export default {
     },
     /* Removes any applied themes */
     resetToDefault() {
-      delete document.getElementsByTagName('html')[0].dataset.theme;
+      delete document.querySelectorAll('html')[0].dataset.theme;
     },
   },
 };

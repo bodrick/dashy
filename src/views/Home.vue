@@ -156,7 +156,7 @@ export default {
     },
     /* If on sub-route, and section exists, then return only that section */
     findSingleSection: (allSections, sectionTitle) => {
-      if (!sectionTitle) return undefined;
+      if (!sectionTitle) return;
       let sectionToReturn;
       const parse = (section) => section.replaceAll(' ', '-').toLowerCase().trim();
       for (const section of allSections) {

@@ -1,21 +1,21 @@
 <template>
-<div class="glances-disk-io-wrapper" v-if="disks">
-  <div class="disk-row" v-for="disk in disks" :key="disk.name">
-    <p class="disk-name">{{ disk.name }}</p>
-    <!-- Read Data -->
-    <div class="io-data read" v-tooltip="disk.readC ? `Count: ${disk.readC}` : ''">
-      <span class="lbl">{{ $t('widgets.glances.disk-io-read') }}:</span>
-      <span class="val">{{ disk.readB | formatSize }}</span>
-      <span :class="`direction ${disk.readD}`">{{ disk.readD | getArrow }}</span>
-    </div>
-    <!-- Write Data -->
-    <div class="io-data write" v-tooltip="disk.writeC ? `Count: ${disk.writeC}` : ''">
-      <span class="lbl">{{ $t('widgets.glances.disk-io-write') }}:</span>
-      <span class="val">{{ disk.writeB | formatSize }}</span>
-      <span :class="`direction ${disk.writeD}`">{{ disk.writeD | getArrow }}</span>
+  <div v-if="disks" class="glances-disk-io-wrapper">
+    <div v-for="disk in disks" :key="disk.name" class="disk-row">
+      <p class="disk-name">{{ disk.name }}</p>
+      <!-- Read Data -->
+      <div v-tooltip="disk.readC ? `Count: ${disk.readC}` : ''" class="io-data read">
+        <span class="lbl">{{ $t('widgets.glances.disk-io-read') }}:</span>
+        <span class="val">{{ disk.readB | formatSize }}</span>
+        <span :class="`direction ${disk.readD}`">{{ disk.readD | getArrow }}</span>
+      </div>
+      <!-- Write Data -->
+      <div v-tooltip="disk.writeC ? `Count: ${disk.writeC}` : ''" class="io-data write">
+        <span class="lbl">{{ $t('widgets.glances.disk-io-write') }}:</span>
+        <span class="val">{{ disk.writeB | formatSize }}</span>
+        <span :class="`direction ${disk.writeD}`">{{ disk.writeD | getArrow }}</span>
+      </div>
     </div>
   </div>
-</div>
 </template>
 
 <script>
@@ -24,6 +24,17 @@ import GlancesMixin from '@/mixins/GlancesMixin';
 import { convertBytes } from '@/utils/MiscHelpers';
 
 export default {
+  filters: {
+    formatSize(byteValue) {
+      if (!byteValue) return 'Idle';
+      return `${convertBytes(byteValue)}/s`;
+    },
+    getArrow(direction) {
+      if (direction === 'up') return '↑';
+      if (direction === 'down') return '↓';
+      return '';
+    },
+  },
   mixins: [WidgetMixin, GlancesMixin],
   data() {
     return {
@@ -36,22 +47,14 @@ export default {
       return this.makeGlancesUrl('diskio');
     },
   },
-  filters: {
-    formatSize(byteValue) {
-      if (!byteValue) return 'Idle';
-      return `${convertBytes(byteValue)}/s`;
-    },
-    getArrow(direction) {
-      if (direction === 'up') return '↑';
-      if (direction === 'down') return '↓';
-      return '';
-    },
+  created() {
+    this.overrideUpdateInterval = 1;
   },
   methods: {
     processData(diskData) {
       this.previous = this.disks;
       const disks = [];
-      diskData.forEach((disk, index) => {
+      for (const [index, disk] of diskData.entries()) {
         disks.push({
           name: disk.disk_name,
           readB: disk.read_bytes,
@@ -61,7 +64,7 @@ export default {
           writeC: disk.write_count,
           writeD: this.comparePrevious('write', disk.write_bytes, index),
         });
-      });
+      }
       this.disks = disks;
     },
     /* Compares previous values with current data */
@@ -75,9 +78,6 @@ export default {
       if (newVal < previousVal) return 'down';
       return 'none';
     },
-  },
-  created() {
-    this.overrideUpdateInterval = 1;
   },
 };
 </script>
@@ -109,8 +109,12 @@ export default {
         padding: 0 0.2rem;
         font-weight: bold;
         font-size: 1.2rem;
-        &.up { color: var(--success); }
-        &.down { color: var(--warning); }
+        &.up {
+          color: var(--success);
+        }
+        &.down {
+          color: var(--warning);
+        }
       }
     }
     &:not(:last-child) {

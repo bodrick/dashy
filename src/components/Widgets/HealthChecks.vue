@@ -1,20 +1,15 @@
 <template>
-<div class="health-checks-wrapper" v-if="crons">
-  <template
-    v-for="cron in crons" :key="cron.id"
-  >
-    <div class="status">
-      <p :class="cron.status">{{ cron.status | formatStatus }}</p>
-    </div>
-    <div 
-      class="info"
-      v-tooltip="pingTimeTooltip(cron)"
-    >
-      <p class="cron-name">{{ cron.name }}</p>
-      <p class="cron-desc">{{ cron.desc }}</p>
-    </div>
-  </template>
-</div>
+  <div v-if="crons" class="health-checks-wrapper">
+    <template v-for="cron in crons" :key="cron.id">
+      <div class="status">
+        <p :class="cron.status">{{ cron.status | formatStatus }}</p>
+      </div>
+      <div v-tooltip="pingTimeTooltip(cron)" class="info">
+        <p class="cron-name">{{ cron.name }}</p>
+        <p class="cron-desc">{{ cron.desc }}</p>
+      </div>
+    </template>
+  </div>
 </template>
 
 <script>
@@ -23,13 +18,7 @@ import { widgetApiEndpoints } from '@/utils/defaults';
 import { capitalize, timestampToDateTime } from '@/utils/MiscHelpers';
 
 export default {
-  mixins: [WidgetMixin],
   components: {},
-  data() {
-    return {
-      crons: null,
-    };
-  },
   filters: {
     formatStatus(status) {
       let symbol = '';
@@ -37,12 +26,18 @@ export default {
       if (status === 'down') symbol = '✘';
       if (status === 'new') symbol = '❖';
       if (status === 'paused') symbol = '⏸';
-      if (status === 'running') symbol = '▶'
+      if (status === 'running') symbol = '▶';
       return `${symbol} ${capitalize(status)}`;
     },
     formatDate(timestamp) {
       return timestampToDateTime(timestamp);
     },
+  },
+  mixins: [WidgetMixin],
+  data() {
+    return {
+      crons: null,
+    };
   },
   computed: {
     /* API endpoint, either for self-hosted or managed instance */
@@ -54,8 +49,8 @@ export default {
       if (!this.options.apiKey) {
         this.error('An API key is required, please see the docs for more info');
       }
-      if (typeof(this.options.apiKey) === "string") {
-        return [ this.options.apiKey ];
+      if (typeof this.options.apiKey === 'string') {
+        return [this.options.apiKey];
       }
       return this.options.apiKey;
     },
@@ -65,18 +60,18 @@ export default {
     fetchData() {
       this.overrideProxyChoice = true;
       const results = [];
-      this.apiKey.forEach((key) => {
+      for (const key of this.apiKey) {
         const authHeaders = { 'X-Api-Key': key };
-        this.makeRequest(this.endpoint, authHeaders).then(
-          (response) => { this.processData(response, results); },
-        );
-      });
-      results.sort((a,b) => (a.name > b.name) ? 1 : ((b.name > a.name) ? -1 : 0));
+        this.makeRequest(this.endpoint, authHeaders).then((response) => {
+          this.processData(response, results);
+        });
+      }
+      results.sort((a, b) => (a.name > b.name ? 1 : b.name > a.name ? -1 : 0));
       this.crons = results;
     },
     /* Assign data variables to the returned data */
     processData(data, results) {
-      data.checks.forEach((cron) => {
+      for (const cron of data.checks) {
         results.push({
           id: cron.slug,
           name: cron.name,
@@ -87,7 +82,7 @@ export default {
           nextPing: cron.next_ping,
           url: this.makeUrl(cron.unique_key),
         });
-      });
+      }
       return results;
     },
     makeUrl(cronId) {
@@ -96,11 +91,16 @@ export default {
     },
     pingTimeTooltip(cron) {
       const { lastPing, nextPing, pingCount } = cron;
-      const content = `<b>Total number of Pings:</b> ${pingCount}<br>`
-        + `<b>Last Ping:</b> ${timestampToDateTime(lastPing)}<br>`
-        + `<b>Next Ping:</b>${timestampToDateTime(nextPing)}`;
+      const content =
+        `<b>Total number of Pings:</b> ${pingCount}<br>` +
+        `<b>Last Ping:</b> ${timestampToDateTime(lastPing)}<br>` +
+        `<b>Next Ping:</b>${timestampToDateTime(nextPing)}`;
       return {
-        content, html: true, trigger: 'hover focus', delay: 250, classes: 'ping-times-tt',
+        content,
+        html: true,
+        trigger: 'hover focus',
+        delay: 250,
+        classes: 'ping-times-tt',
       };
     },
   },
@@ -121,11 +121,21 @@ export default {
     p {
       margin: 0;
       color: var(--info);
-      &.up { color: var(--success); }
-      &.down { color: var(--danger); }
-      &.new { color: var(--widget-text-color); }
-      &.running { color: var(--warning); }
-      &.paused { color: var(--info); }
+      &.up {
+        color: var(--success);
+      }
+      &.down {
+        color: var(--danger);
+      }
+      &.new {
+        color: var(--widget-text-color);
+      }
+      &.running {
+        color: var(--warning);
+      }
+      &.paused {
+        color: var(--info);
+      }
     }
   }
   .info {
@@ -144,7 +154,6 @@ export default {
     border-bottom: 1px dashed var(--widget-text-color);
   }
 }
-
 </style>
 
 <style lang="scss">

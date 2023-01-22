@@ -1,23 +1,23 @@
 <template>
-<div class="code-stats-wrapper">
-  <!-- User Info -->
-  <div class="user-meta" v-if="basicInfo && !hideMeta">
-    <div class="user-info-wrap">
-      <p class="username">{{ basicInfo.username }}</p>
-      <p class="user-level">{{ basicInfo.level }}</p>
+  <div class="code-stats-wrapper">
+    <!-- User Info -->
+    <div v-if="basicInfo && !hideMeta" class="user-meta">
+      <div class="user-info-wrap">
+        <p class="username">{{ basicInfo.username }}</p>
+        <p class="user-level">{{ basicInfo.level }}</p>
+      </div>
+      <div class="total-xp-wrap">
+        <p class="total-xp">{{ basicInfo.totalXp | formatTotalXp }}</p>
+        <p class="new-xp">{{ basicInfo.newXp | formatNewXp }}</p>
+      </div>
     </div>
-    <div class="total-xp-wrap">
-      <p class="total-xp">{{ basicInfo.totalXp | formatTotalXp }}</p>
-      <p class="new-xp">{{ basicInfo.newXp | formatNewXp }}</p>
-    </div>
+    <!-- XP History Heatmap -->
+    <div :id="`xp-history-${chartId}`" class="xp-heat-chart"></div>
+    <!-- Language Breakdown -->
+    <div :id="`languages-${chartId}`" class="language-pie-chart"></div>
+    <!-- Machines Percentage -->
+    <div :id="`machines-${chartId}`" class="machine-percentage-chart"></div>
   </div>
-  <!-- XP History Heatmap -->
-  <div :id="`xp-history-${chartId}`" class="xp-heat-chart"></div>
-  <!-- Language Breakdown -->
-  <div :id="`languages-${chartId}`" class="language-pie-chart"></div>
-  <!-- Machines Percentage -->
-  <div :id="`machines-${chartId}`" class="machine-percentage-chart"></div>
-</div>
 </template>
 
 <script>
@@ -28,6 +28,14 @@ import { widgetApiEndpoints } from '@/utils/defaults';
 import { putCommasInBigNum, showNumAsThousand } from '@/utils/MiscHelpers';
 
 export default {
+  filters: {
+    formatTotalXp(bigNum) {
+      return showNumAsThousand(bigNum);
+    },
+    formatNewXp(newXp) {
+      return `+${putCommasInBigNum(newXp)} XP`;
+    },
+  },
   mixins: [WidgetMixin, ChartingMixin],
   data() {
     return {
@@ -65,21 +73,14 @@ export default {
     },
     chartStartDate() {
       const now = new Date();
-      return new Date((now.setMonth(now.getMonth() - this.monthsToShow)));
-    },
-  },
-  filters: {
-    formatTotalXp(bigNum) {
-      return showNumAsThousand(bigNum);
-    },
-    formatNewXp(newXp) {
-      return `+${putCommasInBigNum(newXp)} XP`;
+      return new Date(now.setMonth(now.getMonth() - this.monthsToShow));
     },
   },
   methods: {
     /* Make GET request to CoinGecko API endpoint */
     fetchData() {
-      axios.get(this.endpoint)
+      axios
+        .get(this.endpoint)
         .then((response) => {
           this.processData(response.data);
         })
@@ -105,10 +106,10 @@ export default {
       if (!this.hideLanguages) {
         const langLabels = [];
         const langXpValues = [];
-        Object.keys(data.languages).forEach((lang) => {
+        for (const lang of Object.keys(data.languages)) {
           langLabels.push(lang);
           langXpValues.push(data.languages[lang].xps);
-        });
+        }
         const languagesPieData = {
           labels: langLabels,
           datasets: [{ values: langXpValues }],
@@ -118,20 +119,20 @@ export default {
       // Make day-by-day historical XP heat chart data
       if (!this.hideHistory) {
         const xpHistoryChartData = {};
-        Object.keys(data.dates).forEach((date) => {
+        for (const date of Object.keys(data.dates)) {
           const timestamp = Math.round(new Date(date).getTime() / 1000);
           xpHistoryChartData[timestamp] = data.dates[date];
-        });
+        }
         this.drawXpHistoryChart(xpHistoryChartData);
       }
       // Make machine proportion percentage chart data
       if (!this.hideMachines) {
         const machinesLabels = [];
         const machinesXpValues = [];
-        Object.keys(data.machines).forEach((machine) => {
+        for (const machine of Object.keys(data.machines)) {
           machinesLabels.push(machine);
           machinesXpValues.push(data.machines[machine].xps);
-        });
+        }
         const machinesPercentageData = {
           labels: machinesLabels,
           datasets: [{ values: machinesXpValues }],
@@ -147,7 +148,7 @@ export default {
         height: 250,
         strokeWidth: 15,
         tooltipOptions: {
-          formatTooltipY: d => showNumAsThousand(d),
+          formatTooltipY: (d) => showNumAsThousand(d),
         },
       });
     },
@@ -173,7 +174,7 @@ export default {
         height: 180,
         strokeWidth: 15,
         tooltipOptions: {
-          formatTooltipY: d => showNumAsThousand(d),
+          formatTooltipY: (d) => showNumAsThousand(d),
         },
         colors: ['#f9c80e', '#43bccd', '#ea3546', '#662e9b', '#f86624'],
       });
@@ -182,13 +183,13 @@ export default {
     makeLevel(xp) {
       if (xp < 100) return 'New Joiner';
       if (xp < 1000) return 'Noob';
-      if (xp < 10000) return 'Intermediate';
-      if (xp < 50000) return 'Code ninja in the making';
-      if (xp < 100000) return 'Expert Developer';
-      if (xp < 500000) return 'Ultra Expert Developer';
-      if (xp < 1000000) return 'Code Super Hero';
-      if (xp < 1500000) return 'Super Epic Code Hero';
-      if (xp >= 15000000) return 'God Level';
+      if (xp < 10_000) return 'Intermediate';
+      if (xp < 50_000) return 'Code ninja in the making';
+      if (xp < 100_000) return 'Expert Developer';
+      if (xp < 500_000) return 'Ultra Expert Developer';
+      if (xp < 1_000_000) return 'Code Super Hero';
+      if (xp < 1_500_000) return 'Super Epic Code Hero';
+      if (xp >= 15_000_000) return 'God Level';
       return xp;
     },
   },
@@ -238,7 +239,9 @@ export default {
   .xp-heat-chart,
   .language-pie-chart,
   .machine-percentage-chart {
-    &:not(:last-child) { border-bottom: 1px dashed var(--widget-text-color); }
+    &:not(:last-child) {
+      border-bottom: 1px dashed var(--widget-text-color);
+    }
   }
 }
 </style>

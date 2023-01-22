@@ -47,7 +47,7 @@ export default class ArrowKeyNavigation {
 
   /* Returns the number of visible items / results */
   static getNumResults() {
-    return document.getElementsByClassName('item').length;
+    return document.querySelectorAll('.item').length;
   }
 
   /* Returns the index for an element, ensuring that it's within bounds */
@@ -61,8 +61,8 @@ export default class ArrowKeyNavigation {
   /* Selects a given element, by it's ID. If out of bounds, returns element 0 */
   static selectItemByIndex(index) {
     return index >= 0 && index <= ArrowKeyNavigation.getNumResults()
-      ? document.getElementsByClassName('item')[index]
-      : [document.getElementsByClassName('item')];
+      ? document.querySelectorAll('.item')[index]
+      : [document.querySelectorAll('.item')];
   }
 
   /* Returns the index of the first cell in the previous/ above row */

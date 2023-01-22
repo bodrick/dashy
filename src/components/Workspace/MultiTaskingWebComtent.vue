@@ -41,7 +41,7 @@ export default {
     },
     /* Switches visibility to an already open app */
     openExistingApp() {
-      for (const frame of document.getElementsByClassName('web-content')) {
+      for (const frame of document.querySelectorAll('.web-content')) {
         frame.classList.add('hide');
       }
       document.getElementById(btoa(this.url)).classList.remove('hide');

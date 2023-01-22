@@ -1,7 +1,7 @@
 <template>
-<div class="glances-cpu-history-wrapper">
-  <div class="gl-history-chart" :id="chartId"></div>
-</div>
+  <div class="glances-cpu-history-wrapper">
+    <div :id="chartId" class="gl-history-chart"></div>
+  </div>
 </template>
 
 <script>
@@ -11,8 +11,8 @@ import ChartingMixin from '@/mixins/ChartingMixin';
 import { convertBytes, getTimeAgo, timestampToTime } from '@/utils/MiscHelpers';
 
 export default {
-  mixins: [WidgetMixin, GlancesMixin, ChartingMixin],
   components: {},
+  mixins: [WidgetMixin, GlancesMixin, ChartingMixin],
   data() {
     return {};
   },
@@ -24,18 +24,21 @@ export default {
       return this.makeGlancesUrl(`network/history/${this.limit}`);
     },
   },
+  created() {
+    this.overrideUpdateInterval = 10;
+  },
   methods: {
     processData(trafficData) {
       const preliminary = {
         upload: [],
         download: [],
       };
-      /* eslint-disable prefer-destructuring */
-      Object.keys(trafficData).forEach((keyName) => {
+
+      for (const keyName of Object.keys(trafficData)) {
         let upOrDown = null;
         if (keyName.includes('_tx')) upOrDown = 'up';
         else if (keyName.includes('_rx')) upOrDown = 'down';
-        trafficData[keyName].forEach((dataPoint) => {
+        for (const dataPoint of trafficData[keyName]) {
           const dataTime = this.getRoundedTime(dataPoint[0]);
           if (upOrDown === 'up') {
             if (preliminary.upload[dataTime]) preliminary.upload[dataTime] += dataPoint[1];
@@ -44,19 +47,19 @@ export default {
             if (preliminary.download[dataTime]) preliminary.download[dataTime] += dataPoint[1];
             else preliminary.download[dataTime] = dataPoint[1];
           }
-        });
-      });
+        }
+      }
       const timeLabels = [];
       const uploadData = [];
       const downloadData = [];
       const startDate = Object.keys(preliminary.upload)[0];
-      Object.keys(preliminary.upload).forEach((date) => {
+      for (const date of Object.keys(preliminary.upload)) {
         timeLabels.push(timestampToTime(date));
         uploadData.push(preliminary.upload[date]);
-      });
-      Object.keys(preliminary.download).forEach((date) => {
+      }
+      for (const date of Object.keys(preliminary.download)) {
         downloadData.push(preliminary.download[date]);
-      });
+      }
       const datasets = [
         { name: 'Upload', type: 'bar', values: uploadData },
         { name: 'Download', type: 'bar', values: downloadData },
@@ -88,20 +91,17 @@ export default {
           xAxisMode: 'tick',
         },
         tooltipOptions: {
-          formatTooltipY: d => convertBytes(d),
+          formatTooltipY: (d) => convertBytes(d),
         },
       });
     },
-
-  },
-  created() {
-    this.overrideUpdateInterval = 10;
   },
 };
 </script>
 
 <style scoped lang="scss">
 .glances-cpu-history-wrapper {
-  .gl-history-chart {}
+  .gl-history-chart {
+  }
 }
 </style>

@@ -18,14 +18,21 @@ import CancelIcon from '@/assets/interface-icons/config-close.svg';
 
 export default {
   name: 'SaveCancelButton',
-  props: {
-    saveClick: Function,
-    cancelClick: Function,
-  },
   components: {
     Button,
     SaveIcon,
     CancelIcon,
+  },
+  props: {
+    saveClick: {
+      type: Function,
+      default: undefined,
+    },
+
+    cancelClick: {
+      type: Function,
+      default: undefined,
+    },
   },
 };
 </script>

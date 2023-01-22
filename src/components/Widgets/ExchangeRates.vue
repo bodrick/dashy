@@ -1,29 +1,30 @@
 <template>
-<div class="exchange-rate-wrapper">
-  <template v-if="exchangeRates">
-    <p class="exchange-base-currency">Value of 1 {{ newInputCurrency || inputCurrency }}</p>
-    <p class="reset" v-if="newInputCurrency" @click="updateInputCurrency(inputCurrency)">
-      ⇦ Reset back to {{ inputCurrency }}
-    </p>
-    <div
-      v-for="(exchange, index) in exchangeRates" :key="index"
-      v-tooltip="tooltip(makeInverse(exchange))"
-      class="exchange-rate-row"
-    >
-      <p class="country" @click="updateInputCurrency(exchange.currency)">
-        <img :src="exchange.currency | flagUrl" alt="Flag" class="flag" />
-        {{ exchange.currency }}
+  <div class="exchange-rate-wrapper">
+    <template v-if="exchangeRates">
+      <p class="exchange-base-currency">Value of 1 {{ newInputCurrency || inputCurrency }}</p>
+      <p v-if="newInputCurrency" class="reset" @click="updateInputCurrency(inputCurrency)">
+        ⇦ Reset back to {{ inputCurrency }}
       </p>
-      <p class="value">
-        <span class="input-currency">
-          {{ 1 | applySymbol(newInputCurrency || inputCurrency) }} =
-        </span>
-        {{ exchange.value | applySymbol(exchange.currency) }}
-      </p>
-    </div>
-    <p class="last-updated">Updated on {{ lastUpdated }}</p>
-  </template>
-</div>
+      <div
+        v-for="(exchange, index) in exchangeRates"
+        :key="index"
+        v-tooltip="tooltip(makeInverse(exchange))"
+        class="exchange-rate-row"
+      >
+        <p class="country" @click="updateInputCurrency(exchange.currency)">
+          <img :src="exchange.currency | flagUrl" alt="Flag" class="flag" />
+          {{ exchange.currency }}
+        </p>
+        <p class="value">
+          <span class="input-currency">
+            {{ 1 | applySymbol(newInputCurrency || inputCurrency) }} =
+          </span>
+          {{ exchange.value | applySymbol(exchange.currency) }}
+        </p>
+      </div>
+      <p class="last-updated">Updated on {{ lastUpdated }}</p>
+    </template>
+  </div>
 </template>
 
 <script>
@@ -33,8 +34,17 @@ import { widgetApiEndpoints } from '@/utils/defaults';
 import { findCurrencySymbol, getCurrencyFlag, timestampToDate } from '@/utils/MiscHelpers';
 
 export default {
-  mixins: [WidgetMixin],
   components: {},
+  filters: {
+    /* Appends currency symbol onto price */
+    applySymbol(price, inputCurrency) {
+      return `${findCurrencySymbol(inputCurrency)}${price}`;
+    },
+    flagUrl(currency) {
+      return getCurrencyFlag(currency);
+    },
+  },
+  mixins: [WidgetMixin],
   data() {
     return {
       exchangeRates: null,
@@ -60,22 +70,15 @@ export default {
       return `${widgetApiEndpoints.exchangeRates}${this.apiKey}/latest/${currency}`;
     },
   },
-  filters: {
-    /* Appends currency symbol onto price */
-    applySymbol(price, inputCurrency) {
-      return `${findCurrencySymbol(inputCurrency)}${price}`;
-    },
-    flagUrl(currency) {
-      return getCurrencyFlag(currency);
-    },
-  },
   methods: {
     /* Make GET request to CoinGecko API endpoint */
     fetchData() {
-      axios.get(this.endpoint)
-        .then(response => {
+      axios
+        .get(this.endpoint)
+        .then((response) => {
           this.processData(response.data);
-        }).catch(error => {
+        })
+        .catch((error) => {
           this.error('Unable to fetch or process exchange rate data', error);
         })
         .finally(() => {
@@ -86,26 +89,24 @@ export default {
     processData(data) {
       const results = [];
       const rates = data.conversion_rates;
-      Object.keys(rates).forEach((currency) => {
+      for (const currency of Object.keys(rates)) {
         if (this.outputCurrencies.includes(currency)) {
           results.push({ currency, value: rates[currency] });
         }
-      });
+      }
       this.exchangeRates = results;
       this.lastUpdated = timestampToDate(data.time_last_update_unix * 1000);
     },
     updateInputCurrency(newCurrency) {
       this.startLoading();
-      if (newCurrency === this.inputCurrency) {
-        this.newInputCurrency = null;
-      } else {
-        this.newInputCurrency = newCurrency;
-      }
+      this.newInputCurrency = newCurrency === this.inputCurrency ? null : newCurrency;
       this.fetchData();
     },
     makeInverse(exchange) {
-      return `1 ${exchange.currency} = ${(1 / exchange.value).toFixed(2)}`
-        + ` ${this.newInputCurrency || this.inputCurrency}`;
+      return (
+        `1 ${exchange.currency} = ${(1 / exchange.value).toFixed(2)}` +
+        ` ${this.newInputCurrency || this.inputCurrency}`
+      );
     },
   },
 };
@@ -127,7 +128,9 @@ export default {
     font-size: 0.8rem;
     text-decoration: underline;
     cursor: pointer;
-    &:hover { opacity: 1; }
+    &:hover {
+      opacity: 1;
+    }
   }
   .exchange-rate-row {
     display: flex;
@@ -163,7 +166,9 @@ export default {
       border-bottom: 1px dashed var(--widget-text-color);
     }
     &:hover {
-      p.value span.input-currency { display: block; }
+      p.value span.input-currency {
+        display: block;
+      }
     }
   }
   p.last-updated {

@@ -1,7 +1,10 @@
 <template>
   <transition name="slide">
-    <div class="context-menu" v-if="show && !isMenuDisabled"
-      :style="posX && posY ? calcPosition() : ''">
+    <div
+      v-if="show && !isMenuDisabled"
+      class="context-menu"
+      :style="posX && posY ? calcPosition() : ''"
+    >
       <!-- Open Options -->
       <ul class="menu-section">
         <li @click="openSection()">
@@ -80,7 +83,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
 div.context-menu {
   position: absolute;
   margin: 0;
@@ -111,18 +113,28 @@ div.context-menu {
       }
       svg {
         width: 1rem;
-         margin-right: 0.5rem;
-          path { fill: currentColor; }
+        margin-right: 0.5rem;
+        path {
+          fill: currentColor;
+        }
       }
     }
   }
 }
 
 // Define enter and leave transitions
-.slide-enter-active { animation: slide-in .1s; }
-.slide-leave-active { animation: slide-in .1s reverse; }
+.slide-enter-active {
+  animation: slide-in 0.1s;
+}
+.slide-leave-active {
+  animation: slide-in 0.1s reverse;
+}
 @keyframes slide-in {
-  0% { transform: scaleY(0.5) scaleX(0.8) translateY(-50px); }
-  100% { transform: scaleY(1) translateY(0) translateY(0); }
+  0% {
+    transform: scaleY(0.5) scaleX(0.8) translateY(-50px);
+  }
+  100% {
+    transform: scaleY(1) translateY(0) translateY(0);
+  }
 }
 </style>

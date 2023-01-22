@@ -1,8 +1,8 @@
 <template>
-<div class="memory-charts-wrapper">
-  <div class="chart" :id="`aggregate-${chartId}`"></div>
-  <div class="chart" :id="chartId"></div>
-</div>
+  <div class="memory-charts-wrapper">
+    <div :id="`aggregate-${chartId}`" class="chart"></div>
+    <div :id="chartId" class="chart"></div>
+  </div>
 </template>
 
 <script>
@@ -10,8 +10,8 @@ import WidgetMixin from '@/mixins/WidgetMixin';
 import ChartingMixin from '@/mixins/ChartingMixin';
 
 export default {
-  mixins: [WidgetMixin, ChartingMixin],
   components: {},
+  mixins: [WidgetMixin, ChartingMixin],
   computed: {
     /* URL where NetData is hosted */
     netDataHost() {
@@ -30,7 +30,7 @@ export default {
     },
     /* A sudo-random ID for the chart DOM element */
     chartId() {
-      return `cpu-history-chart-${Math.round(Math.random() * 10000)}`;
+      return `cpu-history-chart-${Math.round(Math.random() * 10_000)}`;
     },
   },
   methods: {
@@ -45,24 +45,26 @@ export default {
       // Convert data to an object for easy working
       const timeData = []; // List of timestamps for axis
       const resultGroup = {}; // List of datasets, for each label
-      data.reverse().forEach((reading) => {
-        labels.forEach((label, indx) => {
-          if (indx === 0) { // First value is the timestamp, add to axis
+      for (const reading of data.reverse()) {
+        for (const [indx, label] of labels.entries()) {
+          if (indx === 0) {
+            // First value is the timestamp, add to axis
             timeData.push(this.formatTime(reading[indx] * 1000));
-          } else { // All other values correspond to a label
+          } else {
+            // All other values correspond to a label
             if (!resultGroup[label]) resultGroup[label] = [];
             resultGroup[label].push(reading[indx]);
           }
-        });
-      });
+        }
+      }
 
       // Put data in the format expected by the charts
       const averages = [];
       const datasets = [];
-      Object.keys(resultGroup).forEach((label) => {
+      for (const label of Object.keys(resultGroup)) {
         datasets.push({ name: label, type: 'bar', values: resultGroup[label] });
         averages.push(Math.round(this.average(resultGroup[label])));
-      });
+      }
 
       // Set results as component attributes, and call to render
       const timeChartData = { labels: timeData, datasets };
@@ -91,7 +93,7 @@ export default {
           xAxisMode: 'tick',
         },
         tooltipOptions: {
-          formatTooltipY: d => `${Math.round(d)}mb`,
+          formatTooltipY: (d) => `${Math.round(d)}mb`,
         },
       });
     },
@@ -114,15 +116,18 @@ export default {
 
 <style lang="scss">
 .memory-charts-wrapper .chart {
-  text.title, text.legend-dataset-text {
+  text.title,
+  text.legend-dataset-text {
     text-transform: capitalize;
     color: var(--widget-text-color);
   }
-  .axis, .chart-label {
+  .axis,
+  .chart-label {
     fill: var(--widget-text-color);
     opacity: var(--dimming-factor);
-    &:hover { opacity: 1; }
+    &:hover {
+      opacity: 1;
+    }
   }
 }
-
 </style>
