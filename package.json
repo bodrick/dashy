@@ -14,7 +14,8 @@
     "build-and-start": "npm-run-all --parallel build-watch start",
     "validate-config": "node services/config-validator",
     "health-check": "node services/healthcheck",
-    "dependency-audit": "npx improved-yarn-audit --ignore-dev-deps"
+    "dependency-audit": "npx improved-yarn-audit --ignore-dev-deps",
+    "test": "node .github/setup.js"
   },
   "dependencies": {
     "@formschema/native": "^2.0.0-beta.6",
@@ -26,7 +27,7 @@
     "crypto-js": "^4.1.1",
     "express": "^4.17.2",
     "frappe-charts": "^1.6.2",
-    "js-yaml": "^4.1.1",
+    "js-yaml": "^4.1.0",
     "keycloak-js": "^16.1.1",
     "register-service-worker": "^1.7.2",
     "remedial": "^1.0.8",
